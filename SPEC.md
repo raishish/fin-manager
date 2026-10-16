@@ -97,6 +97,16 @@ People own their financial data, and the app adds an intelligence layer on top o
   - The hard constraints are tested as ordinary Rust tests on the core.
   - The same core can later power mobile (Tauri 2 iOS/Android) and a command-line tool for the eval pipeline.
   - Chosen partly for low memory use, which matters on 8 GB machines.
+- **Supply-chain pinning (decision 35): all CI and tooling is pinned to an exact, immutable reference.**
+  - GitHub Actions: pinned by full commit SHA, with the version in a comment.
+  - Rust toolchain: exact release in `rust-toolchain.toml` (rustup verifies its SHA-256 manifests; `rust-toolchain.toml` cannot take a commit hash).
+  - Rust crates: `Cargo.lock` with checksums, built with `--locked`; any git dependency uses `rev = "<sha>"`.
+  - JavaScript (Svelte UI): exact versions plus a lockfile with integrity hashes; installs use the frozen lockfile.
+  - Model files: GGUF SHA-256 (decision 33).
+  - **Known gap:** GitHub-hosted runner images (`macos-14`, `ubuntu-24.04`) can only be chosen by label, not by hash. Linux jobs could later run in a container image pinned by digest.
+- **Commits (decision 36):**
+  - Every commit is **cryptographically signed** (SSH signing key) and carries a **DCO `Signed-off-by`** trailer, from every session.
+  - Merged branches and their worktrees are deleted right after merging.
 - **Model format: GGUF. Runtime: llama.cpp embedded in the app** (decision 13). One install; the app downloads and pins exact model files (Metal on Apple Silicon; CPU, with optional CUDA/Vulkan, on Linux).
   - Using an Ollama install the user already has is a possible later increment, not the MVP.
 - **Distribution: local-first app with an optional paid tier** (decision 2). The free app keeps data on the device.
@@ -271,3 +281,5 @@ People own their financial data, and the app adds an intelligence layer on top o
 | 32 | 2026-10-15 | Planning engine defaults: 6-month median baseline, 3-month safety floor, three-level verdicts, 12 months of file history imported at setup | Median resists one-off spikes; SimpleFIN's 90 days is too short for a baseline |
 | 33 | 2026-10-15 | MVP model picked by a small comparison of 3–4 small open-weight models on the synthetic test set; licence must allow redistribution; pinned hash | Evidence-based pick that doubles as the first eval pipeline |
 | 34 | 2026-10-15 | First-run flow: model downloads in the background during setup; first insight from fixed logic before the model is ready; backups suggested but not blocking, with reminders | Meets the 10-minute target without skipping security steps |
+| 35 | 2026-10-16 | Pin all CI and tooling to immutable references: actions by commit SHA, exact toolchain, lockfiles with checksums, git deps by rev, models by hash | Supply-chain safety for a privacy product; runner images are the one known gap |
+| 36 | 2026-10-16 | All commits signed (SSH) with a DCO sign-off, from every session; merged branches and worktrees deleted after merge | Verifiable history; matches the DCO policy; avoids branch clutter |
