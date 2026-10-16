@@ -118,6 +118,10 @@ People own their financial data, and the app adds an intelligence layer on top o
   - **AGPL-3.0** for the app and core, so no one can turn it into a closed or hosted product.
   - **Apache-2.0** for standalone reusable libraries (file parsers such as OFX/CSV/CAMT, format converters, the contract checker).
   - **Contributions under a DCO sign-off for now,** not a CLA. This means contributed code can't be re-licensed later; revisit if dual licensing becomes the business model.
+- **Dependency licence policy (decision 37), enforced by `cargo-deny` in CI:**
+  - **Allowed for any dependency:** permissive licences only (MIT, Apache-2.0 and Apache-2.0 WITH LLVM-exception, BSD-2-Clause, BSD-3-Clause, ISC, Zlib, Unicode-3.0, CDLA-Permissive-2.0).
+  - **MPL-2.0 is allowed only as named per-crate exceptions,** each reviewed. It's file-level copyleft and compatible with AGPL-3.0; only changes to the MPL files themselves must be shared. The first exceptions are the five crates Tauri needs: `cssparser`, `cssparser-macros`, `selectors`, `dtoa-short`, `option-ext`.
+  - **Any other licence, or any new MPL crate, fails CI** until it's reviewed and added here.
 
 ## 5. Data connectors / ingestion
 - Hard rule: no connector may route financial data through our servers.
@@ -283,3 +287,4 @@ People own their financial data, and the app adds an intelligence layer on top o
 | 34 | 2026-10-15 | First-run flow: model downloads in the background during setup; first insight from fixed logic before the model is ready; backups suggested but not blocking, with reminders | Meets the 10-minute target without skipping security steps |
 | 35 | 2026-10-16 | Pin all CI and tooling to immutable references: actions by commit SHA, exact toolchain, lockfiles with checksums, git deps by rev, models by hash | Supply-chain safety for a privacy product; runner images are the one known gap |
 | 36 | 2026-10-16 | All commits signed (SSH) with a DCO sign-off, from every session; merged branches and worktrees deleted after merge | Verifiable history; matches the DCO policy; avoids branch clutter |
+| 37 | 2026-10-16 | Dependency licences: permissive allow list; MPL-2.0 only as reviewed per-crate exceptions (first five: Tauri's cssparser, cssparser-macros, selectors, dtoa-short, option-ext); anything else fails CI | Tauri needs these crates; per-crate exceptions keep copyleft from spreading unnoticed |
