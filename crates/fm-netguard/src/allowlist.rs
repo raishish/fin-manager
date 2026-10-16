@@ -6,7 +6,7 @@
 
 use std::collections::BTreeSet;
 use std::fmt;
-use std::net::{IpAddr, Ipv6Addr};
+use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 use std::str::FromStr;
 
 use crate::error::ConfigError;
@@ -77,6 +77,11 @@ impl Origin {
 
     pub fn port(&self) -> u16 {
         self.port
+    }
+
+    /// `localhost`, `127.0.0.0/8` or `[::1]`.
+    pub fn is_loopback(&self) -> bool {
+        is_loopback(&self.host)
     }
 
     /// Origin of a parsed request URL. Unlike [`Origin::new`], plain `http`
@@ -260,7 +265,31 @@ fn normalize_host(host: &str) -> Result<String, ConfigError> {
             "hosts are ASCII letters, digits, '-' and '.' (use punycode)",
         ));
     }
-    Ok(host.to_ascii_lowercase())
+    let host = host.to_ascii_lowercase();
+    // A name whose last label is a number is read by resolvers as an IPv4
+    // address in shorthand (3232235777, 0xc0.0xa8.1.1, 10.1), which would let
+    // an innocent-looking entry or URL point anywhere. Only the canonical
+    // dotted form is accepted.
+    let last_label = host.rsplit('.').next().unwrap_or_default();
+    if is_numeric_label(last_label) && !is_canonical_ipv4(&host) {
+        return Err(invalid(
+            "numeric hosts must be a canonical dotted IPv4 address",
+        ));
+    }
+    Ok(host)
+}
+
+/// Decimal digits, or `0x` followed by hex digits (WHATWG "ends in a number").
+fn is_numeric_label(label: &str) -> bool {
+    match label.strip_prefix("0x") {
+        Some(hex) => hex.bytes().all(|b| b.is_ascii_hexdigit()),
+        None => !label.is_empty() && label.bytes().all(|b| b.is_ascii_digit()),
+    }
+}
+
+fn is_canonical_ipv4(host: &str) -> bool {
+    host.parse::<Ipv4Addr>()
+        .is_ok_and(|ip| ip.to_string() == host)
 }
 
 fn is_loopback(host: &str) -> bool {
@@ -327,6 +356,35 @@ mod tests {
             "https://.example.com",
         ] {
             assert!(bad.parse::<Origin>().is_err(), "{bad} should be rejected");
+        }
+    }
+
+    #[test]
+    fn numeric_hosts_must_be_canonical_ipv4() {
+        for bad in [
+            "3232235777",
+            "0xc0.0xa8.1.1",
+            "0xC0A80101",
+            "192.168.1",
+            "10.1",
+            "127.1",
+            "010.0.0.1",
+            "example.123",
+            "example.0x1f",
+            "1.2.3.4.5",
+        ] {
+            let url = format!("https://{bad}");
+            assert!(url.parse::<Origin>().is_err(), "{bad} should be rejected");
+        }
+        for ok in [
+            "1.2.3.4",
+            "123.example.com",
+            "a1.example",
+            "0xfeed.example",
+            "x.0xg",
+        ] {
+            let url = format!("https://{ok}");
+            assert!(url.parse::<Origin>().is_ok(), "{ok} should be accepted");
         }
     }
 

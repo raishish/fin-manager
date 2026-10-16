@@ -1,17 +1,27 @@
-//! The network log: every request attempt, allowed or blocked.
+//! The network log: every request attempt, allowed, blocked or rejected.
 //!
 //! Entries record when, where (origin and path) and why (the caller's
-//! purpose label), never headers, bodies or query strings, which can hold
-//! tokens and signatures.
+//! purpose label), never headers, bodies, credentials or query strings,
+//! which can hold tokens and signatures. Callers whose paths carry secrets
+//! replace the logged path (see `Request::log_path`). Text fields are capped
+//! at [`MAX_FIELD_BYTES`].
 
 use std::collections::VecDeque;
 use std::time::{SystemTime, UNIX_EPOCH};
 
+use crate::error::BlockReason;
+
+/// Longest path, purpose or error text kept in an entry.
+pub const MAX_FIELD_BYTES: usize = 512;
+
 /// What happened to one request attempt.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Outcome {
-    /// Not on the allowlist; nothing was sent.
-    Blocked,
+    /// The guard refused the destination; nothing was sent to it.
+    Blocked { reason: BlockReason },
+    /// The request was malformed or not allowed in form (credentials in the
+    /// URL, unsupported scheme, forbidden header...); nothing was sent.
+    Rejected { reason: String },
     /// A response arrived. `bytes` is the body size actually read.
     Completed { status: u16, bytes: u64 },
     /// Sent (or attempted) but failed: connection, TLS, timeout, size limit.
@@ -62,16 +72,40 @@ impl NetLog {
         id
     }
 
-    pub(crate) fn push(&mut self, entry: LogEntry) {
+    /// Stores an entry with its text fields capped at [`MAX_FIELD_BYTES`].
+    pub(crate) fn push(&mut self, mut entry: LogEntry) -> LogEntry {
+        cap(&mut entry.origin);
+        cap(&mut entry.path);
+        cap(&mut entry.purpose);
+        match &mut entry.outcome {
+            Outcome::Rejected { reason: text } | Outcome::Failed { error: text } => cap(text),
+            Outcome::Blocked { .. } | Outcome::Completed { .. } => {}
+        }
         if self.entries.len() == self.capacity {
             self.entries.pop_front();
         }
-        self.entries.push_back(entry);
+        self.entries.push_back(entry.clone());
+        entry
     }
 
     pub(crate) fn snapshot(&self) -> Vec<LogEntry> {
         self.entries.iter().cloned().collect()
     }
+}
+
+/// Cuts `text` to at most [`MAX_FIELD_BYTES`] on a character boundary,
+/// marking the cut with `…`.
+pub(crate) fn cap(text: &mut String) {
+    const MARK: &str = "…";
+    if text.len() <= MAX_FIELD_BYTES {
+        return;
+    }
+    let mut end = MAX_FIELD_BYTES - MARK.len();
+    while !text.is_char_boundary(end) {
+        end -= 1;
+    }
+    text.truncate(end);
+    text.push_str(MARK);
 }
 
 pub(crate) fn now_unix_ms() -> u64 {
@@ -94,7 +128,9 @@ mod tests {
             query_omitted: false,
             purpose: "test".into(),
             redirect_of: None,
-            outcome: Outcome::Blocked,
+            outcome: Outcome::Blocked {
+                reason: BlockReason::NotAllowed,
+            },
         }
     }
 
@@ -107,5 +143,29 @@ mod tests {
         }
         let ids: Vec<u64> = log.snapshot().iter().map(|e| e.id).collect();
         assert_eq!(ids, [2, 3]);
+    }
+
+    #[test]
+    fn long_fields_are_capped() {
+        let mut log = NetLog::new(10);
+        let mut long = entry(1);
+        long.path = format!("/{}", "é".repeat(2000));
+        long.purpose = "p".repeat(2000);
+        long.outcome = Outcome::Failed {
+            error: "e".repeat(2000),
+        };
+        let stored = log.push(long);
+        assert!(stored.path.len() <= MAX_FIELD_BYTES);
+        assert!(stored.path.ends_with('…'));
+        assert!(stored.purpose.len() <= MAX_FIELD_BYTES);
+        let Outcome::Failed { error } = &stored.outcome else {
+            unreachable!()
+        };
+        assert!(error.len() <= MAX_FIELD_BYTES);
+        assert_eq!(log.snapshot()[0], stored);
+
+        let mut short = String::from("/ok");
+        cap(&mut short);
+        assert_eq!(short, "/ok");
     }
 }
