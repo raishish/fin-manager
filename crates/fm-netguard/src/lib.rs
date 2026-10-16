@@ -1,0 +1,12 @@
+//! The only crate allowed to make network connections: allowlist and network log.
+
+/// Crate name, used by the workspace smoke test.
+pub const NAME: &str = env!("CARGO_PKG_NAME");
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn crate_name_is_set() {
+        assert_eq!(super::NAME, "fm-netguard");
+    }
+}

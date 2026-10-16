@@ -1,0 +1,11 @@
+[package]
+name = "fm-cli"
+description = "Developer and evaluation command-line tool."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+[lints]
+workspace = true

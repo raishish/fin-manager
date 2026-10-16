@@ -1,0 +1,11 @@
+[package]
+name = "fm-import-csv"
+description = "CSV bank-export parsing with per-bank mapping profiles."
+version.workspace = true
+edition.workspace = true
+license = "Apache-2.0"
+repository.workspace = true
+publish.workspace = true
+
+[lints]
+workspace = true

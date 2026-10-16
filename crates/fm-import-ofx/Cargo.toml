@@ -1,0 +1,11 @@
+[package]
+name = "fm-import-ofx"
+description = "OFX 1.x/2.x and QFX bank-export parsing."
+version.workspace = true
+edition.workspace = true
+license = "Apache-2.0"
+repository.workspace = true
+publish.workspace = true
+
+[lints]
+workspace = true
