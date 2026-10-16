@@ -49,7 +49,7 @@ mod rule;
 mod transaction;
 
 #[cfg(test)]
-mod round_trip_tests;
+pub(crate) mod round_trip_tests;
 
 pub use account::{Account, AccountKind};
 pub use category::{Bucket, Category, CategoryGroup, Taxonomy, TaxonomyVersion};

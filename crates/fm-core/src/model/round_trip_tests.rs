@@ -52,7 +52,7 @@ fn model_source() -> DecisionSource {
 /// A small ledger touching every type and every enum variant: a checking account, a
 /// credit card, a card payment matched as a transfer, a purchase, a refund, a foreign
 /// purchase, income, a pending charge, decisions from every source and a learned rule.
-fn sample_ledger() -> Ledger {
+pub(crate) fn sample_ledger() -> Ledger {
     let checking = Account {
         id: AccountId(1),
         name: "Everyday checking".into(),

@@ -133,30 +133,38 @@ fn lock_wipes_the_key_and_closes_the_connection() {
     vault.unlock(PASSWORD).unwrap();
 }
 
+/// The app's migrations plus one more, as a later build would have them.
+fn with_extra_migration(name: &'static str, sql: &'static str) -> Vec<Migration> {
+    let mut all = MIGRATIONS.to_vec();
+    all.push(Migration {
+        version: MIGRATIONS.len() as u32 + 1,
+        name,
+        sql,
+    });
+    all
+}
+
 #[test]
 fn migration_runs_on_an_existing_file() {
-    const V2: &[Migration] = &[
-        MIGRATIONS[0],
-        Migration {
-            version: 2,
-            name: "test: notes",
-            sql: "CREATE TABLE notes (id INTEGER PRIMARY KEY, body TEXT NOT NULL) STRICT;
-                  INSERT INTO meta (key, value) VALUES ('migrated', 'yes');",
-        },
-    ];
+    let latest = MIGRATIONS.len() as u32;
+    let next = with_extra_migration(
+        "test: notes",
+        "CREATE TABLE notes (id INTEGER PRIMARY KEY, body TEXT NOT NULL) STRICT;
+         INSERT INTO meta (key, value) VALUES ('migrated', 'yes');",
+    );
     let (_dir, vault) = new_vault();
     let u = vault.create_with_params(PASSWORD, P).unwrap();
     put(&u, "greeting", MARKER);
 
     // Reopen the same file through the same key and run a newer migration list.
-    let mut conn = db::open_encrypted(vault.db_path(), &u.key, false).unwrap();
-    assert_eq!(db::schema_version(&conn).unwrap(), 1);
-    assert_eq!(db::migrate(&mut conn, V2).unwrap(), 2);
-    assert_eq!(db::schema_version(&conn).unwrap(), 2);
+    let (mut conn, permits) = db::open_encrypted(vault.db_path(), &u.key, false).unwrap();
+    assert_eq!(db::schema_version(&conn).unwrap(), latest);
+    assert_eq!(db::migrate(&mut conn, &permits, &next).unwrap(), latest + 1);
+    assert_eq!(db::schema_version(&conn).unwrap(), latest + 1);
     conn.execute("INSERT INTO notes (body) VALUES ('x')", [])
         .unwrap();
     // Running it again is a no-op.
-    assert_eq!(db::migrate(&mut conn, V2).unwrap(), 2);
+    assert_eq!(db::migrate(&mut conn, &permits, &next).unwrap(), latest + 1);
     drop(conn);
 
     // Existing data survived, and the migration's own changes are there.
@@ -164,39 +172,58 @@ fn migration_runs_on_an_existing_file() {
     assert_eq!(get(&u, "migrated").as_deref(), Some("yes"));
     drop(u);
 
-    // This build only knows version 1, so it refuses the newer file.
+    // This build doesn't know the newer version, so it refuses the file.
     let err = vault.unlock(PASSWORD).unwrap_err();
     assert!(
-        matches!(
-            err,
-            StorageError::NewerSchema {
-                found: 2,
-                supported: 1
-            }
-        ),
+        matches!(err, StorageError::NewerSchema { found, supported } if found == latest + 1 && supported == latest),
         "{err:?}"
     );
 }
 
+/// A ledger made by T0.3 (schema version 1, no ledger tables) gains the ledger tables
+/// and the default category list when this build opens it.
+#[test]
+fn version_1_ledger_upgrades_to_the_ledger_schema() {
+    let (_dir, vault) = new_vault();
+    fs::create_dir_all(vault.dir()).unwrap();
+    let key = keyfile::DataKey::generate().unwrap();
+    let mut kf = keyfile::Keyfile::new().unwrap();
+    kf.set_slot(SlotKind::Password, PASSWORD, P, &key).unwrap();
+    kf.write_atomic(vault.keyfile_path()).unwrap();
+    let (mut conn, permits) = db::open_encrypted(vault.db_path(), &key, true).unwrap();
+    assert_eq!(
+        db::migrate(&mut conn, &permits, &MIGRATIONS[..1]).unwrap(),
+        1
+    );
+    conn.execute(
+        "INSERT INTO meta (key, value) VALUES ('greeting', ?1)",
+        [MARKER],
+    )
+    .unwrap();
+    drop(conn);
+
+    let u = vault.unlock(PASSWORD).unwrap();
+    assert_eq!(u.schema_version().unwrap(), 2);
+    assert_eq!(get(&u, "greeting").as_deref(), Some(MARKER));
+    assert_eq!(u.taxonomy().unwrap(), default_taxonomy());
+}
+
 #[test]
 fn failed_migration_rolls_back() {
-    const BROKEN: &[Migration] = &[
-        MIGRATIONS[0],
-        Migration {
-            version: 2,
-            name: "test: broken",
-            sql: "CREATE TABLE half (x INTEGER) STRICT; SELECT * FROM no_such_table;",
-        },
-    ];
+    let latest = MIGRATIONS.len() as u32;
+    let broken = with_extra_migration(
+        "test: broken",
+        "CREATE TABLE half (x INTEGER) STRICT; SELECT * FROM no_such_table;",
+    );
     let (_dir, vault) = new_vault();
     let u = vault.create_with_params(PASSWORD, P).unwrap();
-    let mut conn = db::open_encrypted(vault.db_path(), &u.key, false).unwrap();
-    let err = db::migrate(&mut conn, BROKEN).unwrap_err();
+    let (mut conn, permits) = db::open_encrypted(vault.db_path(), &u.key, false).unwrap();
+    let err = db::migrate(&mut conn, &permits, &broken).unwrap_err();
     assert!(
-        matches!(err, StorageError::Migration { version: 2, .. }),
+        matches!(err, StorageError::Migration { version, .. } if version == latest + 1),
         "{err:?}"
     );
-    assert_eq!(db::schema_version(&conn).unwrap(), 1);
+    assert_eq!(db::schema_version(&conn).unwrap(), latest);
     let half: i64 = conn
         .query_row(
             "SELECT count(*) FROM sqlite_master WHERE name = 'half'",
@@ -514,9 +541,13 @@ fn files_are_owner_only() {
     assert_eq!(mode(&vault.lock_path), 0o600, "lock file");
 
     // Keep the rollback journal around after a write so its mode can be checked.
-    u.connection()
-        .execute_batch("PRAGMA journal_mode = PERSIST;")
-        .unwrap();
+    {
+        // A PRAGMA write: refused by the authorizer outside the schema permit.
+        let _schema = u.permits.grant(db::Permit::Schema);
+        u.connection()
+            .execute_batch("PRAGMA journal_mode = PERSIST;")
+            .unwrap();
+    }
     put(&u, "greeting", MARKER);
     let journal = vault.dir().join("ledger.db-journal");
     assert_eq!(mode(&journal), 0o600, "journal");

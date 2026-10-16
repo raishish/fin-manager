@@ -60,6 +60,16 @@ impl DataKey {
         Ok(key)
     }
 
+    /// A data key from raw bytes (the Keychain copy T5.1 keeps for Touch ID).
+    pub(crate) fn from_bytes(bytes: &[u8; 32]) -> DataKey {
+        DataKey(*bytes)
+    }
+
+    /// A copy of the raw key, wiped when dropped.
+    pub(crate) fn copy_bytes(&self) -> Zeroizing<[u8; 32]> {
+        Zeroizing::new(self.0)
+    }
+
     /// `PRAGMA key = "x'<hex>'";` (or `rekey`), which hands SQLCipher the raw key
     /// (skipping its own password KDF). Built in a buffer of exactly the right size, so it is never
     /// reallocated, and wiped when dropped.

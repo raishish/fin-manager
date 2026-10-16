@@ -44,6 +44,7 @@ recovery key ──Argon2id(own salt)──► KEK' ─────────�
 | `unlocked.lock()`, or dropping it | Closes the connection (SQLCipher wipes its own key copy on close) and zeroizes the data key |
 | `unlocked.set_password(current, new)` / `set_recovery_key(current_password, key)` | Re-wraps one slot. The current password is required |
 | `unlocked.rotate_data_key(password, new_recovery_key)` | New data key: the whole database is re-encrypted (`PRAGMA rekey`) and a new keyfile with a new id is written. The old recovery key stops working; pass a new one or set one later |
+| `unlocked.reset_password(recovery_key, new)` | After unlocking with the recovery key: checks the recovery key and re-wraps the password slot |
 | `vault.finish_create(password)` | Completes a create that crashed after the keyfile was written (`VaultState::Incomplete`) |
 | `vault.shred_keys()` | Overwrites with zeros and deletes every keyfile (current, `.next`, `.tmp`). The database can never be opened again. The full delete-everything flow is T5.3 |
 
@@ -65,7 +66,61 @@ Every connection also turns on `foreign_keys` and `secure_delete`, so deleted ro
 - Each migration runs in its own transaction together with the version bump, so a failure leaves the previous version intact.
 - The app refuses a database newer than itself (`StorageError::NewerSchema`).
 - Released migrations are never edited; a change is always a new migration.
-- Version 1 creates only the `meta` key/value table. The ledger tables come in T0.8.
+- Version 1 creates only the `meta` key/value table.
+- Version 2 (`schema/v2_ledger.sql`) creates the ledger tables. When a version-1 ledger is opened, it gains the ledger tables and the default category list.
+
+## Ledger tables and the repository
+The tables mirror the T0.5 model (`crates/fm-core/src/model/README.md`). All of them are `STRICT` and use relational columns, never JSON blobs. Each enum is stored as its JSON name (`"credit_card"`), each `Bucket` as `(bucket, bucket_category_id, bucket_transaction_id)`, and each `DecisionSource` as one column per field. `CHECK` constraints enforce each variant's shape. `repo.rs` is the only code that reads or writes these tables, through methods on `Unlocked`:
+
+| Methods | Notes |
+|---|---|
+| `insert_*`, `account`, `transaction`, `decision`, `raw_import`, `accounts`, `transactions`, `transactions_for_account`, `decisions`, `decisions_for_transaction`, `rules`, `raw_imports`, `imports_with_sha256` | Writes keep the caller's ids; `next_id(Table)` gives a free one. Reads rebuild validated model types (rules through `Rule::validate`, the category list through `Taxonomy::validate`): a row that breaks an invariant is `StorageError::InvalidRow`, which names the table and the reason, never the row's contents |
+| `taxonomy`, `save_taxonomy` | The whole category list. Saving upserts by id, so a rename re-applies to past decisions. A category still in use can't be removed (`RESTRICT`); merge it instead. A new ledger starts with `assets/taxonomy/default-v1.json` |
+| `save_ledger`, `load_ledger` | Write a whole `Ledger` into an empty ledger, or read it all back. Used for fixtures and the TD.1 ground truth |
+| `set_decision_state`, `mark_decision_seen` | The only changes a stored decision can take (see below) |
+| `post_pending` | The only change a stored transaction can take: pending → posted |
+| `delete_import` | Cascading deletion (see below) |
+
+**What the database refuses.** These rules hold for any SQL on the app's connection, not just for the repository:
+
+| Rows | Rule |
+|---|---|
+| Decisions | Append-only. An `UPDATE` may only move `state` (applied → superseded, or suggested → applied, dismissed or superseded) and set `seen_at` once, from `NULL`. An update that changes nothing is refused too. A `DELETE` happens only through `delete_import` |
+| Transactions | Immutable, with one exception: `post_pending` turns a pending transaction into the posted one. That may change everything except the id and the account, including the import it points to. A `DELETE` happens only with the transaction's import |
+| Raw imports | The id, `sha256` and `bytes` never change; metadata such as the file name can. A `DELETE` happens only through `delete_import` |
+| Rules | Once a rule has made decisions, its matcher, action, origin and id are fixed (`priority` and `enabled` can still change). Changing what it does means a new rule |
+| Accounts | The id and currency never change |
+
+Violations come back as `StorageError::ForbiddenChange`.
+
+**How it holds:**
+- **`fm_permit(kind)`** is an SQL function the app registers on each connection. It returns 1 only while the matching Rust API call runs: `'delete'` during `delete_import`, `'post_pending'` during `post_pending`. A drop guard turns it off again. No SQL can turn it on.
+- **Failing closed:** a connection without the function (another tool opening the file with the key) can't change or delete protected rows at all.
+- **`recursive_triggers` is on,** so `REPLACE` / `INSERT OR REPLACE` can't get around the DELETE triggers through their implicit delete. A control test shows the bypass works when the setting is off.
+- **An authorizer on the connection** refuses:
+  - creating, dropping or altering tables, indexes, views and triggers (temporary triggers too);
+  - `ATTACH` and `DETACH`;
+  - every PRAGMA write (`foreign_keys`, `recursive_triggers`, `writable_schema`, `key`, `user_version`, ...).
+
+  Reads and `defer_foreign_keys` are allowed. Only migrations and rekeying get a Rust-side schema permit that lifts these restrictions.
+- **SQLite's defensive mode is on.**
+- **`Unlocked::connection()` is crate-private.** Code outside fm-core goes through repository functions. Code inside fm-core is still policed by the triggers and the authorizer. It could re-register `fm_permit` through the Rust API, and the only defence against that is code review.
+
+**Deleting an import removes everything derived from it (SPEC decision 28),** through foreign-key cascades, in one transaction:
+```
+raw_imports ─► transactions ─► decisions about them
+                     │       ─► decisions that point at them (transfer counterpart, refund original)
+                     └─────► rules learned from them (Correction origin) ─► decisions those rules made
+decisions.replaces ─► SET NULL: a surviving decision that replaced a deleted one still stands
+```
+A transaction can end up with no applied decision; categorisation (T2.2) and transfer detection (T1.4) decide it again. Accounts are `RESTRICT` for now: deleting by account or date range is T5.3.
+
+## Hooks for T5.1 (crate-private)
+- `Unlocked::data_key_copy()` returns a zeroizing copy of the raw data key, for the Keychain item behind Touch ID.
+- `Vault::unlock_with_data_key(&key)` takes the same lock and runs the same permission and migration steps as `unlock`. A stale or wrong key is `DatabaseKeyRejected`; the caller falls back to the password, which also completes an interrupted rotation. After `rotate_data_key`, T5.1 must replace the Keychain copy.
+- `Unlocked::reset_password(recovery_key, new_password)` checks the recovery-key slot and rewrites the password slot, for a user who unlocked with the recovery key.
+
+Neither raw-key hook is public outside fm-core; compile-fail doctests on `Vault` check that.
 
 ## Crypto backend
 SQLCipher 4.14.0 (community edition, BSD-3-Clause) is bundled by `libsqlite3-sys`. It is linked against **OpenSSL 3.6.x built from source and linked statically** (`bundled-sqlcipher-vendored-openssl`, Apache-2.0), on both macOS and Linux. That gives the same crypto everywhere, pinned by `Cargo.lock` (SPEC decision 35). Keeping `openssl-src` current is our job, and the advisory check in T0.6 flags it when it falls behind. The `sqlcipher_settings` test checks the provider and versions.

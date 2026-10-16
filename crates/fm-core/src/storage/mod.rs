@@ -10,6 +10,7 @@
 mod db;
 mod error;
 mod keyfile;
+mod repo;
 
 use std::fmt;
 use std::fs;
@@ -22,6 +23,7 @@ use zeroize::Zeroize;
 pub use db::{MIGRATIONS, Migration};
 pub use error::StorageError;
 pub use keyfile::{KdfParams, SlotKind};
+pub use repo::{DeletedCounts, Table, default_taxonomy};
 
 use keyfile::{DataKey, Keyfile};
 
@@ -54,6 +56,19 @@ pub enum VaultState {
 }
 
 /// A ledger on disk, locked. Holds only paths, never key material.
+///
+/// The raw-key hooks T5.1 uses for Touch ID stay inside fm-core:
+///
+/// ```compile_fail
+/// let vault = fm_core::storage::Vault::at(std::path::Path::new("ledger"));
+/// let _ = vault.unlock_with_data_key(&[0u8; 32]); // crate-private
+/// ```
+///
+/// ```compile_fail
+/// fn leak(u: &fm_core::storage::Unlocked) -> [u8; 32] {
+///     *u.data_key_copy() // crate-private
+/// }
+/// ```
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Vault {
     dir: PathBuf,
@@ -169,6 +184,25 @@ impl Vault {
         self.unlock_slot(SlotKind::RecoveryKey, recovery_key)
     }
 
+    /// Unlocks with the raw data key instead of a secret: the copy T5.1 keeps in the
+    /// macOS Keychain behind Touch ID. Same lock, permission and migration steps as
+    /// [`Vault::unlock`]. A key that doesn't open the database (stale after a rotation,
+    /// or wrong) is [`StorageError::DatabaseKeyRejected`]; the caller falls back to the
+    /// password, which also completes any interrupted rotation.
+    #[allow(dead_code, reason = "used by T5.1 (Touch ID unlock)")]
+    pub(crate) fn unlock_with_data_key(&self, key: &[u8; 32]) -> Result<Unlocked, StorageError> {
+        match self.state() {
+            VaultState::Ready => {}
+            VaultState::Incomplete => return Err(StorageError::IncompleteCreate),
+            VaultState::Missing | VaultState::Orphaned => return Err(StorageError::NotFound),
+        }
+        let lock = self.lock()?;
+        let keyfile = Keyfile::read(&self.keyfile_path)?;
+        let key = DataKey::from_bytes(key);
+        let (conn, permits) = db::open_encrypted(&self.db_path, &key, false)?;
+        self.finish_open(lock, conn, permits, keyfile, key)
+    }
+
     /// Destroys the key material: every keyfile (current, mid-rotation and temporary)
     /// is overwritten with zeros, flushed and deleted. The database is left in place
     /// but can never be decrypted again. Fails with [`StorageError::InUse`] while the
@@ -209,21 +243,21 @@ impl Vault {
         let keyfile = Keyfile::read(&self.keyfile_path)?;
         let key = keyfile.unwrap_key(kind, secret)?;
         match db::open_encrypted(&self.db_path, &key, false) {
-            Ok(conn) => {
+            Ok((conn, permits)) => {
                 // A rotation that stopped before re-encrypting leaves a stale next
                 // keyfile; the database still uses the current key.
                 remove_if_present(&self.next_keyfile_path)?;
-                self.finish_open(lock, conn, keyfile, key)
+                self.finish_open(lock, conn, permits, keyfile, key)
             }
             Err(StorageError::DatabaseKeyRejected) if self.next_keyfile_path.exists() => {
                 // A rotation re-encrypted the database but stopped before promoting the
                 // new keyfile: finish it.
                 let next = Keyfile::read(&self.next_keyfile_path)?;
                 let next_key = next.unwrap_key(kind, secret)?;
-                let conn = db::open_encrypted(&self.db_path, &next_key, false)?;
+                let (conn, permits) = db::open_encrypted(&self.db_path, &next_key, false)?;
                 fs::rename(&self.next_keyfile_path, &self.keyfile_path)?;
                 sync_dir(&self.dir);
-                self.finish_open(lock, conn, next, next_key)
+                self.finish_open(lock, conn, permits, next, next_key)
             }
             Err(e) => Err(e),
         }
@@ -242,24 +276,27 @@ impl Vault {
         #[cfg(unix)]
         std::os::unix::fs::OpenOptionsExt::mode(&mut options, FILE_MODE);
         drop(options.open(&self.db_path)?);
-        let conn = db::open_encrypted(&self.db_path, &key, true)?;
-        self.finish_open(lock, conn, keyfile, key)
+        let (conn, permits) = db::open_encrypted(&self.db_path, &key, true)?;
+        self.finish_open(lock, conn, permits, keyfile, key)
     }
 
     fn finish_open(
         &self,
         lock: LedgerLock,
         mut conn: Connection,
+        permits: std::sync::Arc<db::Permits>,
         keyfile: Keyfile,
         key: DataKey,
     ) -> Result<Unlocked, StorageError> {
-        db::migrate(&mut conn, MIGRATIONS)?;
+        db::migrate(&mut conn, &permits, MIGRATIONS)?;
+        repo::seed_default_taxonomy(&mut conn)?;
         self.restrict_permissions()?;
         Ok(Unlocked {
             vault: self.clone(),
             keyfile,
             key,
             conn: Some(conn),
+            permits,
             _lock: lock,
         })
     }
@@ -317,6 +354,8 @@ pub struct Unlocked {
     key: DataKey,
     /// `None` only after [`Unlocked::wipe`], which runs as the value is consumed.
     conn: Option<Connection>,
+    /// The switches behind `fm_permit()` and the authorizer on this connection (db.rs).
+    permits: std::sync::Arc<db::Permits>,
     // Declared last, so it is released after the connection closes.
     _lock: LedgerLock,
 }
@@ -332,14 +371,17 @@ impl fmt::Debug for Unlocked {
 }
 
 impl Unlocked {
-    pub fn connection(&self) -> &Connection {
+    /// The connection, for the repository and the rest of fm-core. Not public: every
+    /// write from outside fm-core goes through repository functions, and even inside it
+    /// the authorizer and triggers refuse schema changes and forbidden edits.
+    pub(crate) fn connection(&self) -> &Connection {
         self.conn
             .as_ref()
             .expect("connection is open until the ledger is locked")
     }
 
     /// Mutable access, for transactions.
-    pub fn connection_mut(&mut self) -> &mut Connection {
+    pub(crate) fn connection_mut(&mut self) -> &mut Connection {
         self.conn
             .as_mut()
             .expect("connection is open until the ledger is locked")
@@ -396,6 +438,37 @@ impl Unlocked {
         self.rewrite_slot(SlotKind::RecoveryKey, recovery_key, kdf)
     }
 
+    /// Sets a new master password after the user unlocked with the recovery key and no
+    /// longer knows the old password. Checks `recovery_key` against its slot (not the
+    /// password's) and rewrites only the password slot, like [`Unlocked::set_password`].
+    /// After a suspected compromise, follow with [`Unlocked::rotate_data_key`].
+    pub fn reset_password(
+        &mut self,
+        recovery_key: &[u8],
+        new_password: &[u8],
+    ) -> Result<(), StorageError> {
+        self.reset_password_with_params(recovery_key, new_password, KdfParams::DEFAULT)
+    }
+
+    pub(crate) fn reset_password_with_params(
+        &mut self,
+        recovery_key: &[u8],
+        new_password: &[u8],
+        kdf: KdfParams,
+    ) -> Result<(), StorageError> {
+        self.keyfile
+            .unwrap_key(SlotKind::RecoveryKey, recovery_key)
+            .map(drop)?;
+        self.rewrite_slot(SlotKind::Password, new_password, kdf)
+    }
+
+    /// A copy of the raw data key, wiped when dropped, for T5.1 to store in the macOS
+    /// Keychain behind Touch ID. Never leaves the crate.
+    #[allow(dead_code, reason = "used by T5.1 (Touch ID unlock)")]
+    pub(crate) fn data_key_copy(&self) -> zeroize::Zeroizing<[u8; 32]> {
+        self.key.copy_bytes()
+    }
+
     pub fn has_recovery_key(&self) -> bool {
         self.keyfile.has_slot(SlotKind::RecoveryKey)
     }
@@ -435,7 +508,7 @@ impl Unlocked {
         }
         let next_path = &self.vault.next_keyfile_path;
         next.write_atomic(next_path)?;
-        if let Err(e) = db::rekey(self.connection(), &new_key) {
+        if let Err(e) = db::rekey(self.connection(), &self.permits, &new_key) {
             let _ = fs::remove_file(next_path);
             return Err(e);
         }
@@ -503,5 +576,7 @@ fn sync_dir(dir: &Path) {
     let _ = fs::File::open(dir).and_then(|d| d.sync_all());
 }
 
+#[cfg(test)]
+mod repo_tests;
 #[cfg(test)]
 mod tests;

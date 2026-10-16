@@ -17,6 +17,12 @@ pub struct Currency {
 
 /// ISO 4217 codes with their minor-unit exponents, sorted by code for binary search.
 ///
+/// **Append-only.** Stored amounts are minor units next to a code, and the exponent is
+/// looked up here, never stored. So a code is never removed and its exponent never
+/// changes once shipped: either would change the meaning of amounts already in users'
+/// ledgers. Add new codes only. `currency_table_is_append_only` pins today's entries. If
+/// ISO ever changes an exponent, that is a new code plus a data migration, not an edit.
+///
 /// Active codes as of 2026, plus a few withdrawn since 2021 (ANG, BGN, CUC, HRK, SLL,
 /// ZWL) because old statements still use them. Precious metals, SDRs and the testing
 /// codes (XAU, XDR, XTS, XXX, ...) have no minor unit and are left out.
@@ -288,6 +294,24 @@ mod tests {
             assert!(code.len() == 3 && code.bytes().all(|b| b.is_ascii_uppercase()));
             assert!(*exponent <= 4);
         }
+    }
+
+    /// The table is append-only (see [`CURRENCIES`]): every entry shipped so far must
+    /// still be there with the same exponent. Adding codes is fine; never edit this list
+    /// except to append to it.
+    #[test]
+    fn currency_table_is_append_only() {
+        const SHIPPED: &str = "AED2 AFN2 ALL2 AMD2 ANG2 AOA2 ARS2 AUD2 AWG2 AZN2 BAM2 BBD2 BDT2 BGN2 BHD3 BIF0 BMD2 BND2 BOB2 BOV2 BRL2 BSD2 BTN2 BWP2 BYN2 BZD2 CAD2 CDF2 CHE2 CHF2 CHW2 CLF4 CLP0 CNY2 COP2 COU2 CRC2 CUC2 CUP2 CVE2 CZK2 DJF0 DKK2 DOP2 DZD2 EGP2 ERN2 ETB2 EUR2 FJD2 FKP2 GBP2 GEL2 GHS2 GIP2 GMD2 GNF0 GTQ2 GYD2 HKD2 HNL2 HRK2 HTG2 HUF2 IDR2 ILS2 INR2 IQD3 IRR2 ISK0 JMD2 JOD3 JPY0 KES2 KGS2 KHR2 KMF0 KPW2 KRW0 KWD3 KYD2 KZT2 LAK2 LBP2 LKR2 LRD2 LSL2 LYD3 MAD2 MDL2 MGA2 MKD2 MMK2 MNT2 MOP2 MRU2 MUR2 MVR2 MWK2 MXN2 MXV2 MYR2 MZN2 NAD2 NGN2 NIO2 NOK2 NPR2 NZD2 OMR3 PAB2 PEN2 PGK2 PHP2 PKR2 PLN2 PYG0 QAR2 RON2 RSD2 RUB2 RWF0 SAR2 SBD2 SCR2 SDG2 SEK2 SGD2 SHP2 SLE2 SLL2 SOS2 SRD2 SSP2 STN2 SVC2 SYP2 SZL2 THB2 TJS2 TMT2 TND3 TOP2 TRY2 TTD2 TWD2 TZS2 UAH2 UGX0 USD2 USN2 UYI0 UYU2 UYW4 UZS2 VED2 VES2 VND0 VUV0 WST2 XAF0 XCD2 XCG2 XOF0 XPF0 YER2 ZAR2 ZMW2 ZWG2 ZWL2";
+        for entry in SHIPPED.split(' ') {
+            let (code, exponent) = entry.split_at(3);
+            let currency = Currency::new(code).unwrap_or_else(|_| panic!("{code} was removed"));
+            assert_eq!(
+                currency.minor_exponent().to_string(),
+                exponent,
+                "{code}'s exponent changed"
+            );
+        }
+        assert!(CURRENCIES.len() >= SHIPPED.split(' ').count());
     }
 
     #[test]

@@ -21,6 +21,16 @@ pub enum StorageError {
     /// The database rejected the key while it was being applied. The message is fixed
     /// and never includes the statement, which contains the key.
     KeySetup,
+    /// A stored row breaks a model invariant (the database was edited outside the app,
+    /// or is damaged). Names the table and what is wrong, never the row's contents.
+    InvalidRow {
+        table: &'static str,
+        reason: &'static str,
+    },
+    /// A change the ledger never allows, such as editing a recorded decision.
+    ForbiddenChange(&'static str),
+    /// A model value broke its own invariant (for example an invalid taxonomy).
+    Model(crate::model::ModelError),
     /// Argon2id parameters below the minimum for protecting a new slot.
     WeakKdfParams,
     /// There is no ledger at this location.
@@ -59,6 +69,9 @@ impl fmt::Display for StorageError {
             Self::DatabaseKeyRejected => {
                 f.write_str("the database does not match its keyfile, or is damaged")
             }
+            Self::InvalidRow { table, reason } => write!(f, "invalid row in {table}: {reason}"),
+            Self::ForbiddenChange(what) => write!(f, "not allowed: {what}"),
+            Self::Model(e) => write!(f, "{e}"),
             Self::KeySetup => f.write_str("the database could not apply its key"),
             Self::WeakKdfParams => f.write_str(
                 "key derivation parameters are below the minimum (19 MiB memory, 2 passes)",
@@ -92,6 +105,7 @@ impl std::error::Error for StorageError {
             Self::Io(e) => Some(e),
             Self::Random(e) => Some(e),
             Self::Kdf(e) => Some(e),
+            Self::Model(e) => Some(e),
             _ => None,
         }
     }
@@ -100,6 +114,12 @@ impl std::error::Error for StorageError {
 impl From<rusqlite::Error> for StorageError {
     fn from(e: rusqlite::Error) -> Self {
         Self::Database(e)
+    }
+}
+
+impl From<crate::model::ModelError> for StorageError {
+    fn from(e: crate::model::ModelError) -> Self {
+        Self::Model(e)
     }
 }
 
