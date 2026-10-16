@@ -927,7 +927,9 @@ name = "fm-app"
 version = "0.0.0"
 dependencies = [
  "fm-core",
+ "fm-netguard",
  "serde",
+ "serde_json",
  "tauri",
  "tauri-build",
 ]

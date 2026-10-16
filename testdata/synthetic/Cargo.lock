@@ -178,6 +178,7 @@ dependencies = [
  "getrandom",
  "rusqlite",
  "serde",
+ "serde_json",
  "sha2",
  "zeroize",
 ]

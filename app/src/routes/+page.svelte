@@ -15,6 +15,9 @@
 	{:catch error}
 		<p role="alert">Could not reach the core: {String(error)}</p>
 	{/await}
+	<nav>
+		<a href="/network">Network log</a> · <a href="/network/crash">Crash reports</a>
+	</nav>
 </main>
 
 <style>
