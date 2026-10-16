@@ -190,6 +190,7 @@ People own their financial data, and the app adds an intelligence layer on top o
     - SimpleFIN, user-initiated and only to the user's own bridge.
     - Model and app-update downloads with no identifiers or cookies, checked against published hashes and signatures.
   - **Crash reports:** off by default. When one occurs the user sees exactly what would be sent and sends it manually; transaction content, amounts and merchant names are scrubbed.
+  - **"Sent manually" means the app never uploads crash reports (decision 39).** The preview offers *Copy report*, shows the report file's path (to attach to a GitHub issue or email) and *Delete*. No crash-report address is on the allowlist.
   - **No analytics in the MVP.** Product learning comes from opt-in interviews and feedback.
   - **Visible network log in the app:** every request, when, and to where.
 - **Threat model:**
@@ -290,3 +291,4 @@ People own their financial data, and the app adds an intelligence layer on top o
 | 36 | 2026-10-16 | All commits signed (SSH) with a DCO sign-off, from every session; merged branches and worktrees deleted after merge | Verifiable history; matches the DCO policy; avoids branch clutter |
 | 37 | 2026-10-16 | Dependency licences: permissive allow list; MPL-2.0 only as reviewed per-crate exceptions (first five: Tauri's cssparser, cssparser-macros, selectors, dtoa-short, option-ext); anything else fails CI | Tauri needs these crates; per-crate exceptions keep copyleft from spreading unnoticed |
 | 38 | 2026-10-16 | Squash-merge task branches; keep `main` history linear (no merge commits) | One reviewable commit per task; simple, bisectable history |
+| 39 | 2026-10-16 | Crash reports are never uploaded by the app: Copy report, file path shown, Delete; no crash-report origin on the allowlist | MVP has no server; keeps the "nothing leaves" promise checkable |
