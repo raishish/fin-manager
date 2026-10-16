@@ -107,6 +107,7 @@ People own their financial data, and the app adds an intelligence layer on top o
 - **Commits (decision 36):**
   - Every commit is **cryptographically signed** (SSH signing key) and carries a **DCO `Signed-off-by`** trailer, from every session.
   - Merged branches and their worktrees are deleted right after merging.
+- **Linear history on `main` (decision 38):** every task branch lands as **one squash commit** on `main` (signed, signed off, message naming the task). There are no merge commits, and the task branch is rebased onto `main` first so the squash applies cleanly.
 - **Model format: GGUF. Runtime: llama.cpp embedded in the app** (decision 13). One install; the app downloads and pins exact model files (Metal on Apple Silicon; CPU, with optional CUDA/Vulkan, on Linux).
   - Using an Ollama install the user already has is a possible later increment, not the MVP.
 - **Distribution: local-first app with an optional paid tier** (decision 2). The free app keeps data on the device.
@@ -288,3 +289,4 @@ People own their financial data, and the app adds an intelligence layer on top o
 | 35 | 2026-10-16 | Pin all CI and tooling to immutable references: actions by commit SHA, exact toolchain, lockfiles with checksums, git deps by rev, models by hash | Supply-chain safety for a privacy product; runner images are the one known gap |
 | 36 | 2026-10-16 | All commits signed (SSH) with a DCO sign-off, from every session; merged branches and worktrees deleted after merge | Verifiable history; matches the DCO policy; avoids branch clutter |
 | 37 | 2026-10-16 | Dependency licences: permissive allow list; MPL-2.0 only as reviewed per-crate exceptions (first five: Tauri's cssparser, cssparser-macros, selectors, dtoa-short, option-ext); anything else fails CI | Tauri needs these crates; per-crate exceptions keep copyleft from spreading unnoticed |
+| 38 | 2026-10-16 | Squash-merge task branches; keep `main` history linear (no merge commits) | One reviewable commit per task; simple, bisectable history |
