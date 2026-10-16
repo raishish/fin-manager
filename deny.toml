@@ -1,0 +1,140 @@
+# Supply-chain checks (SPEC decision 35), run in CI with cargo-deny:
+#   cargo deny --all-features --locked check
+#
+# - licenses:   third-party code must be under a permissive licence, so it is
+#               compatible with both the AGPL-3.0 app and the Apache-2.0
+#               importer crates.
+# - advisories: RustSec vulnerabilities, unsoundness, yanked crates.
+# - bans:       HTTP clients, TLS and other network transports may only be
+#               used by fm-netguard, the one place allowed to make network
+#               connections (SPEC decision 21).
+# - sources:    crates.io only; no git or other registries.
+
+[graph]
+# Launch platforms (SPEC decision 11). Dependencies that only exist on other
+# targets (e.g. tauri's reqwest on Android/iOS) are not in the shipped graph.
+targets = [
+    "aarch64-apple-darwin",
+    "x86_64-unknown-linux-gnu",
+    "aarch64-unknown-linux-gnu",
+]
+all-features = true
+
+[output]
+feature-depth = 1
+
+[advisories]
+# Vulnerabilities and unsound crates are always errors unless listed in
+# `ignore` with a reason.
+yanked = "deny"
+# Unmaintained crates are errors only when the workspace depends on them
+# directly; deeper ones are reported as warnings.
+unmaintained = "workspace"
+ignore = []
+
+[licenses]
+# Permissive licences only (SPEC decision 37). Anything copyleft (GPL, LGPL,
+# MPL, EPL...) fails until reviewed and added as a per-crate exception.
+allow = [
+    "Apache-2.0",
+    "Apache-2.0 WITH LLVM-exception",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "CDLA-Permissive-2.0",
+    "ISC",
+    "MIT",
+    "Unicode-3.0",
+    "Zlib",
+]
+confidence-threshold = 0.93
+# The allow list is a policy, not an inventory.
+unused-allowed-license = "allow"
+# MPL-2.0 (file-level copyleft) only for these reviewed crates, which Tauri
+# needs (SPEC decision 37). A new MPL crate fails CI until reviewed.
+exceptions = [
+    { crate = "cssparser", allow = ["MPL-2.0"] },
+    { crate = "cssparser-macros", allow = ["MPL-2.0"] },
+    { crate = "dtoa-short", allow = ["MPL-2.0"] },
+    { crate = "option-ext", allow = ["MPL-2.0"] },
+    { crate = "selectors", allow = ["MPL-2.0"] },
+]
+
+[licenses.private]
+# Workspace crates (publish = false) carry our own AGPL/Apache licences and
+# aren't checked against the third-party allow list.
+ignore = true
+
+[bans]
+multiple-versions = "warn"
+wildcards = "deny"
+allow-wildcard-paths = true
+highlight = "all"
+
+# `wrappers` lists the only crates allowed to depend on the banned crate
+# directly. Adding a network-capable crate anywhere else fails CI: route the
+# traffic through fm-netguard instead. The `http` types crate is not banned;
+# it is plain data types and tauri uses it.
+deny = [
+    # The one HTTP client, and what it is built from.
+    { crate = "ureq", wrappers = ["fm-netguard"], reason = "only fm-netguard makes network requests" },
+    { crate = "ureq-proto", wrappers = ["ureq"], reason = "HTTP/1.1 protocol for ureq only" },
+    { crate = "rustls", wrappers = ["ureq"], reason = "TLS only inside fm-netguard's client" },
+    { crate = "rustls-webpki", wrappers = ["rustls"], reason = "TLS only inside fm-netguard's client" },
+    { crate = "webpki-roots", wrappers = ["ureq"], reason = "TLS only inside fm-netguard's client" },
+    { crate = "ring", wrappers = ["rustls", "rustls-webpki"], reason = "TLS crypto only inside fm-netguard's client" },
+
+    # Other HTTP clients and servers.
+    { crate = "reqwest", reason = "use fm-netguard" },
+    { crate = "hyper", reason = "use fm-netguard" },
+    { crate = "hyper-util", reason = "use fm-netguard" },
+    { crate = "hyper-rustls", reason = "use fm-netguard" },
+    { crate = "hyper-tls", reason = "use fm-netguard" },
+    { crate = "h2", reason = "use fm-netguard" },
+    { crate = "h3", reason = "use fm-netguard" },
+    { crate = "isahc", reason = "use fm-netguard" },
+    { crate = "curl", reason = "use fm-netguard" },
+    { crate = "curl-sys", reason = "use fm-netguard" },
+    { crate = "attohttpc", reason = "use fm-netguard" },
+    { crate = "minreq", reason = "use fm-netguard" },
+    { crate = "surf", reason = "use fm-netguard" },
+    { crate = "http-client", reason = "use fm-netguard" },
+    { crate = "awc", reason = "use fm-netguard" },
+    { crate = "actix-http", reason = "no network servers" },
+    { crate = "hf-hub", reason = "model downloads go through fm-netguard" },
+
+    # Other TLS stacks and network transports.
+    { crate = "native-tls", reason = "TLS only inside fm-netguard's client" },
+    { crate = "openssl", reason = "TLS only inside fm-netguard's client" },
+    # SQLCipher's encryption uses OpenSSL's libcrypto, vendored and built
+    # from source; nothing else may link OpenSSL.
+    { crate = "openssl-sys", wrappers = ["libsqlite3-sys"], reason = "libcrypto for SQLCipher only" },
+    { crate = "openssl-src", wrappers = ["openssl-sys"], reason = "libcrypto for SQLCipher only" },
+    { crate = "tokio-rustls", reason = "TLS only inside fm-netguard's client" },
+    { crate = "tokio-native-tls", reason = "TLS only inside fm-netguard's client" },
+    { crate = "async-native-tls", reason = "TLS only inside fm-netguard's client" },
+    { crate = "tungstenite", reason = "no WebSockets" },
+    { crate = "tokio-tungstenite", reason = "no WebSockets" },
+    { crate = "async-tungstenite", reason = "no WebSockets" },
+    { crate = "quinn", reason = "no QUIC" },
+]
+
+# fm-netguard's ureq stays rustls-only. Feature unification means any crate
+# could switch on cookies, gzip, proxies or native TLS for everyone, so the
+# enabled set must match exactly.
+[[bans.features]]
+crate = "ureq"
+exact = true
+allow = [
+    "_ring",
+    "_rustls",
+    "_tls",
+    "rustls",
+    "rustls-no-provider",
+    "rustls-webpki-roots",
+]
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]
+allow-git = []
