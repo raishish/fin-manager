@@ -3,6 +3,7 @@
 pub mod crash;
 pub mod model;
 pub mod storage;
+pub mod unlock;
 
 /// Crate name, used by the workspace smoke test.
 pub const NAME: &str = env!("CARGO_PKG_NAME");

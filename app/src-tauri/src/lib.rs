@@ -5,6 +5,9 @@ mod network;
 
 use fm_core::crash::{CrashReporter, CrashStore};
 use fm_netguard::{Allowlist, NetGuard};
+
+mod unlock;
+
 use serde::Serialize;
 use tauri::{Manager, State};
 
@@ -75,6 +78,9 @@ pub fn run() {
             reporter.install_panic_hook();
             app.manage(reporter);
             app.manage(Net(NetGuard::new(Allowlist::new())));
+            let ledger_dir = app.path().app_data_dir()?.join("ledger");
+            app.manage(unlock::app_unlock(&ledger_dir));
+            unlock::start_autolock_timer(app.handle().clone());
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -86,9 +92,31 @@ pub fn run() {
             crash_reports,
             crash_report,
             delete_crash_report,
+            unlock::commands::unlock_state,
+            unlock::commands::password_strength,
+            unlock::commands::create_ledger,
+            unlock::commands::finish_create,
+            unlock::commands::unlock_with_password,
+            unlock::commands::unlock_with_recovery_key,
+            unlock::commands::set_password_after_recovery,
+            unlock::commands::unlock_with_touch_id,
+            unlock::commands::recovery_to_confirm,
+            unlock::commands::confirm_recovery_key,
+            unlock::commands::change_password,
+            unlock::commands::set_autolock_minutes,
+            unlock::commands::lock,
+            unlock::commands::activity,
         ])
-        .run(tauri::generate_context!())
-        .expect("error while running the Tauri application");
+        .build(tauri::generate_context!())
+        .expect("error while building the Tauri application")
+        .run(|app, event| {
+            // Quitting locks: the database closes and the data key is wiped (SPEC §7).
+            if let tauri::RunEvent::Exit = event {
+                let unlock = app.state::<unlock::AppUnlock>();
+                unlock.lock();
+                unlock::sync_crash_terms(&unlock, &app.state::<CrashReporter>());
+            }
+        });
 }
 
 #[cfg(test)]
