@@ -1,0 +1,640 @@
+{
+  "version": {
+    "base": "1",
+    "revision": 0
+  },
+  "groups": [
+    {
+      "id": 1,
+      "key": "food",
+      "name": "Food & drink",
+      "hidden": false
+    },
+    {
+      "id": 2,
+      "key": "housing",
+      "name": "Housing",
+      "hidden": false
+    },
+    {
+      "id": 3,
+      "key": "utilities",
+      "name": "Utilities",
+      "hidden": false
+    },
+    {
+      "id": 4,
+      "key": "transport",
+      "name": "Transportation",
+      "hidden": false
+    },
+    {
+      "id": 5,
+      "key": "shopping",
+      "name": "Shopping",
+      "hidden": false
+    },
+    {
+      "id": 6,
+      "key": "entertainment",
+      "name": "Entertainment",
+      "hidden": false
+    },
+    {
+      "id": 7,
+      "key": "health",
+      "name": "Health",
+      "hidden": false
+    },
+    {
+      "id": 8,
+      "key": "personal_care",
+      "name": "Personal care",
+      "hidden": false
+    },
+    {
+      "id": 9,
+      "key": "travel",
+      "name": "Travel",
+      "hidden": false
+    },
+    {
+      "id": 10,
+      "key": "family",
+      "name": "Family & kids",
+      "hidden": false
+    },
+    {
+      "id": 11,
+      "key": "pets",
+      "name": "Pets",
+      "hidden": false
+    },
+    {
+      "id": 12,
+      "key": "insurance",
+      "name": "Insurance",
+      "hidden": false
+    },
+    {
+      "id": 13,
+      "key": "financial",
+      "name": "Fees & finance",
+      "hidden": false
+    },
+    {
+      "id": 14,
+      "key": "taxes",
+      "name": "Taxes",
+      "hidden": false
+    },
+    {
+      "id": 15,
+      "key": "giving",
+      "name": "Giving",
+      "hidden": false
+    },
+    {
+      "id": 16,
+      "key": "services",
+      "name": "Services",
+      "hidden": false
+    },
+    {
+      "id": 17,
+      "key": "other",
+      "name": "Other",
+      "hidden": false
+    }
+  ],
+  "categories": [
+    {
+      "id": 1,
+      "group_id": 1,
+      "key": "food.groceries",
+      "name": "Groceries",
+      "hidden": false,
+      "merged_into": null
+    },
+    {
+      "id": 2,
+      "group_id": 1,
+      "key": "food.restaurants",
+      "name": "Restaurants",
+      "hidden": false,
+      "merged_into": null
+    },
+    {
+      "id": 3,
+      "group_id": 1,
+      "key": "food.coffee",
+      "name": "Coffee shops",
+      "hidden": false,
+      "merged_into": null
+    },
+    {
+      "id": 4,
+      "group_id": 1,
+      "key": "food.fast_food",
+      "name": "Fast food",
+      "hidden": false,
+      "merged_into": null
+    },
+    {
+      "id": 5,
+      "group_id": 1,
+      "key": "food.bars",
+      "name": "Bars & alcohol",
+      "hidden": false,
+      "merged_into": null
+    },
+    {
+      "id": 6,
+      "group_id": 1,
+      "key": "food.delivery",
+      "name": "Food delivery",
+      "hidden": false,
+      "merged_into": null
+    },
+    {
+      "id": 7,
+      "group_id": 2,
+      "key": "housing.rent",
+      "name": "Rent",
+      "hidden": false,
+      "merged_into": null
+    },
+    {
+      "id": 8,
+      "group_id": 2,
+      "key": "housing.mortgage",
+      "name": "Mortgage",
+      "hidden": false,
+      "merged_into": null
+    },
+    {
+      "id": 9,
+      "group_id": 2,
+      "key": "housing.maintenance",
+      "name": "Maintenance & repairs",
+      "hidden": false,
+      "merged_into": null
+    },
+    {
+      "id": 10,
+      "group_id": 2,
+      "key": "housing.furnishings",
+      "name": "Furniture & furnishings",
+      "hidden": false,
+      "merged_into": null
+    },
+    {
+      "id": 11,
+      "group_id": 2,
+      "key": "housing.hoa",
+      "name": "HOA fees",
+      "hidden": false,
+      "merged_into": null
+    },
+    {
+      "id": 12,
+      "group_id": 3,
+      "key": "utilities.electricity",
+      "name": "Electricity",
+      "hidden": false,
+      "merged_into": null
+    },
+    {
+      "id": 13,
+      "group_id": 3,
+      "key": "utilities.gas",
+      "name": "Gas & heating",
+      "hidden": false,
+      "merged_into": null
+    },
+    {
+      "id": 14,
+      "group_id": 3,
+      "key": "utilities.water_trash",
+      "name": "Water & trash",
+      "hidden": false,
+      "merged_into": null
+    },
+    {
+      "id": 15,
+      "group_id": 3,
+      "key": "utilities.internet",
+      "name": "Internet",
+      "hidden": false,
+      "merged_into": null
+    },
+    {
+      "id": 16,
+      "group_id": 3,
+      "key": "utilities.phone",
+      "name": "Phone",
+      "hidden": false,
+      "merged_into": null
+    },
+    {
+      "id": 17,
+      "group_id": 4,
+      "key": "transport.fuel",
+      "name": "Fuel",
+      "hidden": false,
+      "merged_into": null
+    },
+    {
+      "id": 18,
+      "group_id": 4,
+      "key": "transport.transit",
+      "name": "Public transit",
+      "hidden": false,
+      "merged_into": null
+    },
+    {
+      "id": 19,
+      "group_id": 4,
+      "key": "transport.rideshare",
+      "name": "Rideshare & taxis",
+      "hidden": false,
+      "merged_into": null
+    },
+    {
+      "id": 20,
+      "group_id": 4,
+      "key": "transport.parking_tolls",
+      "name": "Parking & tolls",
+      "hidden": false,
+      "merged_into": null
+    },
+    {
+      "id": 21,
+      "group_id": 4,
+      "key": "transport.auto_maintenance",
+      "name": "Car maintenance",
+      "hidden": false,
+      "merged_into": null
+    },
+    {
+      "id": 22,
+      "group_id": 4,
+      "key": "transport.auto_loan",
+      "name": "Car loan payment",
+      "hidden": false,
+      "merged_into": null
+    },
+    {
+      "id": 23,
+      "group_id": 5,
+      "key": "shopping.general",
+      "name": "General merchandise",
+      "hidden": false,
+      "merged_into": null
+    },
+    {
+      "id": 24,
+      "group_id": 5,
+      "key": "shopping.clothing",
+      "name": "Clothing & shoes",
+      "hidden": false,
+      "merged_into": null
+    },
+    {
+      "id": 25,
+      "group_id": 5,
+      "key": "shopping.electronics",
+      "name": "Electronics",
+      "hidden": false,
+      "merged_into": null
+    },
+    {
+      "id": 26,
+      "group_id": 5,
+      "key": "shopping.sporting_goods",
+      "name": "Sporting goods",
+      "hidden": false,
+      "merged_into": null
+    },
+    {
+      "id": 27,
+      "group_id": 5,
+      "key": "shopping.hobbies",
+      "name": "Hobbies & crafts",
+      "hidden": false,
+      "merged_into": null
+    },
+    {
+      "id": 28,
+      "group_id": 6,
+      "key": "entertainment.streaming",
+      "name": "Streaming services",
+      "hidden": false,
+      "merged_into": null
+    },
+    {
+      "id": 29,
+      "group_id": 6,
+      "key": "entertainment.music",
+      "name": "Music",
+      "hidden": false,
+      "merged_into": null
+    },
+    {
+      "id": 30,
+      "group_id": 6,
+      "key": "entertainment.games",
+      "name": "Games",
+      "hidden": false,
+      "merged_into": null
+    },
+    {
+      "id": 31,
+      "group_id": 6,
+      "key": "entertainment.events",
+      "name": "Events & tickets",
+      "hidden": false,
+      "merged_into": null
+    },
+    {
+      "id": 32,
+      "group_id": 7,
+      "key": "health.pharmacy",
+      "name": "Pharmacy",
+      "hidden": false,
+      "merged_into": null
+    },
+    {
+      "id": 33,
+      "group_id": 7,
+      "key": "health.medical",
+      "name": "Doctor & medical",
+      "hidden": false,
+      "merged_into": null
+    },
+    {
+      "id": 34,
+      "group_id": 7,
+      "key": "health.dental",
+      "name": "Dental",
+      "hidden": false,
+      "merged_into": null
+    },
+    {
+      "id": 35,
+      "group_id": 7,
+      "key": "health.vision",
+      "name": "Vision",
+      "hidden": false,
+      "merged_into": null
+    },
+    {
+      "id": 36,
+      "group_id": 7,
+      "key": "health.fitness",
+      "name": "Fitness & gym",
+      "hidden": false,
+      "merged_into": null
+    },
+    {
+      "id": 37,
+      "group_id": 8,
+      "key": "personal_care.hair_beauty",
+      "name": "Hair & beauty",
+      "hidden": false,
+      "merged_into": null
+    },
+    {
+      "id": 38,
+      "group_id": 8,
+      "key": "personal_care.spa",
+      "name": "Spa & massage",
+      "hidden": false,
+      "merged_into": null
+    },
+    {
+      "id": 39,
+      "group_id": 8,
+      "key": "personal_care.laundry",
+      "name": "Laundry & dry cleaning",
+      "hidden": false,
+      "merged_into": null
+    },
+    {
+      "id": 40,
+      "group_id": 9,
+      "key": "travel.flights",
+      "name": "Flights",
+      "hidden": false,
+      "merged_into": null
+    },
+    {
+      "id": 41,
+      "group_id": 9,
+      "key": "travel.lodging",
+      "name": "Hotels & lodging",
+      "hidden": false,
+      "merged_into": null
+    },
+    {
+      "id": 42,
+      "group_id": 9,
+      "key": "travel.car_rental",
+      "name": "Car rental",
+      "hidden": false,
+      "merged_into": null
+    },
+    {
+      "id": 43,
+      "group_id": 9,
+      "key": "travel.other",
+      "name": "Other travel",
+      "hidden": false,
+      "merged_into": null
+    },
+    {
+      "id": 44,
+      "group_id": 10,
+      "key": "family.childcare",
+      "name": "Childcare",
+      "hidden": false,
+      "merged_into": null
+    },
+    {
+      "id": 45,
+      "group_id": 10,
+      "key": "family.kids_activities",
+      "name": "Kids' activities",
+      "hidden": false,
+      "merged_into": null
+    },
+    {
+      "id": 46,
+      "group_id": 10,
+      "key": "family.kids_supplies",
+      "name": "Kids' supplies",
+      "hidden": false,
+      "merged_into": null
+    },
+    {
+      "id": 47,
+      "group_id": 10,
+      "key": "family.education",
+      "name": "Education & tuition",
+      "hidden": false,
+      "merged_into": null
+    },
+    {
+      "id": 48,
+      "group_id": 11,
+      "key": "pets.supplies",
+      "name": "Pet food & supplies",
+      "hidden": false,
+      "merged_into": null
+    },
+    {
+      "id": 49,
+      "group_id": 11,
+      "key": "pets.vet",
+      "name": "Vet",
+      "hidden": false,
+      "merged_into": null
+    },
+    {
+      "id": 50,
+      "group_id": 12,
+      "key": "insurance.auto",
+      "name": "Car insurance",
+      "hidden": false,
+      "merged_into": null
+    },
+    {
+      "id": 51,
+      "group_id": 12,
+      "key": "insurance.home",
+      "name": "Home & renters insurance",
+      "hidden": false,
+      "merged_into": null
+    },
+    {
+      "id": 52,
+      "group_id": 12,
+      "key": "insurance.life",
+      "name": "Life insurance",
+      "hidden": false,
+      "merged_into": null
+    },
+    {
+      "id": 53,
+      "group_id": 12,
+      "key": "insurance.health",
+      "name": "Health insurance",
+      "hidden": false,
+      "merged_into": null
+    },
+    {
+      "id": 54,
+      "group_id": 13,
+      "key": "financial.bank_fees",
+      "name": "Bank fees",
+      "hidden": false,
+      "merged_into": null
+    },
+    {
+      "id": 55,
+      "group_id": 13,
+      "key": "financial.interest",
+      "name": "Interest charges",
+      "hidden": false,
+      "merged_into": null
+    },
+    {
+      "id": 56,
+      "group_id": 13,
+      "key": "financial.loan_payment",
+      "name": "Other loan payments",
+      "hidden": false,
+      "merged_into": null
+    },
+    {
+      "id": 57,
+      "group_id": 13,
+      "key": "financial.cash_withdrawal",
+      "name": "Cash withdrawals",
+      "hidden": false,
+      "merged_into": null
+    },
+    {
+      "id": 58,
+      "group_id": 14,
+      "key": "taxes.income",
+      "name": "Income tax",
+      "hidden": false,
+      "merged_into": null
+    },
+    {
+      "id": 59,
+      "group_id": 14,
+      "key": "taxes.property",
+      "name": "Property tax",
+      "hidden": false,
+      "merged_into": null
+    },
+    {
+      "id": 60,
+      "group_id": 14,
+      "key": "taxes.government_fees",
+      "name": "Government fees",
+      "hidden": false,
+      "merged_into": null
+    },
+    {
+      "id": 61,
+      "group_id": 15,
+      "key": "giving.charity",
+      "name": "Charity",
+      "hidden": false,
+      "merged_into": null
+    },
+    {
+      "id": 62,
+      "group_id": 15,
+      "key": "giving.gifts",
+      "name": "Gifts",
+      "hidden": false,
+      "merged_into": null
+    },
+    {
+      "id": 63,
+      "group_id": 16,
+      "key": "services.software",
+      "name": "Software & subscriptions",
+      "hidden": false,
+      "merged_into": null
+    },
+    {
+      "id": 64,
+      "group_id": 16,
+      "key": "services.professional",
+      "name": "Professional services",
+      "hidden": false,
+      "merged_into": null
+    },
+    {
+      "id": 65,
+      "group_id": 16,
+      "key": "services.shipping",
+      "name": "Shipping & postage",
+      "hidden": false,
+      "merged_into": null
+    },
+    {
+      "id": 66,
+      "group_id": 17,
+      "key": "other.misc",
+      "name": "Miscellaneous",
+      "hidden": false,
+      "merged_into": null
+    }
+  ]
+}
