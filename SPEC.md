@@ -174,7 +174,8 @@ People own their financial data, and the app adds an intelligence layer on top o
   - A master password is required every time the app launches. Argon2id turns it into a key-encryption key, which unwraps a random **data key**, which encrypts the database (SQLCipher, AES-256).
   - The password is never stored anywhere. The data key lives only in memory while unlocked and is wiped on lock, close or idle timeout (auto-lock).
   - The database holds everything, including connector credentials such as the SimpleFIN access URL.
-  - The app enforces a minimum password strength.
+  - The app enforces a minimum password strength: **at least 12 characters and a zxcvbn score of 4 (of 4)** (decision 41). Failures explain why and suggest a passphrase.
+  - **Auto-lock after 10 minutes idle by default** (choices: 1, 5, 10, 30, 60 minutes), and on quit (decision 41).
 - **Touch ID on macOS:**
   - A copy of the data key is stored in the Keychain, locked to the Secure Enclave and requiring a *current* fingerprint match. Enrolling a new fingerprint invalidates it.
   - The password is still required after a restart, after 5 failed scans, and every 7 days.
@@ -294,3 +295,4 @@ People own their financial data, and the app adds an intelligence layer on top o
 | 38 | 2026-10-16 | Squash-merge task branches; keep `main` history linear (no merge commits) | One reviewable commit per task; simple, bisectable history |
 | 39 | 2026-10-16 | Crash reports are never uploaded by the app: Copy report, file path shown, Delete; no crash-report origin on the allowlist | MVP has no server; keeps the "nothing leaves" promise checkable |
 | 40 | 2026-10-16 | Model downloads come from Hugging Face: huggingface.co + its CDN hosts as exact allowlisted origins, kept in one fm-llm constant; no self-hosted weights | Hosting weights ourselves adds cost and a server for no privacy gain; the SHA-256 pin protects integrity |
+| 41 | 2026-10-16 | Password policy: ≥ 12 characters and zxcvbn score 4; auto-lock after 10 min idle (1/5/10/30/60) and on quit; Touch ID stays a persistent Keychain item as written in §7 | Score 3 still admits passwords crackable offline in hours; passphrases reach 4 easily |
