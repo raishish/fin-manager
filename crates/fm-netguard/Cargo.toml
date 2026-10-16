@@ -9,3 +9,8 @@ publish.workspace = true
 
 [lints]
 workspace = true
+
+[dependencies]
+# The one HTTP client in the workspace. rustls + bundled webpki roots only:
+# no gzip, cookies, proxies-from-features or native TLS.
+ureq = { version = "=3.4.2", default-features = false, features = ["rustls"] }
