@@ -1,0 +1,68 @@
+{
+  "generator_version": 1,
+  "seed": 20261016,
+  "start": "2024-10-01",
+  "end": "2026-09-30",
+  "taxonomy_version": {
+    "base": "1",
+    "revision": 0
+  },
+  "personas": [
+    {
+      "key": "renter",
+      "description": "Alex Example, 29, a salaried product analyst renting a studio in San Francisco. Chase checking and Freedom card, Ally online savings with an automatic monthly transfer, an Amex for dining. Pays both cards in full. Splits dinners over Venmo and Zelle, changes subscriptions, buys a laptop and furniture, and visits New York.",
+      "accounts": 4,
+      "transactions": 2133,
+      "ledger": {
+        "path": "renter/ledger.json",
+        "sha256": "faacc86b6940e1516716bb812846ef04ee88f7bf33fb804fb12636268934f578"
+      },
+      "truth": {
+        "path": "renter/truth.json",
+        "sha256": "03f2f21dd8110c5e403378014a640c060ef431d84f20f0f23e29f75fc648a900"
+      }
+    },
+    {
+      "key": "family",
+      "description": "Jordan and Casey Testworth, a nurse and a teacher with two kids, owning a house in a Columbus, Ohio suburb. Joint Bank of America checking and savings, a Capital One and a Chase card, both paid in full. Mortgage, HOA, seasonal utilities, after-school care in term time and summer camp, a babysitter paid by Zelle, checks for piano lessons, lawn care and church. The car loan is paid off in November 2025. A furnace replacement and a Disney World trip.",
+      "accounts": 4,
+      "transactions": 2220,
+      "ledger": {
+        "path": "family/ledger.json",
+        "sha256": "a4ceac7e6254a6079935f7e328ef3cd1729fc5dcbbc1c787bcfe468591f10c72"
+      },
+      "truth": {
+        "path": "family/truth.json",
+        "sha256": "1105e466cb190c979be32cd3647d7e1eca7797aacd2495ceadfeb37e99b372ac"
+      }
+    },
+    {
+      "key": "freelancer",
+      "description": "Sam Fakerson, 36, a freelance UX designer renting in Austin, Texas. Credit union checking and savings, a Capital One Venture and a Chase Freedom Flex. One retainer client plus irregular project payments; sets aside a share of each large payment for tax and pays quarterly estimates. Carries a card balance through lean months and pays interest. Software subscriptions come and go. Ten days in Lisbon paid partly in euros.",
+      "accounts": 4,
+      "transactions": 1672,
+      "ledger": {
+        "path": "freelancer/ledger.json",
+        "sha256": "7d1d68ae7e2cfd37b128ab222d24eeabf97ae9ede6020dd71d6bfdb4e83c30a8"
+      },
+      "truth": {
+        "path": "freelancer/truth.json",
+        "sha256": "a4279360fb6dee492907fc295e6d1626e8affe4c5a0d195f2e1ff0a16d3fc367"
+      }
+    },
+    {
+      "key": "retiree",
+      "description": "Pat Exampleton, 71, a retired teacher who owns a paid-off house in Tucson, Arizona. Wells Fargo checking and savings, an Amex Blue Cash Preferred and a Capital One Quicksilver, both paid in full. Social Security (with yearly cost-of-living rises) and a pension; a yearly IRA withdrawal from an account outside the ledger. Property tax twice a year, insurance paid every six or twelve months, checks for church and a house cleaner. Two weeks in Japan paid in yen, partly on the card that charges a foreign transaction fee. A new roof and hearing aids.",
+      "accounts": 4,
+      "transactions": 1351,
+      "ledger": {
+        "path": "retiree/ledger.json",
+        "sha256": "3d9383b282316a05dac6f8089acd33c0a09c05d25b3531f13a0e1ac6f0ac13dd"
+      },
+      "truth": {
+        "path": "retiree/truth.json",
+        "sha256": "2ee749a24d254d1bd2c9c4c9b287ed84071641a76225c3439490ed34ac232570"
+      }
+    }
+  ]
+}
