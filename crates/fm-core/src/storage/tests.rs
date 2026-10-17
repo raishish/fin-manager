@@ -682,3 +682,39 @@ fn default_params_create_and_unlock() {
         (SlotKind::Password, KdfParams::DEFAULT)
     );
 }
+
+/// T0.9: the restore lock creates the folder and excludes every other way in while held.
+#[cfg(unix)]
+#[test]
+fn restore_lock_excludes_other_instances_until_dropped() {
+    use std::os::unix::fs::PermissionsExt;
+
+    // On a ledger that doesn't exist yet: the folder is created, owner-only.
+    let (_dir, fresh) = new_vault();
+    let guard = fresh.lock_for_restore().unwrap();
+    assert_eq!(
+        fs::metadata(fresh.dir()).unwrap().permissions().mode() & 0o777,
+        0o700
+    );
+    assert!(matches!(fresh.lock_for_restore(), Err(StorageError::InUse)));
+    assert!(matches!(
+        fresh.create_with_params(PASSWORD, P),
+        Err(StorageError::InUse)
+    ));
+    drop(guard);
+    fresh.create_with_params(PASSWORD, P).unwrap().lock();
+
+    // On an existing ledger.
+    let (_dir, vault) = new_vault();
+    vault.create_with_params(PASSWORD, P).unwrap().lock();
+    let guard = vault.lock_for_restore().unwrap();
+    assert!(matches!(vault.lock_for_restore(), Err(StorageError::InUse)));
+    assert!(matches!(vault.unlock(PASSWORD), Err(StorageError::InUse)));
+    assert!(matches!(vault.shred_keys(), Err(StorageError::InUse)));
+    drop(guard);
+    let u = vault.unlock(PASSWORD).unwrap();
+    // And the other way round: an unlocked ledger blocks a restore.
+    assert!(matches!(vault.lock_for_restore(), Err(StorageError::InUse)));
+    drop(u);
+    drop(vault.lock_for_restore().unwrap());
+}

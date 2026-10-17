@@ -83,6 +83,11 @@ pub struct Vault {
 #[derive(Debug)]
 struct LedgerLock(#[allow(dead_code)] fs::File);
 
+/// Holds the ledger's advisory lock until dropped (crate-internal handle), so a restore
+/// can replace the ledger's files without another instance opening them meanwhile.
+#[allow(dead_code, reason = "used by T5.2 (backup::restore)")]
+pub(crate) struct LedgerGuard(LedgerLock);
+
 impl Vault {
     /// The ledger in `dir` (which may not exist yet).
     pub fn at(dir: &Path) -> Vault {
@@ -201,6 +206,15 @@ impl Vault {
         let key = DataKey::from_bytes(key);
         let (conn, permits) = db::open_encrypted(&self.db_path, &key, false)?;
         self.finish_open(lock, conn, permits, keyfile, key)
+    }
+
+    /// Creates the ledger folder (0700) if missing, then takes the ledger's advisory
+    /// lock, held until the guard drops. [`StorageError::InUse`] if another instance
+    /// holds it. Used by `backup::restore` (T5.2).
+    #[allow(dead_code, reason = "used by T5.2 (backup::restore)")]
+    pub(crate) fn lock_for_restore(&self) -> Result<LedgerGuard, StorageError> {
+        self.ensure_dir()?;
+        self.lock().map(LedgerGuard)
     }
 
     /// Destroys the key material: every keyfile (current, mid-rotation and temporary)
