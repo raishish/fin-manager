@@ -982,6 +982,11 @@ dependencies = [
 [[package]]
 name = "fm-import-csv"
 version = "0.0.0"
+dependencies = [
+ "fm-import-types",
+ "serde",
+ "serde_json",
+]
 
 [[package]]
 name = "fm-import-ofx"

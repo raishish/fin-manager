@@ -1,0 +1,1592 @@
+[
+  {
+    "id": "chase_card_csv",
+    "institution": "Chase",
+    "account_kinds": [
+      "credit_card"
+    ],
+    "csv": {
+      "delimiter": ",",
+      "quote_all": false,
+      "quote_header": false,
+      "quote_empty": false,
+      "line_ending": "lf",
+      "utf8_bom": false,
+      "skip_lines": 0,
+      "has_header": true,
+      "columns": [
+        {
+          "header": "Transaction Date",
+          "quoted": false,
+          "pad": "none",
+          "role": "transaction_date"
+        },
+        {
+          "header": "Post Date",
+          "quoted": false,
+          "pad": "none",
+          "role": "posted_date"
+        },
+        {
+          "header": "Description",
+          "quoted": false,
+          "pad": "none",
+          "role": "description"
+        },
+        {
+          "header": "Category",
+          "quoted": false,
+          "pad": "none",
+          "role": "bank_category"
+        },
+        {
+          "header": "Type",
+          "quoted": false,
+          "pad": "none",
+          "role": "type"
+        },
+        {
+          "header": "Amount",
+          "quoted": false,
+          "pad": "none",
+          "role": "amount",
+          "money_out": "negative"
+        },
+        {
+          "header": "Memo",
+          "quoted": false,
+          "pad": "none",
+          "role": "memo"
+        }
+      ],
+      "date_format": "MM/DD/YYYY",
+      "amount_format": {
+        "thousands_separator": false,
+        "currency_symbol": false,
+        "negative": "minus"
+      },
+      "skip_rows_without_amount": false,
+      "trailing_delimiter": "none",
+      "trim": false
+    }
+  },
+  {
+    "id": "chase_checking_csv",
+    "institution": "Chase",
+    "account_kinds": [
+      "checking",
+      "savings"
+    ],
+    "csv": {
+      "delimiter": ",",
+      "quote_all": false,
+      "quote_header": false,
+      "quote_empty": false,
+      "line_ending": "crlf",
+      "utf8_bom": false,
+      "skip_lines": 0,
+      "has_header": true,
+      "columns": [
+        {
+          "header": "Details",
+          "quoted": false,
+          "pad": "none",
+          "role": "extra",
+          "what": "details"
+        },
+        {
+          "header": "Posting Date",
+          "quoted": false,
+          "pad": "none",
+          "role": "posted_date"
+        },
+        {
+          "header": "Description",
+          "quoted": true,
+          "pad": "none",
+          "role": "description"
+        },
+        {
+          "header": "Amount",
+          "quoted": false,
+          "pad": "none",
+          "role": "amount",
+          "money_out": "negative"
+        },
+        {
+          "header": "Type",
+          "quoted": false,
+          "pad": "none",
+          "role": "type"
+        },
+        {
+          "header": "Balance",
+          "quoted": false,
+          "pad": "none",
+          "role": "balance"
+        },
+        {
+          "header": "Check or Slip #",
+          "quoted": false,
+          "pad": "none",
+          "role": "check_number"
+        }
+      ],
+      "date_format": "MM/DD/YYYY",
+      "amount_format": {
+        "thousands_separator": false,
+        "currency_symbol": false,
+        "negative": "minus"
+      },
+      "skip_rows_without_amount": false,
+      "trailing_delimiter": "rows",
+      "trim": false
+    }
+  },
+  {
+    "id": "bofa_checking_csv",
+    "institution": "Bank of America",
+    "account_kinds": [
+      "checking",
+      "savings"
+    ],
+    "csv": {
+      "delimiter": ",",
+      "quote_all": false,
+      "quote_header": false,
+      "quote_empty": false,
+      "line_ending": "crlf",
+      "utf8_bom": false,
+      "skip_lines": 6,
+      "has_header": true,
+      "columns": [
+        {
+          "header": "Date",
+          "quoted": false,
+          "pad": "none",
+          "role": "posted_date"
+        },
+        {
+          "header": "Description",
+          "quoted": true,
+          "pad": "none",
+          "role": "description"
+        },
+        {
+          "header": "Amount",
+          "quoted": true,
+          "pad": "none",
+          "role": "amount",
+          "money_out": "negative"
+        },
+        {
+          "header": "Running Bal.",
+          "quoted": true,
+          "pad": "none",
+          "role": "balance"
+        }
+      ],
+      "date_format": "MM/DD/YYYY",
+      "amount_format": {
+        "thousands_separator": true,
+        "currency_symbol": false,
+        "negative": "minus"
+      },
+      "skip_rows_without_amount": true,
+      "trailing_delimiter": "none",
+      "trim": false
+    }
+  },
+  {
+    "id": "bofa_card_csv",
+    "institution": "Bank of America",
+    "account_kinds": [
+      "credit_card"
+    ],
+    "csv": {
+      "delimiter": ",",
+      "quote_all": false,
+      "quote_header": false,
+      "quote_empty": false,
+      "line_ending": "crlf",
+      "utf8_bom": false,
+      "skip_lines": 0,
+      "has_header": true,
+      "columns": [
+        {
+          "header": "Posted Date",
+          "quoted": false,
+          "pad": "none",
+          "role": "posted_date"
+        },
+        {
+          "header": "Reference Number",
+          "quoted": false,
+          "pad": "none",
+          "role": "reference",
+          "wrapped_in": ""
+        },
+        {
+          "header": "Payee",
+          "quoted": true,
+          "pad": {
+            "width": 25
+          },
+          "role": "description"
+        },
+        {
+          "header": "Address",
+          "quoted": true,
+          "pad": {
+            "width": 18
+          },
+          "role": "extra",
+          "what": "address"
+        },
+        {
+          "header": "Amount",
+          "quoted": false,
+          "pad": "none",
+          "role": "amount",
+          "money_out": "negative"
+        }
+      ],
+      "date_format": "MM/DD/YYYY",
+      "amount_format": {
+        "thousands_separator": false,
+        "currency_symbol": false,
+        "negative": "minus"
+      },
+      "skip_rows_without_amount": false,
+      "trailing_delimiter": "none",
+      "trim": true
+    }
+  },
+  {
+    "id": "wells_fargo_legacy_csv",
+    "institution": "Wells Fargo",
+    "account_kinds": [
+      "checking",
+      "savings"
+    ],
+    "csv": {
+      "delimiter": ",",
+      "quote_all": true,
+      "quote_header": false,
+      "quote_empty": true,
+      "line_ending": "crlf",
+      "utf8_bom": false,
+      "skip_lines": 0,
+      "has_header": false,
+      "columns": [
+        {
+          "header": "",
+          "quoted": false,
+          "pad": "none",
+          "role": "posted_date"
+        },
+        {
+          "header": "",
+          "quoted": false,
+          "pad": "none",
+          "role": "amount",
+          "money_out": "negative"
+        },
+        {
+          "header": "",
+          "quoted": false,
+          "pad": "none",
+          "role": "fixed",
+          "value": "*"
+        },
+        {
+          "header": "",
+          "quoted": false,
+          "pad": "none",
+          "role": "check_number"
+        },
+        {
+          "header": "",
+          "quoted": false,
+          "pad": "none",
+          "role": "description"
+        }
+      ],
+      "date_format": "MM/DD/YYYY",
+      "amount_format": {
+        "thousands_separator": false,
+        "currency_symbol": false,
+        "negative": "minus"
+      },
+      "skip_rows_without_amount": false,
+      "trailing_delimiter": "none",
+      "trim": false
+    }
+  },
+  {
+    "id": "wells_fargo_csv",
+    "institution": "Wells Fargo",
+    "account_kinds": [
+      "checking",
+      "savings"
+    ],
+    "csv": {
+      "delimiter": ",",
+      "quote_all": true,
+      "quote_header": true,
+      "quote_empty": false,
+      "line_ending": "crlf",
+      "utf8_bom": false,
+      "skip_lines": 0,
+      "has_header": true,
+      "columns": [
+        {
+          "header": "DATE",
+          "quoted": false,
+          "pad": "none",
+          "role": "posted_date"
+        },
+        {
+          "header": "DESCRIPTION",
+          "quoted": false,
+          "pad": "none",
+          "role": "description"
+        },
+        {
+          "header": "AMOUNT",
+          "quoted": false,
+          "pad": "none",
+          "role": "amount",
+          "money_out": "negative"
+        },
+        {
+          "header": "CHECK #",
+          "quoted": false,
+          "pad": "none",
+          "role": "check_number"
+        },
+        {
+          "header": "STATUS",
+          "quoted": false,
+          "pad": "none",
+          "role": "status",
+          "pending": "Pending",
+          "posted": "Posted"
+        }
+      ],
+      "date_format": "MM/DD/YYYY",
+      "amount_format": {
+        "thousands_separator": false,
+        "currency_symbol": false,
+        "negative": "minus"
+      },
+      "skip_rows_without_amount": false,
+      "trailing_delimiter": "none",
+      "trim": false
+    }
+  },
+  {
+    "id": "citi_card_csv",
+    "institution": "Citi",
+    "account_kinds": [
+      "credit_card"
+    ],
+    "csv": {
+      "delimiter": ",",
+      "quote_all": false,
+      "quote_header": false,
+      "quote_empty": false,
+      "line_ending": "lf",
+      "utf8_bom": false,
+      "skip_lines": 0,
+      "has_header": true,
+      "columns": [
+        {
+          "header": "Status",
+          "quoted": false,
+          "pad": "none",
+          "role": "status",
+          "pending": "Pending",
+          "posted": "Cleared"
+        },
+        {
+          "header": "Date",
+          "quoted": false,
+          "pad": "none",
+          "role": "transaction_date"
+        },
+        {
+          "header": "Description",
+          "quoted": true,
+          "pad": "none",
+          "role": "description"
+        },
+        {
+          "header": "Debit",
+          "quoted": false,
+          "pad": "none",
+          "role": "debit"
+        },
+        {
+          "header": "Credit",
+          "quoted": false,
+          "pad": "none",
+          "role": "credit",
+          "negative_printed": true
+        },
+        {
+          "header": "Member Name",
+          "quoted": false,
+          "pad": "none",
+          "role": "extra",
+          "what": "holder_upper"
+        }
+      ],
+      "date_format": "MM/DD/YYYY",
+      "amount_format": {
+        "thousands_separator": false,
+        "currency_symbol": false,
+        "negative": "minus"
+      },
+      "skip_rows_without_amount": false,
+      "trailing_delimiter": "none",
+      "trim": false
+    }
+  },
+  {
+    "id": "capital_one_card_csv",
+    "institution": "Capital One",
+    "account_kinds": [
+      "credit_card"
+    ],
+    "csv": {
+      "delimiter": ",",
+      "quote_all": false,
+      "quote_header": false,
+      "quote_empty": false,
+      "line_ending": "crlf",
+      "utf8_bom": false,
+      "skip_lines": 0,
+      "has_header": true,
+      "columns": [
+        {
+          "header": "Transaction Date",
+          "quoted": false,
+          "pad": "none",
+          "role": "transaction_date"
+        },
+        {
+          "header": "Posted Date",
+          "quoted": false,
+          "pad": "none",
+          "role": "posted_date"
+        },
+        {
+          "header": "Card No.",
+          "quoted": false,
+          "pad": "none",
+          "role": "account_number"
+        },
+        {
+          "header": "Description",
+          "quoted": false,
+          "pad": "none",
+          "role": "description"
+        },
+        {
+          "header": "Category",
+          "quoted": false,
+          "pad": "none",
+          "role": "bank_category"
+        },
+        {
+          "header": "Debit",
+          "quoted": false,
+          "pad": "none",
+          "role": "debit"
+        },
+        {
+          "header": "Credit",
+          "quoted": false,
+          "pad": "none",
+          "role": "credit",
+          "negative_printed": false
+        }
+      ],
+      "date_format": "YYYY-MM-DD",
+      "amount_format": {
+        "thousands_separator": false,
+        "currency_symbol": false,
+        "negative": "minus"
+      },
+      "skip_rows_without_amount": false,
+      "trailing_delimiter": "none",
+      "trim": false
+    }
+  },
+  {
+    "id": "capital_one_360_csv",
+    "institution": "Capital One",
+    "account_kinds": [
+      "checking",
+      "savings"
+    ],
+    "csv": {
+      "delimiter": ",",
+      "quote_all": false,
+      "quote_header": false,
+      "quote_empty": false,
+      "line_ending": "lf",
+      "utf8_bom": false,
+      "skip_lines": 0,
+      "has_header": true,
+      "columns": [
+        {
+          "header": "Account Number",
+          "quoted": false,
+          "pad": "none",
+          "role": "account_number"
+        },
+        {
+          "header": "Transaction Description",
+          "quoted": false,
+          "pad": "none",
+          "role": "description"
+        },
+        {
+          "header": "Transaction Date",
+          "quoted": false,
+          "pad": "none",
+          "role": "posted_date"
+        },
+        {
+          "header": "Transaction Type",
+          "quoted": false,
+          "pad": "none",
+          "role": "indicator",
+          "debit": "Debit",
+          "credit": "Credit"
+        },
+        {
+          "header": "Transaction Amount",
+          "quoted": false,
+          "pad": "none",
+          "role": "abs_amount"
+        },
+        {
+          "header": "Balance",
+          "quoted": false,
+          "pad": "none",
+          "role": "balance"
+        }
+      ],
+      "date_format": "MM/DD/YY",
+      "amount_format": {
+        "thousands_separator": false,
+        "currency_symbol": false,
+        "negative": "minus"
+      },
+      "skip_rows_without_amount": false,
+      "trailing_delimiter": "none",
+      "trim": false
+    }
+  },
+  {
+    "id": "us_bank_csv",
+    "institution": "U.S. Bank",
+    "account_kinds": [
+      "checking",
+      "savings",
+      "credit_card"
+    ],
+    "csv": {
+      "delimiter": ",",
+      "quote_all": true,
+      "quote_header": true,
+      "quote_empty": true,
+      "line_ending": "lf",
+      "utf8_bom": false,
+      "skip_lines": 0,
+      "has_header": true,
+      "columns": [
+        {
+          "header": "Date",
+          "quoted": false,
+          "pad": "none",
+          "role": "posted_date"
+        },
+        {
+          "header": "Transaction",
+          "quoted": false,
+          "pad": "none",
+          "role": "extra",
+          "what": "usbank_transaction"
+        },
+        {
+          "header": "Name",
+          "quoted": false,
+          "pad": "none",
+          "role": "description"
+        },
+        {
+          "header": "Memo",
+          "quoted": false,
+          "pad": "none",
+          "role": "memo"
+        },
+        {
+          "header": "Amount",
+          "quoted": false,
+          "pad": "none",
+          "role": "amount",
+          "money_out": "negative"
+        }
+      ],
+      "date_format": "YYYY-MM-DD",
+      "amount_format": {
+        "thousands_separator": false,
+        "currency_symbol": false,
+        "negative": "minus"
+      },
+      "skip_rows_without_amount": false,
+      "trailing_delimiter": "none",
+      "trim": false
+    }
+  },
+  {
+    "id": "pnc_csv",
+    "institution": "PNC",
+    "account_kinds": [
+      "checking",
+      "savings"
+    ],
+    "csv": {
+      "delimiter": ",",
+      "quote_all": true,
+      "quote_header": false,
+      "quote_empty": false,
+      "line_ending": "crlf",
+      "utf8_bom": false,
+      "skip_lines": 0,
+      "has_header": true,
+      "columns": [
+        {
+          "header": "Date",
+          "quoted": false,
+          "pad": "none",
+          "role": "posted_date"
+        },
+        {
+          "header": "Description",
+          "quoted": false,
+          "pad": "none",
+          "role": "description"
+        },
+        {
+          "header": "Withdrawals",
+          "quoted": false,
+          "pad": "none",
+          "role": "debit"
+        },
+        {
+          "header": "Deposits",
+          "quoted": false,
+          "pad": "none",
+          "role": "credit",
+          "negative_printed": false
+        },
+        {
+          "header": "Balance",
+          "quoted": false,
+          "pad": "none",
+          "role": "balance"
+        }
+      ],
+      "date_format": "MM/DD/YYYY",
+      "amount_format": {
+        "thousands_separator": true,
+        "currency_symbol": true,
+        "negative": "minus"
+      },
+      "skip_rows_without_amount": false,
+      "trailing_delimiter": "none",
+      "trim": false
+    }
+  },
+  {
+    "id": "truist_csv",
+    "institution": "Truist",
+    "account_kinds": [
+      "checking",
+      "savings"
+    ],
+    "csv": {
+      "delimiter": ",",
+      "quote_all": false,
+      "quote_header": false,
+      "quote_empty": false,
+      "line_ending": "lf",
+      "utf8_bom": false,
+      "skip_lines": 0,
+      "has_header": true,
+      "columns": [
+        {
+          "header": "Posted Date",
+          "quoted": false,
+          "pad": "none",
+          "role": "posted_date"
+        },
+        {
+          "header": "Transaction Date",
+          "quoted": false,
+          "pad": "none",
+          "role": "transaction_date"
+        },
+        {
+          "header": "Transaction Type",
+          "quoted": false,
+          "pad": "none",
+          "role": "type"
+        },
+        {
+          "header": "Check/Serial #",
+          "quoted": false,
+          "pad": "none",
+          "role": "check_number"
+        },
+        {
+          "header": "Full description",
+          "quoted": false,
+          "pad": "none",
+          "role": "description"
+        },
+        {
+          "header": "Merchant name",
+          "quoted": false,
+          "pad": "none",
+          "role": "payee"
+        },
+        {
+          "header": "Category name",
+          "quoted": false,
+          "pad": "none",
+          "role": "bank_category"
+        },
+        {
+          "header": "Sub-category name",
+          "quoted": false,
+          "pad": "none",
+          "role": "bank_subcategory"
+        },
+        {
+          "header": "Amount",
+          "quoted": false,
+          "pad": "none",
+          "role": "amount",
+          "money_out": "negative"
+        },
+        {
+          "header": "Daily Posted Balance",
+          "quoted": false,
+          "pad": "none",
+          "role": "balance"
+        }
+      ],
+      "date_format": "MM/DD/YYYY",
+      "amount_format": {
+        "thousands_separator": false,
+        "currency_symbol": false,
+        "negative": "minus"
+      },
+      "skip_rows_without_amount": false,
+      "trailing_delimiter": "none",
+      "trim": false
+    }
+  },
+  {
+    "id": "amex_csv",
+    "institution": "American Express",
+    "account_kinds": [
+      "credit_card"
+    ],
+    "csv": {
+      "delimiter": ",",
+      "quote_all": false,
+      "quote_header": false,
+      "quote_empty": false,
+      "line_ending": "lf",
+      "utf8_bom": false,
+      "skip_lines": 0,
+      "has_header": true,
+      "columns": [
+        {
+          "header": "Date",
+          "quoted": false,
+          "pad": "none",
+          "role": "transaction_date"
+        },
+        {
+          "header": "Description",
+          "quoted": false,
+          "pad": "none",
+          "role": "description"
+        },
+        {
+          "header": "Amount",
+          "quoted": false,
+          "pad": "none",
+          "role": "amount",
+          "money_out": "positive"
+        }
+      ],
+      "date_format": "MM/DD/YYYY",
+      "amount_format": {
+        "thousands_separator": false,
+        "currency_symbol": false,
+        "negative": "minus"
+      },
+      "skip_rows_without_amount": false,
+      "trailing_delimiter": "none",
+      "trim": false
+    }
+  },
+  {
+    "id": "amex_extended_csv",
+    "institution": "American Express",
+    "account_kinds": [
+      "credit_card"
+    ],
+    "csv": {
+      "delimiter": ",",
+      "quote_all": false,
+      "quote_header": false,
+      "quote_empty": false,
+      "line_ending": "lf",
+      "utf8_bom": false,
+      "skip_lines": 0,
+      "has_header": true,
+      "columns": [
+        {
+          "header": "Date",
+          "quoted": false,
+          "pad": "none",
+          "role": "transaction_date"
+        },
+        {
+          "header": "Description",
+          "quoted": false,
+          "pad": "none",
+          "role": "description"
+        },
+        {
+          "header": "Card Member",
+          "quoted": false,
+          "pad": "none",
+          "role": "extra",
+          "what": "holder_upper"
+        },
+        {
+          "header": "Account #",
+          "quoted": false,
+          "pad": "none",
+          "role": "extra",
+          "what": "account_dash"
+        },
+        {
+          "header": "Amount",
+          "quoted": false,
+          "pad": "none",
+          "role": "amount",
+          "money_out": "positive"
+        },
+        {
+          "header": "Extended Details",
+          "quoted": false,
+          "pad": "none",
+          "role": "extra",
+          "what": "extended_details"
+        },
+        {
+          "header": "Appears On Your Statement As",
+          "quoted": false,
+          "pad": "none",
+          "role": "extra",
+          "what": "statement_as"
+        },
+        {
+          "header": "Address",
+          "quoted": false,
+          "pad": "none",
+          "role": "extra",
+          "what": "street"
+        },
+        {
+          "header": "City/State",
+          "quoted": false,
+          "pad": "none",
+          "role": "extra",
+          "what": "city_state"
+        },
+        {
+          "header": "Zip Code",
+          "quoted": false,
+          "pad": "none",
+          "role": "extra",
+          "what": "zip"
+        },
+        {
+          "header": "Country",
+          "quoted": false,
+          "pad": "none",
+          "role": "extra",
+          "what": "country"
+        },
+        {
+          "header": "Reference",
+          "quoted": false,
+          "pad": "none",
+          "role": "reference",
+          "wrapped_in": "'"
+        },
+        {
+          "header": "Category",
+          "quoted": false,
+          "pad": "none",
+          "role": "bank_category"
+        }
+      ],
+      "date_format": "MM/DD/YYYY",
+      "amount_format": {
+        "thousands_separator": false,
+        "currency_symbol": false,
+        "negative": "minus"
+      },
+      "skip_rows_without_amount": false,
+      "trailing_delimiter": "none",
+      "trim": false
+    }
+  },
+  {
+    "id": "discover_csv",
+    "institution": "Discover",
+    "account_kinds": [
+      "credit_card"
+    ],
+    "csv": {
+      "delimiter": ",",
+      "quote_all": false,
+      "quote_header": false,
+      "quote_empty": false,
+      "line_ending": "crlf",
+      "utf8_bom": false,
+      "skip_lines": 0,
+      "has_header": true,
+      "columns": [
+        {
+          "header": "Trans. Date",
+          "quoted": false,
+          "pad": "none",
+          "role": "transaction_date"
+        },
+        {
+          "header": "Post Date",
+          "quoted": false,
+          "pad": "none",
+          "role": "posted_date"
+        },
+        {
+          "header": "Description",
+          "quoted": true,
+          "pad": "none",
+          "role": "description"
+        },
+        {
+          "header": "Amount",
+          "quoted": false,
+          "pad": "none",
+          "role": "amount",
+          "money_out": "positive"
+        },
+        {
+          "header": "Category",
+          "quoted": true,
+          "pad": "none",
+          "role": "bank_category"
+        }
+      ],
+      "date_format": "MM/DD/YYYY",
+      "amount_format": {
+        "thousands_separator": false,
+        "currency_symbol": false,
+        "negative": "minus"
+      },
+      "skip_rows_without_amount": false,
+      "trailing_delimiter": "none",
+      "trim": false
+    }
+  },
+  {
+    "id": "apple_card_csv",
+    "institution": "Apple Card",
+    "account_kinds": [
+      "credit_card"
+    ],
+    "csv": {
+      "delimiter": ",",
+      "quote_all": false,
+      "quote_header": false,
+      "quote_empty": false,
+      "line_ending": "lf",
+      "utf8_bom": false,
+      "skip_lines": 0,
+      "has_header": true,
+      "columns": [
+        {
+          "header": "Transaction Date",
+          "quoted": false,
+          "pad": "none",
+          "role": "transaction_date"
+        },
+        {
+          "header": "Clearing Date",
+          "quoted": false,
+          "pad": "none",
+          "role": "posted_date"
+        },
+        {
+          "header": "Description",
+          "quoted": true,
+          "pad": "none",
+          "role": "description"
+        },
+        {
+          "header": "Merchant",
+          "quoted": true,
+          "pad": "none",
+          "role": "payee"
+        },
+        {
+          "header": "Category",
+          "quoted": true,
+          "pad": "none",
+          "role": "bank_category"
+        },
+        {
+          "header": "Type",
+          "quoted": true,
+          "pad": "none",
+          "role": "type"
+        },
+        {
+          "header": "Amount (USD)",
+          "quoted": true,
+          "pad": "none",
+          "role": "amount",
+          "money_out": "positive"
+        },
+        {
+          "header": "Purchased By",
+          "quoted": true,
+          "pad": "none",
+          "role": "extra",
+          "what": "holder"
+        }
+      ],
+      "date_format": "MM/DD/YYYY",
+      "amount_format": {
+        "thousands_separator": false,
+        "currency_symbol": false,
+        "negative": "minus"
+      },
+      "skip_rows_without_amount": false,
+      "trailing_delimiter": "none",
+      "trim": false
+    }
+  },
+  {
+    "id": "ally_csv",
+    "institution": "Ally Bank",
+    "account_kinds": [
+      "checking",
+      "savings"
+    ],
+    "csv": {
+      "delimiter": ",",
+      "quote_all": false,
+      "quote_header": false,
+      "quote_empty": false,
+      "line_ending": "lf",
+      "utf8_bom": false,
+      "skip_lines": 0,
+      "has_header": true,
+      "columns": [
+        {
+          "header": "Date",
+          "quoted": false,
+          "pad": "none",
+          "role": "posted_date"
+        },
+        {
+          "header": " Time",
+          "quoted": false,
+          "pad": "none",
+          "role": "extra",
+          "what": "time"
+        },
+        {
+          "header": " Amount",
+          "quoted": false,
+          "pad": "none",
+          "role": "amount",
+          "money_out": "negative"
+        },
+        {
+          "header": " Type",
+          "quoted": false,
+          "pad": "none",
+          "role": "type"
+        },
+        {
+          "header": " Description",
+          "quoted": false,
+          "pad": "none",
+          "role": "description"
+        }
+      ],
+      "date_format": "YYYY-MM-DD",
+      "amount_format": {
+        "thousands_separator": false,
+        "currency_symbol": false,
+        "negative": "minus"
+      },
+      "skip_rows_without_amount": false,
+      "trailing_delimiter": "none",
+      "trim": false
+    }
+  },
+  {
+    "id": "schwab_checking_csv",
+    "institution": "Charles Schwab Bank",
+    "account_kinds": [
+      "checking",
+      "savings"
+    ],
+    "csv": {
+      "delimiter": ",",
+      "quote_all": true,
+      "quote_header": true,
+      "quote_empty": true,
+      "line_ending": "lf",
+      "utf8_bom": false,
+      "skip_lines": 0,
+      "has_header": true,
+      "columns": [
+        {
+          "header": "Date",
+          "quoted": false,
+          "pad": "none",
+          "role": "posted_date"
+        },
+        {
+          "header": "Status",
+          "quoted": false,
+          "pad": "none",
+          "role": "status",
+          "pending": "Pending",
+          "posted": "Posted"
+        },
+        {
+          "header": "Type",
+          "quoted": false,
+          "pad": "none",
+          "role": "type"
+        },
+        {
+          "header": "CheckNumber",
+          "quoted": false,
+          "pad": "none",
+          "role": "check_number"
+        },
+        {
+          "header": "Description",
+          "quoted": false,
+          "pad": "none",
+          "role": "description"
+        },
+        {
+          "header": "Withdrawal",
+          "quoted": false,
+          "pad": "none",
+          "role": "debit"
+        },
+        {
+          "header": "Deposit",
+          "quoted": false,
+          "pad": "none",
+          "role": "credit",
+          "negative_printed": false
+        },
+        {
+          "header": "RunningBalance",
+          "quoted": false,
+          "pad": "none",
+          "role": "balance"
+        }
+      ],
+      "date_format": "MM/DD/YYYY",
+      "amount_format": {
+        "thousands_separator": true,
+        "currency_symbol": true,
+        "negative": "minus"
+      },
+      "skip_rows_without_amount": false,
+      "trailing_delimiter": "none",
+      "trim": false
+    }
+  },
+  {
+    "id": "usaa_csv",
+    "institution": "USAA",
+    "account_kinds": [
+      "checking",
+      "savings"
+    ],
+    "csv": {
+      "delimiter": ",",
+      "quote_all": false,
+      "quote_header": false,
+      "quote_empty": false,
+      "line_ending": "lf",
+      "utf8_bom": false,
+      "skip_lines": 0,
+      "has_header": true,
+      "columns": [
+        {
+          "header": "Date",
+          "quoted": false,
+          "pad": "none",
+          "role": "posted_date"
+        },
+        {
+          "header": "Description",
+          "quoted": true,
+          "pad": "none",
+          "role": "payee"
+        },
+        {
+          "header": "Original Description",
+          "quoted": true,
+          "pad": "none",
+          "role": "description"
+        },
+        {
+          "header": "Category",
+          "quoted": false,
+          "pad": "none",
+          "role": "bank_category"
+        },
+        {
+          "header": "Amount",
+          "quoted": false,
+          "pad": "none",
+          "role": "amount",
+          "money_out": "negative"
+        },
+        {
+          "header": "Status",
+          "quoted": false,
+          "pad": "none",
+          "role": "status",
+          "pending": "Pending",
+          "posted": "Posted"
+        }
+      ],
+      "date_format": "YYYY-MM-DD",
+      "amount_format": {
+        "thousands_separator": false,
+        "currency_symbol": false,
+        "negative": "minus"
+      },
+      "skip_rows_without_amount": false,
+      "trailing_delimiter": "none",
+      "trim": false
+    }
+  },
+  {
+    "id": "navy_federal_csv",
+    "institution": "Navy Federal Credit Union",
+    "account_kinds": [
+      "checking",
+      "savings",
+      "credit_card"
+    ],
+    "csv": {
+      "delimiter": ",",
+      "quote_all": false,
+      "quote_header": false,
+      "quote_empty": false,
+      "line_ending": "lf",
+      "utf8_bom": true,
+      "skip_lines": 0,
+      "has_header": true,
+      "columns": [
+        {
+          "header": "Posting Date",
+          "quoted": false,
+          "pad": "none",
+          "role": "posted_date"
+        },
+        {
+          "header": "Transaction Date",
+          "quoted": false,
+          "pad": "none",
+          "role": "transaction_date"
+        },
+        {
+          "header": "Amount",
+          "quoted": false,
+          "pad": "none",
+          "role": "abs_amount"
+        },
+        {
+          "header": "Credit Debit Indicator",
+          "quoted": false,
+          "pad": "none",
+          "role": "indicator",
+          "debit": "Debit",
+          "credit": "Credit"
+        },
+        {
+          "header": "type",
+          "quoted": false,
+          "pad": "none",
+          "role": "type"
+        },
+        {
+          "header": "Type Group",
+          "quoted": false,
+          "pad": "none",
+          "role": "extra",
+          "what": "nfcu_group"
+        },
+        {
+          "header": "Reference",
+          "quoted": false,
+          "pad": "none",
+          "role": "reference",
+          "wrapped_in": ""
+        },
+        {
+          "header": "Instructed Currency",
+          "quoted": false,
+          "pad": "none",
+          "role": "fixed",
+          "value": ""
+        },
+        {
+          "header": "Currency Exchange Rate",
+          "quoted": false,
+          "pad": "none",
+          "role": "fixed",
+          "value": ""
+        },
+        {
+          "header": "Instructed Amount",
+          "quoted": false,
+          "pad": "none",
+          "role": "fixed",
+          "value": ""
+        },
+        {
+          "header": "Description",
+          "quoted": false,
+          "pad": "none",
+          "role": "description"
+        },
+        {
+          "header": "Category",
+          "quoted": false,
+          "pad": "none",
+          "role": "bank_category"
+        },
+        {
+          "header": "Check Serial Number",
+          "quoted": false,
+          "pad": "none",
+          "role": "check_number"
+        },
+        {
+          "header": "Card Ending",
+          "quoted": false,
+          "pad": "none",
+          "role": "extra",
+          "what": "card_ending"
+        },
+        {
+          "header": "Rewards Total",
+          "quoted": false,
+          "pad": "none",
+          "role": "fixed",
+          "value": ""
+        },
+        {
+          "header": "Rewards Type",
+          "quoted": false,
+          "pad": "none",
+          "role": "fixed",
+          "value": ""
+        }
+      ],
+      "date_format": "MM/DD/YYYY",
+      "amount_format": {
+        "thousands_separator": false,
+        "currency_symbol": false,
+        "negative": "minus"
+      },
+      "skip_rows_without_amount": false,
+      "trailing_delimiter": "none",
+      "trim": false
+    }
+  },
+  {
+    "id": "td_bank_csv",
+    "institution": "TD Bank",
+    "account_kinds": [
+      "checking",
+      "savings"
+    ],
+    "csv": {
+      "delimiter": ",",
+      "quote_all": false,
+      "quote_header": false,
+      "quote_empty": false,
+      "line_ending": "lf",
+      "utf8_bom": false,
+      "skip_lines": 0,
+      "has_header": true,
+      "columns": [
+        {
+          "header": "Date",
+          "quoted": false,
+          "pad": "none",
+          "role": "posted_date"
+        },
+        {
+          "header": "Bank RTN",
+          "quoted": false,
+          "pad": "none",
+          "role": "extra",
+          "what": "routing"
+        },
+        {
+          "header": "Account Number",
+          "quoted": false,
+          "pad": "none",
+          "role": "extra",
+          "what": "number"
+        },
+        {
+          "header": "Transaction Type",
+          "quoted": false,
+          "pad": "none",
+          "role": "type"
+        },
+        {
+          "header": "Description",
+          "quoted": false,
+          "pad": {
+            "trailing": 1
+          },
+          "role": "description"
+        },
+        {
+          "header": "Debit",
+          "quoted": false,
+          "pad": "none",
+          "role": "debit"
+        },
+        {
+          "header": "Credit",
+          "quoted": false,
+          "pad": "none",
+          "role": "credit",
+          "negative_printed": false
+        },
+        {
+          "header": "Check Number",
+          "quoted": false,
+          "pad": "none",
+          "role": "check_number"
+        },
+        {
+          "header": "Account Running Balance",
+          "quoted": false,
+          "pad": "none",
+          "role": "balance"
+        }
+      ],
+      "date_format": "YYYY-MM-DD",
+      "amount_format": {
+        "thousands_separator": false,
+        "currency_symbol": false,
+        "negative": "minus"
+      },
+      "skip_rows_without_amount": false,
+      "trailing_delimiter": "none",
+      "trim": true
+    }
+  },
+  {
+    "id": "barclays_csv",
+    "institution": "Barclays",
+    "account_kinds": [
+      "credit_card"
+    ],
+    "csv": {
+      "delimiter": ",",
+      "quote_all": false,
+      "quote_header": false,
+      "quote_empty": false,
+      "line_ending": "lf",
+      "utf8_bom": false,
+      "skip_lines": 4,
+      "has_header": true,
+      "columns": [
+        {
+          "header": "Transaction Date",
+          "quoted": false,
+          "pad": "none",
+          "role": "transaction_date"
+        },
+        {
+          "header": "Description",
+          "quoted": true,
+          "pad": "none",
+          "role": "description"
+        },
+        {
+          "header": "Category",
+          "quoted": true,
+          "pad": "none",
+          "role": "type"
+        },
+        {
+          "header": "Amount",
+          "quoted": false,
+          "pad": "none",
+          "role": "amount",
+          "money_out": "negative"
+        }
+      ],
+      "date_format": "MM/DD/YYYY",
+      "amount_format": {
+        "thousands_separator": false,
+        "currency_symbol": false,
+        "negative": "minus"
+      },
+      "skip_rows_without_amount": false,
+      "trailing_delimiter": "none",
+      "trim": false
+    }
+  }
+]
