@@ -10,7 +10,9 @@ permissions:
 
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  # Supersede runs only on pull requests; every push to main runs to completion so each
+  # landed commit gets a full result.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   rust:
