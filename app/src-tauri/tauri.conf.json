@@ -33,6 +33,24 @@
       "icons/128x128@2x.png",
       "icons/icon.icns",
       "icons/icon.ico"
-    ]
+    ],
+    "category": "Finance",
+    "shortDescription": "Local-first personal finance",
+    "longDescription": "Imports your bank files, categorises and explains your spending, and answers questions about your money, with all data encrypted on this computer.",
+    "publisher": "fin-manager contributors",
+    "copyright": "Copyright the fin-manager contributors. Licensed under AGPL-3.0-or-later.",
+    "license": "AGPL-3.0-or-later",
+    "licenseFile": "../../LICENSE",
+    "homepage": "https://github.com/raishish/fin-manager",
+    "createUpdaterArtifacts": false,
+    "macOS": {
+      "signingIdentity": "-",
+      "hardenedRuntime": true
+    },
+    "linux": {
+      "appimage": {
+        "bundleMediaFramework": false
+      }
+    }
   }
 }

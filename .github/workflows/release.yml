@@ -1,0 +1,299 @@
+name: Release
+
+# Unsigned release builds (T5.11): the macOS app and disk image for Apple Silicon and
+# the Linux AppImage, with SHA-256 checksums and an SBOM, attached to a DRAFT GitHub
+# release. Signing, notarisation and update checks come in T5.7 (docs/release.md).
+#
+# - A tag `vX.Y.Z` builds and creates the draft release. The tag must match the app's
+#   version (tauri.conf.json and the workspace Cargo.toml).
+# - A pull request that changes the release configuration (the paths below) runs the
+#   same builds, checks and checksums as a dry run, kept as workflow artifacts, so any
+#   change to how releases are built is exercised before it lands. No release is
+#   created. On this public repository, fork pull requests need a maintainer's
+#   approval to run and get a read-only token and no secrets.
+# - "Run workflow" (workflow_dispatch) is the same dry run, by hand.
+#
+# The repository is public: this workflow uses no secrets. Only the publish job gets
+# a token that can write, and only on a tag push. No build cache is restored, so a
+# release is built from the tagged source alone.
+
+on:
+  push:
+    tags: ["v*.*.*"]
+  pull_request:
+    paths:
+      - .github/workflows/release.yml
+      - app/src-tauri/tauri.conf.json
+      - app/src-tauri/Cargo.toml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  # A new push to a pull request supersedes its dry run; a tag's build always finishes.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  version:
+    name: Version
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      version: ${{ steps.read.outputs.version }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Read the app's version
+        id: read
+        run: |
+          app=$(jq -r .version app/src-tauri/tauri.conf.json)
+          cargo=$(sed -n 's/^version = "\(.*\)"$/\1/p' Cargo.toml | head -n 1)
+          if [ "$app" != "$cargo" ]; then
+            echo "::error::tauri.conf.json says $app but Cargo.toml says $cargo"
+            exit 1
+          fi
+          echo "version=$app" >> "$GITHUB_OUTPUT"
+      - name: The tag matches the version
+        if: github.event_name == 'push'
+        env:
+          TAG: ${{ github.ref_name }}
+          VERSION: ${{ steps.read.outputs.version }}
+        run: |
+          if [ "$TAG" != "v$VERSION" ]; then
+            echo "::error::tag $TAG doesn't match the app's version $VERSION"
+            exit 1
+          fi
+
+  macos:
+    name: macOS app and disk image (Apple Silicon)
+    needs: version
+    runs-on: macos-14
+    timeout-minutes: 60
+    env:
+      VERSION: ${{ needs.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # rustup reads rust-toolchain.toml and installs the pinned toolchain.
+      - run: rustup show active-toolchain
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: app/.node-version
+      - run: npm ci
+        working-directory: app
+      # Ad-hoc signed (tauri.conf.json bundle.macOS.signingIdentity "-") until T5.7.
+      - name: Build
+        working-directory: app
+        run: npx tauri build --ci --bundles app,dmg -- --locked
+      - name: Collect
+        run: |
+          mkdir -p out
+          bundle=target/release/bundle
+          ditto -c -k --keepParent "$bundle/macos/fin-manager.app" \
+            "out/fin-manager_${VERSION}_aarch64.app.zip"
+          cp "$bundle"/dmg/*.dmg out/
+          ls -l out
+      - name: The app's binary is arm64 and ad-hoc signed
+        run: |
+          app=target/release/bundle/macos/fin-manager.app
+          for bin in "$app"/Contents/MacOS/*; do
+            file "$bin"
+            file "$bin" | grep -q 'arm64'
+          done
+          codesign --verify --strict --verbose=2 "$app"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: macos
+          path: out/
+          if-no-files-found: error
+          retention-days: 14
+
+  linux:
+    name: Linux AppImage
+    needs: version
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    env:
+      # Where Tauri's bundler looks for its AppImage tools (dirs::cache_dir()/tauri).
+      XDG_CACHE_HOME: ${{ github.workspace }}/.tool-cache
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: rustup show active-toolchain
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: app/.node-version
+      - name: Tauri system libraries, and Xvfb for the smoke test
+        # Known gap (SPEC decision 35): apt packages can't be pinned by hash.
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libgtk-3-dev \
+            libayatana-appindicator3-dev librsvg2-dev libxdo-dev libssl-dev xvfb
+      # Tauri's AppImage bundler downloads these when they're missing, one of them from
+      # a moving "continuous" release. Placing pinned copies, checked by SHA-256, where
+      # it looks means it downloads nothing. The names and URLs are those of
+      # @tauri-apps/cli 2.12.3 (crates/tauri-bundler/src/bundle/linux/appimage/
+      # linuxdeploy.rs at tag tauri-cli-v2.12.3); re-check them when the CLI changes.
+      - name: Pinned AppImage tools
+        run: |
+          tools="$XDG_CACHE_HOME/tauri"
+          mkdir -p "$tools"
+          fetch() { # url, file, sha256
+            curl --proto '=https' --tlsv1.2 -sSfL -o "$tools/$2" "$1"
+            echo "$3  $tools/$2" | sha256sum --check --strict
+            chmod +x "$tools/$2"
+          }
+          fetch https://github.com/tauri-apps/binary-releases/releases/download/apprun-old/AppRun-x86_64 \
+            AppRun-x86_64 \
+            f30140a43a0a59e46db21bdefdf749b9e9f2c6946e92afabbacf98b8ae73fb4f
+          fetch https://github.com/tauri-apps/binary-releases/releases/download/linuxdeploy-07333c6/linuxdeploy-x86_64.AppImage \
+            linuxdeploy-07333c6-x86_64.AppImage \
+            36a2d7e274d12e1050d0e9ecfe11d339ed54720b2bec464c286d53f8b07f5c62
+          fetch https://github.com/linuxdeploy/linuxdeploy-plugin-appimage/releases/download/1-alpha-20250213-1/linuxdeploy-plugin-appimage-x86_64.AppImage \
+            linuxdeploy-plugin-appimage.AppImage \
+            992d502a248e14ab185448ddf6f6e7d25558cb84d4623c354c3af350c25fccb3
+      - run: npm ci
+        working-directory: app
+      - name: Build
+        working-directory: app
+        run: npx tauri build --ci --bundles appimage -- --locked
+      - name: Collect
+        run: |
+          mkdir -p out
+          cp target/release/bundle/appimage/*.AppImage out/
+          ls -l out
+          test "$(ls out/*.AppImage | wc -l)" -eq 1
+      - name: Smoke test, the AppImage starts and keeps running
+        # Started headless with a fresh home folder; it should show the first screen
+        # and still be running after 30 s (timeout's exit status 124).
+        env:
+          APPIMAGE_EXTRACT_AND_RUN: "1"
+          WEBKIT_DISABLE_DMABUF_RENDERER: "1"
+        run: |
+          home=$(mktemp -d)
+          app=$(ls "$PWD"/out/*.AppImage)
+          set +e
+          HOME="$home" XDG_CONFIG_HOME="$home/.config" XDG_DATA_HOME="$home/.local/share" \
+            XDG_CACHE_HOME="$home/.cache" timeout 30 xvfb-run -a "$app" > smoke.log 2>&1
+          status=$?
+          set -e
+          cat smoke.log
+          if [ "$status" -ne 124 ]; then
+            echo "::error::the AppImage exited with status $status before 30 s"
+            exit 1
+          fi
+          if grep -qiE 'panicked|segmentation fault|core dumped' smoke.log; then
+            echo "::error::the AppImage crashed"
+            exit 1
+          fi
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: linux
+          path: out/
+          if-no-files-found: error
+          retention-days: 14
+
+  sbom:
+    name: SBOM
+    needs: version
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      VERSION: ${{ needs.version.outputs.version }}
+      SYFT_VERSION: 1.54.1
+      # SHA-256 of syft_1.54.1_linux_amd64.tar.gz; matches the checksums file published
+      # with the GitHub release.
+      SYFT_SHA256: c069905b391cc4c20a5ba65ad5c10be2a7ba074f8ea6ad203e24d14e303dad47
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install syft (pinned release binary, checked by SHA-256)
+        run: |
+          name="syft_${SYFT_VERSION}_linux_amd64.tar.gz"
+          curl --proto '=https' --tlsv1.2 -sSfL -o "$RUNNER_TEMP/$name" \
+            "https://github.com/anchore/syft/releases/download/v${SYFT_VERSION}/$name"
+          echo "${SYFT_SHA256}  $RUNNER_TEMP/$name" | sha256sum --check --strict
+          mkdir -p "$RUNNER_TEMP/bin"
+          tar -xzf "$RUNNER_TEMP/$name" -C "$RUNNER_TEMP/bin" syft
+          echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
+      # From the lockfiles (Cargo.lock, app/package-lock.json); the test-data
+      # workspaces aren't part of the app.
+      - name: Generate the SBOM (SPDX JSON)
+        env:
+          SYFT_CHECK_FOR_APP_UPDATE: "false"
+        run: |
+          mkdir -p out
+          syft scan dir:. --exclude './testdata/**' --source-name fin-manager \
+            --source-version "$VERSION" -o "spdx-json=out/fin-manager_${VERSION}.spdx.json"
+          test -s "out/fin-manager_${VERSION}.spdx.json"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: sbom
+          path: out/
+          if-no-files-found: error
+          retention-days: 14
+
+  assemble:
+    name: Checksums
+    needs: [version, macos, linux, sbom]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          path: release
+          merge-multiple: true
+      - name: SHA-256 checksums
+        working-directory: release
+        run: |
+          sha256sum -- * > SHA256SUMS
+          cat SHA256SUMS
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: release
+          path: release/
+          if-no-files-found: error
+          retention-days: 14
+
+  publish:
+    name: Draft release
+    # Only for a tag push; a dry run stops at the artifacts above.
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    needs: [version, assemble]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: release
+          path: release
+      - name: Create the draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TAG: ${{ github.ref_name }}
+          VERSION: ${{ needs.version.outputs.version }}
+        run: |
+          cd release
+          sha256sum --check --strict SHA256SUMS
+          cat > ../notes.md <<'EOF'
+          **Unsigned build.** These files aren't signed by a developer certificate or
+          notarised yet (see docs/release.md). Check each download against SHA256SUMS.
+
+          - macOS (Apple Silicon): the first time, macOS won't open the app. Open System
+            Settings > Privacy & Security and choose Open Anyway (on macOS 14 and older,
+            right-click the app, choose Open, and confirm).
+          - Linux: make the AppImage executable (`chmod +x`) and run it.
+
+          The SBOM (SPDX JSON) lists every dependency from the lockfiles.
+          EOF
+          gh release create "$TAG" --draft --verify-tag \
+            --title "fin-manager $VERSION" --notes-file ../notes.md -- *
