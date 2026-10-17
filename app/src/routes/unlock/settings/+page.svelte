@@ -82,6 +82,11 @@
 		</section>
 
 		<section>
+			<h2>Backups</h2>
+			<p><a href="/backup">Backup folder and restore</a></p>
+		</section>
+
+		<section>
 			<h2>Auto-lock</h2>
 			<label>
 				Lock after

@@ -12,6 +12,9 @@ const ACTIVITY_INTERVAL_MS = 15_000;
 
 /** True if `path` may not be shown now: every route except /unlock needs an open ledger. */
 export async function needsUnlock(path: string): Promise<boolean> {
+	// Restoring a backup happens on a fresh install, before there is anything to unlock.
+	// Only this exact page; /backup itself (the settings) needs an open ledger.
+	if (path === '/backup/restore' || path === '/backup/restore/') return false;
 	if (path === '/unlock' || path.startsWith('/unlock/')) {
 		// The security settings page needs an open ledger too.
 		if (!path.startsWith('/unlock/settings')) return false;

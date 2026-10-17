@@ -85,8 +85,7 @@ struct LedgerLock(#[allow(dead_code)] fs::File);
 
 /// Holds the ledger's advisory lock until dropped (crate-internal handle), so a restore
 /// can replace the ledger's files without another instance opening them meanwhile.
-#[allow(dead_code, reason = "used by T5.2 (backup::restore)")]
-pub(crate) struct LedgerGuard(LedgerLock);
+pub(crate) struct LedgerGuard(#[allow(dead_code, reason = "held for its Drop")] LedgerLock);
 
 impl Vault {
     /// The ledger in `dir` (which may not exist yet).
@@ -211,7 +210,6 @@ impl Vault {
     /// Creates the ledger folder (0700) if missing, then takes the ledger's advisory
     /// lock, held until the guard drops. [`StorageError::InUse`] if another instance
     /// holds it. Used by `backup::restore` (T5.2).
-    #[allow(dead_code, reason = "used by T5.2 (backup::restore)")]
     pub(crate) fn lock_for_restore(&self) -> Result<LedgerGuard, StorageError> {
         self.ensure_dir()?;
         self.lock().map(LedgerGuard)
