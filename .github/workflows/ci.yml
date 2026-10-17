@@ -78,6 +78,32 @@ jobs:
       # change, re-render with `cargo run --release` in testdata/bank-exports.
       - run: cargo test --manifest-path testdata/bank-exports/Cargo.toml --release --locked
 
+  model-tests:
+    # fm-llm against a real (tiny) model: SmolLM2-135M-Instruct Q8_0, pinned by SHA-256
+    # (T2.3). Downloaded through fm-netguard with only the Hugging Face origins allowed
+    # (SPEC decision 40), and cached by its hash. Linux runs on CPU; macOS uses Metal when
+    # the runner exposes it.
+    name: Model tests (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-14, ubuntu-24.04]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 40
+    env:
+      FM_LLM_TEST_MODEL: ${{ github.workspace }}/.models/SmolLM2-135M-Instruct-Q8_0.gguf
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - run: rustup show active-toolchain
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .models
+          key: gguf-5a1395716f7913741cc51d98581b9b1228d80987a9f7d3664106742eb06bba83
+      - name: Fetch the test model (verified by size and SHA-256)
+        run: cargo run -p fm-llm --locked --example fetch_test_model -- .models
+      - run: cargo test -p fm-llm --locked
+
   dco:
     # Contributions are accepted under a DCO sign-off (SPEC decision 24).
     name: DCO sign-off
