@@ -67,7 +67,7 @@ jobs:
   synthetic-data:
     # The committed test ledgers must stay exactly what the generator produces, and the
     # generator must keep compiling against fm-core's model (TD.1).
-    name: Synthetic test data and bank exports
+    name: Test data (synthetic ledgers, bank exports, questions)
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
@@ -77,6 +77,8 @@ jobs:
       # The bank-export corpus (TD.2) is rendered from the synthetic ledgers; if those
       # change, re-render with `cargo run --release` in testdata/bank-exports.
       - run: cargo test --manifest-path testdata/bank-exports/Cargo.toml --release --locked
+      # The question set (TD.3) is computed from TD.1's ledger and truth.
+      - run: cargo test --manifest-path testdata/questions/Cargo.toml --release --locked
 
   model-tests:
     # fm-llm against a real (tiny) model: SmolLM2-135M-Instruct Q8_0, pinned by SHA-256
@@ -157,3 +159,4 @@ jobs:
       # The synthetic test-data generator is its own workspace (testdata/synthetic).
       - run: cargo deny --manifest-path testdata/synthetic/Cargo.toml --all-features --locked check
       - run: cargo deny --manifest-path testdata/bank-exports/Cargo.toml --all-features --locked check
+      - run: cargo deny --manifest-path testdata/questions/Cargo.toml --all-features --locked check
