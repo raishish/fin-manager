@@ -67,13 +67,16 @@ jobs:
   synthetic-data:
     # The committed test ledgers must stay exactly what the generator produces, and the
     # generator must keep compiling against fm-core's model (TD.1).
-    name: Synthetic test data
+    name: Synthetic test data and bank exports
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - run: rustup show active-toolchain
       - run: cargo test --manifest-path testdata/synthetic/Cargo.toml --release --locked
+      # The bank-export corpus (TD.2) is rendered from the synthetic ledgers; if those
+      # change, re-render with `cargo run --release` in testdata/bank-exports.
+      - run: cargo test --manifest-path testdata/bank-exports/Cargo.toml --release --locked
 
   dco:
     # Contributions are accepted under a DCO sign-off (SPEC decision 24).
@@ -127,3 +130,4 @@ jobs:
       - run: cargo deny --all-features --locked check
       # The synthetic test-data generator is its own workspace (testdata/synthetic).
       - run: cargo deny --manifest-path testdata/synthetic/Cargo.toml --all-features --locked check
+      - run: cargo deny --manifest-path testdata/bank-exports/Cargo.toml --all-features --locked check
