@@ -423,6 +423,59 @@ fn hand_written_cases() {
     );
 }
 
+/// A bill paid the same day, from the same account, for the same amount as a savings
+/// move: the bill's `WEB PMT` must not win the deposit (T1.6). Wording is Verizon's and
+/// Wells Fargo's, not TD.6's.
+#[test]
+fn a_biller_payment_does_not_take_a_savings_deposit() {
+    let accounts = [
+        account(
+            1,
+            "Everyday Checking",
+            AccountKind::Checking,
+            "Wells Fargo",
+            "5521",
+        ),
+        account(
+            2,
+            "Way2Save Savings",
+            AccountKind::Savings,
+            "Wells Fargo",
+            "8830",
+        ),
+        account(
+            3,
+            "Sapphire Preferred",
+            AccountKind::CreditCard,
+            "Chase",
+            "4417",
+        ),
+    ];
+    let transactions = [
+        // The bill comes first, so it would win a tie.
+        row(
+            1,
+            1,
+            "2025-09-12",
+            -8_500,
+            "VERIZON WIRELESS WEB PMT 250912 PAT EXAMPLE",
+        ),
+        row(2, 1, "2025-09-12", -8_500, "ONLINE TRANSFER REF #IB0QW9"),
+        row(
+            3,
+            2,
+            "2025-09-12",
+            8_500,
+            "ONLINE TRANSFER FROM EVERYDAY CHECKING XXXXXX5521",
+        ),
+        // A card payment still counts its payment words.
+        row(4, 1, "2025-09-15", -40_000, "CHASE CREDIT CRD EPAY 250915"),
+        row(5, 3, "2025-09-16", 40_000, "PAYMENT THANK YOU"),
+    ];
+    let found = pair_ids(&find_pairs(&accounts, &transactions, |_| true));
+    assert_eq!(found, BTreeSet::from([(2, 3), (4, 5)]));
+}
+
 // ---- Detection on a ledger.
 
 fn new_ledger() -> (TempDir, Unlocked) {
@@ -786,4 +839,105 @@ fn detection_on_td2_imports() {
         );
         assert!(total.precision() >= 0.95, "{total:?}");
     }
+}
+
+// ---- TD.6: look-alikes that are not transfers, and hard true transfers.
+
+const TD6_HOUSEHOLDS: [&str; 3] = ["alex", "jordan", "pat"];
+
+/// A TD.6 household: its ledger, its true pairs with their patterns, and every
+/// look-alike candidate with its pattern.
+struct Td6 {
+    ledger: Ledger,
+    pairs: BTreeMap<(i64, i64), String>,
+    lookalikes: BTreeMap<(i64, i64), String>,
+}
+
+fn td6(household: &str) -> Td6 {
+    let dir = data().join("transfer-lookalikes/data").join(household);
+    let ledger = serde_json::from_slice(&fs::read(dir.join("ledger.json")).unwrap()).unwrap();
+    let truth = json(dir.join("truth.json"));
+    let read = |key: &str| -> BTreeMap<(i64, i64), String> {
+        truth[key]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|p| {
+                (
+                    (p["out"].as_i64().unwrap(), p["in"].as_i64().unwrap()),
+                    p["pattern"].as_str().unwrap().to_owned(),
+                )
+            })
+            .collect()
+    };
+    Td6 {
+        ledger,
+        pairs: read("transfer_pairs"),
+        lookalikes: read("lookalikes"),
+    }
+}
+
+/// Pairs found on TD.6 with `params`: the overall score, and per pattern how many
+/// look-alikes were taken as transfers and how many true pairs were missed.
+fn td6_score(
+    households: &[Td6],
+    params: Params,
+) -> (Score, BTreeMap<String, usize>, BTreeMap<String, usize>) {
+    let mut total = Score::default();
+    let mut wrong: BTreeMap<String, usize> = BTreeMap::new();
+    let mut missed: BTreeMap<String, usize> = BTreeMap::new();
+    for h in households {
+        let found = pair_ids(&find_pairs_with(
+            params,
+            &h.ledger.accounts,
+            &h.ledger.transactions,
+            |_| true,
+        ));
+        let expected: BTreeSet<(i64, i64)> = h.pairs.keys().copied().collect();
+        total.add(Score::of(&found, &expected));
+        for pair in found.difference(&expected) {
+            let pattern = h
+                .lookalikes
+                .get(pair)
+                .map_or("not a candidate", String::as_str);
+            *wrong.entry(pattern.to_owned()).or_default() += 1;
+        }
+        for pair in expected.difference(&found) {
+            *missed.entry(h.pairs[pair].clone()).or_default() += 1;
+        }
+    }
+    (total, wrong, missed)
+}
+
+#[test]
+fn td6_precision_and_recall() {
+    let households: Vec<Td6> = TD6_HOUSEHOLDS.iter().map(|h| td6(h)).collect();
+    let (score, wrong, missed) = td6_score(&households, PARAMS);
+    println!(
+        "TD.6: precision {:.4}, recall {:.4} ({} right, {} wrong, {} missed)",
+        score.precision(),
+        score.recall(),
+        score.right,
+        score.wrong,
+        score.missed
+    );
+    println!("look-alikes taken as transfers, by pattern: {wrong:?}");
+    println!("true pairs missed, by pattern: {missed:?}");
+    for min_score in 1..=4 {
+        for max_lag_days in [3, 5, 7] {
+            let (s, w, _) = td6_score(
+                &households,
+                Params {
+                    max_lag_days,
+                    min_score,
+                },
+            );
+            println!(
+                "min_score {min_score}, window {max_lag_days}: precision {:.4}, recall {:.4}, wrong {w:?}",
+                s.precision(),
+                s.recall()
+            );
+        }
+    }
+    assert!(score.precision() >= 0.95, "precision {}", score.precision());
 }

@@ -63,11 +63,13 @@ fn normalise(text: &str) -> String {
     out
 }
 
-/// Words banks use for moving money between accounts and paying cards.
-const TRANSFER_WORDS: &[&str] = &[
-    " TRANSFER ",
-    " XFER ",
-    " TRANSFERS ",
+/// Words banks use only for moving money between accounts.
+const TRANSFER_WORDS: &[&str] = &[" TRANSFER ", " XFER ", " TRANSFERS "];
+
+/// Words banks use for paying a card, and for paying anyone else: a bill's line says
+/// `WEB PMT` too. They count as transfer wording only on a card's receiving side, or on
+/// a paying side that names the account it pays (see [`wording`]).
+const PAYMENT_WORDS: &[&str] = &[
     " PAYMENT THANK YOU ",
     " PAYMENT THANK ",
     " THANK YOU ",
@@ -154,15 +156,37 @@ fn type_hint(t: &Transaction) -> bool {
     )
 }
 
-/// How much the two rows' text says they are one transfer: a point for transfer wording
-/// on each side, and a point for each side naming the other side's account. The source's
-/// transaction type adds a point only when there is already text evidence.
+/// Whether one side's text uses transfer wording: transfer words, or payment words
+/// where they can only mean a transfer (on a card receiving the money, or on the paying
+/// side when it also names the account it pays).
+fn wording(text: &str, receiving: bool, own: &Account, other: &Account) -> bool {
+    has_any(text, TRANSFER_WORDS)
+        || (has_any(text, PAYMENT_WORDS)
+            && if receiving {
+                is_card(own.kind)
+            } else {
+                names_account(text, other)
+            })
+}
+
+/// What the two rows' text says about being one transfer.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) struct Evidence {
+    /// A point for transfer wording on each side (see [`wording`]), and a point for each
+    /// side naming the other side's account. The source's transaction type adds a point
+    /// only when there is already text evidence.
+    pub(crate) score: u32,
+    /// How many sides name the other's account: between equal scores, a pair whose
+    /// sides name each other beats one that only uses the right words.
+    pub(crate) naming: u32,
+}
+
 pub(crate) fn evidence(
     out: &Transaction,
     out_account: &Account,
     inflow: &Transaction,
     in_account: &Account,
-) -> u32 {
+) -> Evidence {
     let text = |t: &Transaction| {
         normalise(&format!(
             "{} {} {}",
@@ -172,14 +196,15 @@ pub(crate) fn evidence(
         ))
     };
     let (o, i) = (text(out), text(inflow));
-    let mut score = u32::from(has_any(&o, TRANSFER_WORDS))
-        + u32::from(has_any(&i, TRANSFER_WORDS))
-        + u32::from(names_account(&o, in_account))
-        + u32::from(names_account(&i, out_account));
+    let naming =
+        u32::from(names_account(&o, in_account)) + u32::from(names_account(&i, out_account));
+    let mut score = u32::from(wording(&o, false, out_account, in_account))
+        + u32::from(wording(&i, true, in_account, out_account))
+        + naming;
     if score > 0 && (type_hint(out) || type_hint(inflow)) {
         score += 1;
     }
-    score
+    Evidence { score, naming }
 }
 
 fn is_card(kind: AccountKind) -> bool {
@@ -198,6 +223,8 @@ pub(crate) struct Candidate {
     pub(crate) inflow: TransactionId,
     pub(crate) kind: PairKind,
     pub(crate) score: u32,
+    /// See [`Evidence::naming`].
+    pub(crate) naming: u32,
     /// Days from the sending side's posted date to the receiving side's.
     pub(crate) lag: i32,
 }
@@ -252,11 +279,13 @@ pub(crate) fn candidates(
                 // the matcher can tell apart.
                 (true, _) => continue,
             };
+            let e = evidence(out, out_account, inflow, in_account);
             out_candidates.push(Candidate {
                 out: out.id,
                 inflow: inflow.id,
                 kind,
-                score: evidence(out, out_account, inflow, in_account),
+                score: e.score,
+                naming: e.naming,
                 lag,
             });
         }
@@ -274,7 +303,8 @@ pub(crate) fn candidates(
 /// person-to-person payment. Card payments go from a non-card account to a card;
 /// anything else into a card isn't a transfer. Candidates with at least
 /// [`PARAMS`]`.min_score` evidence are assigned best first: highest score, then the
-/// nearest dates, then the lowest ids. Each transaction is used at most once.
+/// most account naming, then the nearest dates, then the lowest ids. Each transaction
+/// is used at most once.
 pub fn find_pairs(
     accounts: &[Account],
     transactions: &[Transaction],
@@ -295,7 +325,15 @@ pub(crate) fn find_pairs_with(
             .into_iter()
             .filter(|c| c.score >= params.min_score)
             .collect();
-    ranked.sort_by_key(|c| (std::cmp::Reverse(c.score), c.lag, c.out, c.inflow));
+    ranked.sort_by_key(|c| {
+        (
+            std::cmp::Reverse(c.score),
+            std::cmp::Reverse(c.naming),
+            c.lag,
+            c.out,
+            c.inflow,
+        )
+    });
     let mut used: HashSet<TransactionId> = HashSet::new();
     let mut pairs = Vec::new();
     for c in ranked {
