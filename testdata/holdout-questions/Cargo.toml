@@ -1,0 +1,27 @@
+[package]
+name = "fm-holdout-questions"
+description = "A held-out set of 25 questions for T4.2, written apart from it (TD.7). Same format and checks as TD.3."
+version = "0.0.0"
+edition = "2024"
+license = "AGPL-3.0-or-later"
+repository = "https://github.com/raishish/fin-manager"
+publish = false
+
+# A standalone workspace, like testdata/questions: test-data tooling kept out of the
+# app's build. Build and test it from this folder.
+[workspace]
+
+[dependencies]
+fm-core = { path = "../../crates/fm-core" }
+# TD.3's crate: the file format, the persona's facts and the answer helpers, so the
+# held-out set is read exactly like TD.3.
+fm-questions = { path = "../questions" }
+fm-synth = { path = "../synthetic" }
+serde = { version = "=1.0.229", default-features = false, features = ["derive", "std"] }
+serde_json = "=1.0.154"
+
+[lints.rust]
+unsafe_code = "deny"
+
+[lints.clippy]
+all = { level = "warn", priority = -1 }
