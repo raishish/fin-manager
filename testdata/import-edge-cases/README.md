@@ -2,7 +2,7 @@
 
 These are small, adversarial bank files for the import pipeline's matcher (T1.3). Each one is built so that a plausible matching rule gets it wrong. The TD.2 corpus checks that real-world layouts import; these check that the matcher decides correctly *which rows are the same transaction*.
 
-- **9 cases, 18 files (9 CSV, 9 QFX), 91 rows.**
+- **17 cases over 29 files (14 CSV, 15 QFX), 172 rows.** Cases 01–07 came first (TD.4). Cases 08–13 (TD.5) mix formats for one account and put tricky pairs in the same file. 08 and 09 are imported in both orders: `a` and `b` are two cases over the same files.
 - The files are written in the documented bank layouts (see `testdata/bank-exports/data/layouts.json`). They parse with `fm-import-csv` (each CSV is detected as the stated layout) and with `fm-import-ofx`.
 - Everything is synthetic. Account numbers start with `9999`, routing numbers with `999999`, and the cardholder is the invented Sam Fakerson.
 
@@ -55,10 +55,18 @@ A useful T1.3 test, for each case:
 | `06_tipped_pending_same_price` | Citi card CSV, two downloads | A dinner shows pending at $40.00 on 03/06 and settles at $48.00 with the tip. On 03/09 the same restaurant charges exactly $40.00 for takeout, and that row comes first in the second file. A $40.00 lunch on 03/03 is in both downloads. | "Ranked by exact amount first": the pending dinner must settle into the $48.00 row with its purchase date, not the exact-amount takeout. |
 | `07a_purchase_date_only_with_dtuser` | Barclays QFX, then Barclays CSV of the same month | The CSV has only purchase dates. The QFX has posted dates and DTUSER. Two $36.50 ramen dinners: the 06/10 one posts on 06/12, which is the other's purchase date. | The CSV rows must match their QFX twins by purchase date, without crossing over on the shared 06/12. |
 | `07b_purchase_date_only_posted_twin` | Barclays QFX without DTUSER, then Barclays CSV | A constructed variant: the QFX has posted dates only, two days after each purchase. No two rows share amount and merchant, so the pairing is unambiguous. | The CSV purchase-date rows should still match their posted twins. A shared-date rule alone finds no match here. |
+| `08a/08b_mixed_formats_boundary` | Chase QFX for February (posted dates only, as Chase sends it), and a Chase CSV with purchase and posted dates from posted 02-27. Both orders. | A daily $2.90 fare. The windows overlap on posted 02-27 and 02-28: the two 02-26 rides and a payment are in both files. The 02-27 and 02-28 rides both post 03-01 and are only in the CSV, and their purchase dates fall on the posted dates of the QFX's 02-26 rides. | "Dates are shared": a CSV row's {purchase, posted} overlaps a QFX row's {posted}, so different rides merge. |
+| `09a/09b_purchase_only_vs_posted_only` | Amex QFX (posted dates only), then the Amex CSV (one date column, the purchase date). Both orders. | A $4.75 coffee every day, posting two days later. The QFX ends at posted 04-15 and the CSV starts at purchase 04-14, so no coffee is in both files, though rows a day apart are within three days of each other. The only true twin is a $23.88 Amazon order (bought 04-14, posted 04-15), the one row within ±3 days with no lookalike. | A date window without uniqueness: only a unique twin within ±3 days may match. |
+| `10_pending_and_posted_same_file` | One Citi CSV | The export lists a dinner twice: pending at $40.00 and cleared at $48.00. One transaction, inside one file. An Uber ride still pending stays pending. | "Rows of the same file never match each other." |
+| `11_checks_same_amount_day` | Wells QFX (CHECKNUM), then the Wells CSV (CHECK # column) | Checks 1043 and 1044, both $150.00, both described `CHECK`, on 05-12: two transactions. The CSV repeats both and adds check 1045 with the same amount and day. | Matching on amount, date and text while ignoring the check number. |
+| `12_recycled_fitid_atm_zelle` | Chase checking QFX: a 3-day download, then the month | A $20.00 ATM withdrawal (03-02) and a $20.00 Zelle payment (03-04) share FITID `77`, both inside the month file. Two transactions; the ATM row is in both downloads. | "Same `external_id` → duplicate", even within one file. |
+| `13_generic_name_vs_csv_text` | PNC QFX, then PNC CSV | The QFX has NAME `POS PURCHASE` and the merchant in MEMO; the CSV has `POS PURCHASE <merchant>` with no memo. Shell (QFX) and Chevron (CSV), both $40.00 on 03-10, are different purchases. H-E-B $61.20 on 03-12 is in both (CSV text = NAME + MEMO). | A generic NAME compared to the CSV text alone. |
 
 Notes on realism:
 - The regenerated FITIDs in case 02 and the recycled ones in 03a are known bank behaviours, but the files are constructed rather than copied from samples.
 - 07b is a constructed variant; Barclays' real QFX carries DTUSER.
+- Cases 08 and 09 use only real behaviour: Chase's and Amex's QFX have no DTUSER, and Amex's basic CSV has a single date column.
+- 10 (both rows in one export), 11 (three same-day checks) and 12 (FITID `77` reused) are constructed situations in documented layouts.
 - Every file follows its bank's documented layout.
 
 ## Checks (`tests/fixtures.rs`)
@@ -68,7 +76,7 @@ The folder is a tiny standalone Cargo workspace that only tests the fixtures. Ru
 - **Every file parses.**
   - CSVs go through `fm_import_csv::import` with the built-in profiles and must detect the stated layout.
   - QFXs go through `fm_import_ofx::parse`.
-  - Each must yield exactly the statements and rows `expected.json` lists, with the same amount, dates, status and bank id per row.
+  - Each must yield exactly the statements and rows `expected.json` lists, with the same amount, dates, status and bank id per row (and check number where a row states one).
   - Account and routing numbers are fake.
 - **`expected.json` is consistent with itself.**
   - `import_order` lists every file.
@@ -76,6 +84,10 @@ The folder is a tiny standalone Cargo workspace that only tests the fixtures. Ru
   - Posted rows carry their transaction's final amount.
   - The outcomes follow from the order: a transaction's first row is `inserted`; a later posted row is `duplicate`, or `posted_pending` if the earlier one was pending.
   - Every transaction has a row, and its final status matches.
-- **Coverage.** All nine cases are present, and case 04 is the one with two accounts sharing a last four.
+- **Coverage.**
+  - All 17 cases are present.
+  - Every file under `cases/` is listed by some case.
+  - Case 04 is the one with two accounts sharing a last four.
+- **Both orders.** 08a/08b and 09a/09b share files and ground truth, and their import orders are reversed. Every row is the same transaction in both.
 
 Failure messages name the file, row and field, never the values.

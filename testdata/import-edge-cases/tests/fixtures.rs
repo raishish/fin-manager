@@ -43,7 +43,7 @@ fn parse(file: &Value) -> Vec<Statement> {
 
 #[test]
 fn every_file_parses_to_exactly_the_rows_listed() {
-    let mut files_checked = 0;
+    let mut files_checked = BTreeSet::new();
     for case in cases() {
         for file in case["files"].as_array().unwrap() {
             let path = s(file, "path");
@@ -96,6 +96,11 @@ fn every_file_parses_to_exactly_the_rows_listed() {
                             "bank id",
                             rec.external_id.as_deref() == r["external_id"].as_str(),
                         ),
+                        (
+                            "check number",
+                            r.get("check_number").is_none()
+                                || rec.check_number.as_deref() == r["check_number"].as_str(),
+                        ),
                     ];
                     for (field, ok) in checks {
                         assert!(ok, "{at}: {field} differs");
@@ -113,10 +118,25 @@ fn every_file_parses_to_exactly_the_rows_listed() {
                     );
                 }
             }
-            files_checked += 1;
+            files_checked.insert(path.to_string());
         }
     }
-    assert_eq!(files_checked, 18);
+    // Every file on disk is listed by some case (cases can share files to test both orders).
+    let mut on_disk = BTreeSet::new();
+    for dir in std::fs::read_dir(fm_import_edge_cases::root().join("cases")).unwrap() {
+        let dir = dir.unwrap();
+        for f in std::fs::read_dir(dir.path()).unwrap() {
+            let name = f.unwrap().file_name().into_string().unwrap();
+            on_disk.insert(format!(
+                "cases/{}/{name}",
+                dir.file_name().into_string().unwrap()
+            ));
+        }
+    }
+    assert_eq!(
+        files_checked, on_disk,
+        "every fixture file is in expected.json"
+    );
 }
 
 /// Outcomes follow from the import order: a transaction's first row is inserted; a
@@ -215,7 +235,8 @@ fn expected_outcomes_are_consistent() {
 fn every_requested_case_is_present() {
     let ids: Vec<String> = cases().iter().map(|c| s(c, "id").to_string()).collect();
     for prefix in [
-        "01_", "02_", "03a_", "03b_", "04_", "05_", "06_", "07a_", "07b_",
+        "01_", "02_", "03a_", "03b_", "04_", "05_", "06_", "07a_", "07b_", "08a_", "08b_", "09a_",
+        "09b_", "10_", "11_", "12_", "13_",
     ] {
         assert!(
             ids.iter().any(|i| i.starts_with(prefix)),
@@ -238,4 +259,48 @@ fn every_requested_case_is_present() {
         (2, 1),
         "two accounts, one last four"
     );
+}
+
+/// Cases imported in both orders share their files and their ground truth.
+#[test]
+fn both_orders_agree_on_the_truth() {
+    let all = cases();
+    for (a, b) in [("08a_", "08b_"), ("09a_", "09b_")] {
+        let find = |p: &str| {
+            all.iter()
+                .find(|c| s(c, "id").starts_with(p))
+                .unwrap()
+                .clone()
+        };
+        let (x, y) = (find(a), find(b));
+        assert_eq!(x["transactions"], y["transactions"], "{a}: same truth");
+        assert_eq!(x["files"], y["files"], "{a}: same files");
+        let mut order = x["import_order"].as_array().unwrap().clone();
+        order.reverse();
+        assert_eq!(
+            &order,
+            y["import_order"].as_array().unwrap(),
+            "{a}: reversed order"
+        );
+        let keys = |c: &Value| -> BTreeSet<(String, u64, u64, String)> {
+            c["rows"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .map(|r| {
+                    (
+                        s(r, "file").to_string(),
+                        r["statement"].as_u64().unwrap(),
+                        r["row"].as_u64().unwrap(),
+                        s(r, "transaction").to_string(),
+                    )
+                })
+                .collect()
+        };
+        assert_eq!(
+            keys(&x),
+            keys(&y),
+            "{a}: each row is the same transaction in both orders"
+        );
+    }
 }
