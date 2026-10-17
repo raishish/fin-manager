@@ -89,6 +89,9 @@ pub enum SimpleFinError {
     HostNotConfirmed,
     /// The bridge answered the claim with something that isn't a usable access URL.
     BadAccessUrl,
+    /// The bridge's access URL names a different server from the one the user
+    /// confirmed. Nothing was saved or allowed.
+    BridgeHostChanged,
     /// The setup token was claimed before (each works once). If this wasn't you,
     /// disable that token in SimpleFIN.
     TokenAlreadyUsed,
@@ -129,6 +132,10 @@ impl fmt::Display for SimpleFinError {
             Self::BadAccessUrl => {
                 f.write_str("SimpleFIN's answer to the setup token wasn't usable")
             }
+            Self::BridgeHostChanged => f.write_str(
+                "the server answered with a different server than the one you confirmed, so \
+                 nothing was saved; if this wasn't expected, disable the token in SimpleFIN",
+            ),
             Self::TokenAlreadyUsed => f.write_str(
                 "this setup token was already used; if that wasn't you, disable it in SimpleFIN \
                  and make a new one",
@@ -304,10 +311,13 @@ impl fmt::Debug for Claimed {
 /// Claims a setup token (each works once), once the user has confirmed its host
 /// (`confirmed_host`, as [`inspect_token`] showed it). Needs no ledger.
 ///
-/// The claim's origin is allowed on `guard` for the claim, and only the bridge's
-/// origin is left allowed afterwards. The allowlist is shared and not reference
-/// counted: if the claim's origin was already allowed, it stays allowed; if it wasn't,
-/// it is revoked again unless it is also the bridge's.
+/// The access URL in the answer must be on the confirmed origin (scheme, host and
+/// port): a claim server can't hand back a server the user never saw
+/// ([`SimpleFinError::BridgeHostChanged`]).
+///
+/// The claim's origin is allowed on `guard` for the claim and stays allowed on
+/// success, as the bridge's. The allowlist is shared and not reference counted: on
+/// failure, the claim's origin is revoked again unless it was already allowed.
 pub fn claim(
     guard: &NetGuard,
     setup_token: &str,
@@ -335,10 +345,13 @@ pub fn claim(
                     String::from_utf8(response.body).map_err(|_| SimpleFinError::BadAccessUrl)?,
                 );
                 let credentials = Credentials::parse(&text)?;
-                let origin = credentials
+                let origin: Origin = credentials
                     .origin
                     .parse()
                     .map_err(|_| SimpleFinError::BadAccessUrl)?;
+                if origin != claim_origin {
+                    return Err(SimpleFinError::BridgeHostChanged);
+                }
                 Ok(Claimed {
                     access_url: Zeroizing::new(text.trim().to_string()),
                     origin,
@@ -347,13 +360,11 @@ pub fn claim(
             403 => Err(SimpleFinError::TokenAlreadyUsed),
             status => Err(SimpleFinError::Bridge { status }),
         });
-    let keep_claim_origin = matches!(&claimed, Ok(c) if c.origin == claim_origin);
-    if added && !keep_claim_origin {
+    // On success the bridge's origin is the claim's, already allowed.
+    if added && claimed.is_err() {
         guard.revoke(&claim_origin);
     }
-    let claimed = claimed?;
-    guard.allow(claimed.origin.clone());
-    Ok(claimed)
+    claimed
 }
 
 /// Keeps a claimed access URL, replacing any earlier connection (the token is spent
@@ -437,7 +448,7 @@ pub fn sync(
     now: SystemTime,
 ) -> Result<SyncReport, SimpleFinError> {
     let mut run = SyncRun::start(ledger, now)?;
-    while let Some(window) = run.next(ledger)? {
+    while let Some(window) = run.next(ledger, now)? {
         let body = fetch(guard, &run, window)?;
         run.store(ledger, window, body)?;
     }
@@ -455,7 +466,10 @@ pub struct Window {
 pub struct SyncRun {
     credentials: Credentials,
     now: SystemTime,
+    /// When the sync started (Unix seconds).
     at: i64,
+    /// The latest step's time: when the last request was counted.
+    latest: i64,
     windows: Vec<Window>,
     next: usize,
     bytes: u64,
@@ -492,6 +506,7 @@ impl SyncRun {
             credentials,
             now,
             at,
+            latest: at,
             windows,
             next: 0,
             bytes: 0,
@@ -508,20 +523,30 @@ impl SyncRun {
     }
 
     /// The next window to fetch, counted against today's limit and stored before
-    /// anything is sent, so a crash or a failure never frees quota. `None` when the
-    /// sync is done, or stops early because today's requests or the sync's byte budget
-    /// ran out (the report then says `complete: false`).
-    pub fn next(&mut self, ledger: &Unlocked) -> Result<Option<Window>, SimpleFinError> {
+    /// anything is sent, so a crash or a failure never frees quota. `now` is the time
+    /// of this step: the request is counted then (never before the sync's start or an
+    /// earlier step), so a slow sync's later requests count for the full 24 hours
+    /// after they are sent.
+    /// `None` when the sync is done, or stops early because today's requests or the
+    /// sync's byte budget ran out (the report then says `complete: false`).
+    pub fn next(
+        &mut self,
+        ledger: &Unlocked,
+        now: SystemTime,
+    ) -> Result<Option<Window>, SimpleFinError> {
         self.check_connection(ledger)?;
         let Some(&window) = self.windows.get(self.next) else {
             return Ok(None);
         };
-        let mut quota = load_quota(ledger, self.at)?;
-        if quota.left(self.at) == 0 || self.bytes >= self.budget {
+        // Never before the sync's start or an earlier step, if the clock went back.
+        let sent_at = self.latest.max(unix(now));
+        self.latest = sent_at;
+        let mut quota = load_quota(ledger, sent_at)?;
+        if quota.left(sent_at) == 0 || self.bytes >= self.budget {
             self.report.complete = false;
             return Ok(None);
         }
-        quota.record(self.at);
+        quota.record(sent_at);
         set(ledger, KEY_REQUESTS, Some(&quota.encode()))?;
         self.next += 1;
         Ok(Some(window))
@@ -582,9 +607,9 @@ impl SyncRun {
         if !self.windows.is_empty() && self.report.synced_to.is_none_or(|t| t < self.at) {
             self.report.complete = false;
         }
-        let quota = load_quota(ledger, self.at)?;
-        self.report.requests_left = quota.left(self.at);
-        self.report.next_allowed = quota.next_allowed(self.at);
+        let quota = load_quota(ledger, self.latest)?;
+        self.report.requests_left = quota.left(self.latest);
+        self.report.next_allowed = quota.next_allowed(self.latest);
         Ok(self.report)
     }
 

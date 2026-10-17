@@ -400,7 +400,7 @@ fn the_first_sync_is_two_requests_counted_before_either_is_sent() {
         24,
         "starting counts nothing"
     );
-    let first = run.next(&u).unwrap().unwrap();
+    let first = run.next(&u, at(NOW)).unwrap().unwrap();
     assert_eq!((first.from, first.to), (NOW - 90 * DAY, NOW - 45 * DAY));
     // Counted and stored in the ledger, with nothing sent yet.
     assert!(bridge.account_requests().is_empty());
@@ -414,7 +414,7 @@ fn the_first_sync_is_two_requests_counted_before_either_is_sent() {
 
     let body = fetch(&guard, &run, first).unwrap();
     run.store(&mut u, first, body).unwrap();
-    let second = run.next(&u).unwrap().unwrap();
+    let second = run.next(&u, at(NOW)).unwrap().unwrap();
     assert_eq!((second.from, second.to), (NOW - 45 * DAY, NOW));
     assert_eq!(
         bridge.account_requests().len(),
@@ -424,7 +424,7 @@ fn the_first_sync_is_two_requests_counted_before_either_is_sent() {
     assert_eq!(status(&u, at(NOW)).unwrap().requests_left, 22);
     let body = fetch(&guard, &run, second).unwrap();
     run.store(&mut u, second, body).unwrap();
-    assert_eq!(run.next(&u).unwrap(), None);
+    assert_eq!(run.next(&u, at(NOW)).unwrap(), None);
     let report = run.finish(&u).unwrap();
     assert!(report.complete);
     assert_eq!(
@@ -441,7 +441,7 @@ fn the_first_sync_is_two_requests_counted_before_either_is_sent() {
 fn each_window_is_stored_before_the_next_is_fetched() {
     let (_dir, mut u, bridge, guard) = connected();
     let mut run = SyncRun::start(&u, at(NOW)).unwrap();
-    let first = run.next(&u).unwrap().unwrap();
+    let first = run.next(&u, at(NOW)).unwrap().unwrap();
     let body = fetch(&guard, &run, first).unwrap();
     run.store(&mut u, first, body).unwrap();
     let shown = status(&u, at(NOW)).unwrap();
@@ -478,10 +478,10 @@ fn responses_and_syncs_are_size_limited() {
     bridge.answer(vec![(200, accounts_body(&[TRN_RENT]))]);
     let mut run = SyncRun::start(&u, at(NOW + 60)).unwrap();
     run.budget = 10;
-    let window = run.next(&u).unwrap().unwrap();
+    let window = run.next(&u, at(NOW)).unwrap().unwrap();
     let body = fetch(&guard, &run, window).unwrap();
     run.store(&mut u, window, body).unwrap();
-    assert_eq!(run.next(&u).unwrap(), None, "the budget is spent");
+    assert_eq!(run.next(&u, at(NOW)).unwrap(), None, "the budget is spent");
     let report = run.finish(&u).unwrap();
     assert!(!report.complete, "the next sync carries on");
     assert_eq!(report.synced_to, Some(window.to));
@@ -493,14 +493,17 @@ fn responses_and_syncs_are_size_limited() {
 fn a_sync_stores_nothing_after_a_disconnect() {
     let (_dir, mut u, bridge, guard) = connected();
     let mut run = SyncRun::start(&u, at(NOW)).unwrap();
-    let window = run.next(&u).unwrap().unwrap();
+    let window = run.next(&u, at(NOW)).unwrap().unwrap();
     let body = fetch(&guard, &run, window).unwrap();
     disconnect(&u, &guard).unwrap();
     assert!(matches!(
         run.store(&mut u, window, body.clone()),
         Err(SimpleFinError::NotConnected)
     ));
-    assert!(matches!(run.next(&u), Err(SimpleFinError::NotConnected)));
+    assert!(matches!(
+        run.next(&u, at(NOW)),
+        Err(SimpleFinError::NotConnected)
+    ));
     assert!(u.raw_imports().unwrap().is_empty());
     for key in ALL_KEYS {
         assert_eq!(get(&u, key).unwrap(), None, "{key} written back");
@@ -511,7 +514,7 @@ fn a_sync_stores_nothing_after_a_disconnect() {
         connect(&u, &guard, &bridge.setup_token(), &bridge.host()).unwrap();
         SyncRun::start(&u, at(NOW)).unwrap()
     };
-    let window = run.next(&u).unwrap().unwrap();
+    let window = run.next(&u, at(NOW)).unwrap().unwrap();
     disconnect(&u, &guard).unwrap();
     bridge.script.lock().unwrap().claim.1 = format!(
         "http://OTHER:{PASSWORD_IN_URL}@127.0.0.1:{}/simplefin",
@@ -567,6 +570,91 @@ fn an_access_url_for_a_local_or_private_host_is_refused() {
         assert!(guard.allowlist().is_empty(), "{access}");
         assert!(!is_connected(&u).unwrap());
     }
+}
+
+/// T5.10: the access URL must be on the server the user confirmed: another host,
+/// another port, or a public name the user never saw is refused before anything is
+/// saved or allowed.
+#[test]
+fn an_access_url_on_another_server_is_refused() {
+    let (_dir, u) = ledger();
+    let bridge = Bridge::start();
+    let guard = NetGuard::new(Allowlist::new());
+    let port = bridge.port;
+    for access in [
+        format!("http://u:p@localhost:{port}/simplefin"),
+        format!("http://u:p@127.0.0.1:{}/simplefin", port.wrapping_add(1)),
+        "https://u:p@bridge.example.com/simplefin".to_string(),
+        "https://u:p@127-0-0-1.nip.io/simplefin".to_string(),
+    ] {
+        bridge.script.lock().unwrap().claim = (200, access.clone());
+        let err = connect(&u, &guard, &bridge.setup_token(), &bridge.host()).unwrap_err();
+        assert!(
+            matches!(err, SimpleFinError::BridgeHostChanged),
+            "{access}: {err:?}"
+        );
+        assert!(guard.allowlist().is_empty(), "{access}");
+        assert!(!is_connected(&u).unwrap(), "{access}");
+        secrets_absent(&err.to_string());
+    }
+    // The same server, with a path of its own: accepted.
+    bridge.script.lock().unwrap().claim = (
+        200,
+        format!("http://{USER}:{PASSWORD_IN_URL}@127.0.0.1:{port}/elsewhere/simplefin"),
+    );
+    connect(&u, &guard, &bridge.setup_token(), &bridge.host()).unwrap();
+    assert_eq!(
+        guard.allowlist().iter().cloned().collect::<Vec<_>>(),
+        [bridge.origin()]
+    );
+}
+
+/// T5.10: each request is counted when it is sent, not when the sync started, so a
+/// slow sync's later requests count for the full day after they go out.
+#[test]
+fn requests_are_counted_at_the_time_they_are_sent() {
+    let (_dir, mut u, _bridge, guard) = connected();
+    let stamps = |u: &Unlocked| {
+        let text = get(u, KEY_REQUESTS).unwrap().unwrap_or_default();
+        text.split(',')
+            .filter(|s| !s.is_empty())
+            .map(|s| s.parse::<i64>().unwrap())
+            .collect::<Vec<_>>()
+    };
+    let mut run = SyncRun::start(&u, at(NOW)).unwrap();
+    let first = run.next(&u, at(NOW + 600)).unwrap().unwrap();
+    let body = fetch(&guard, &run, first).unwrap();
+    run.store(&mut u, first, body).unwrap();
+    // The clock went back meanwhile: never counted before an earlier request.
+    let second = run.next(&u, at(NOW - DAY)).unwrap().unwrap();
+    assert_eq!(stamps(&u), [NOW + 600, NOW + 600]);
+    let body = fetch(&guard, &run, second).unwrap();
+    run.store(&mut u, second, body).unwrap();
+    assert_eq!(run.next(&u, at(NOW + 1200)).unwrap(), None);
+    let report = run.finish(&u).unwrap();
+    assert_eq!(report.requests_left, 22);
+
+    // 23 more, each a minute apart: the day is full until a day after the first send.
+    let mut run = SyncRun::start(&u, at(NOW + 1800)).unwrap();
+    run.windows = vec![
+        Window {
+            from: NOW,
+            to: NOW + 1
+        };
+        22
+    ];
+    for i in 0..22 {
+        let window = run.next(&u, at(NOW + 1800 + i * 60)).unwrap().unwrap();
+        let body = fetch(&guard, &run, window).unwrap();
+        run.store(&mut u, window, body).unwrap();
+    }
+    let report = run.finish(&u).unwrap();
+    assert_eq!(report.requests_left, 0);
+    assert_eq!(
+        report.next_allowed,
+        Some(NOW + 600 + DAY),
+        "a day after the first was sent, not after the sync started"
+    );
 }
 
 /// Review finding L1: no part of the claim URL's path reaches the network log, even
@@ -738,6 +826,7 @@ fn errors_never_show_secrets() {
         SimpleFinError::InvalidToken,
         SimpleFinError::HostNotConfirmed,
         SimpleFinError::BadAccessUrl,
+        SimpleFinError::BridgeHostChanged,
         SimpleFinError::TokenAlreadyUsed,
         SimpleFinError::AlreadyConnected,
         SimpleFinError::NotConnected,

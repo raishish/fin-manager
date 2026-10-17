@@ -33,13 +33,18 @@ machine or the local network.
 - Both must be `https` to a **public** host (`token::is_public_host`). Refused:
   - `localhost` and `*.localhost`;
   - loopback, private (RFC 1918), shared (RFC 6598), link-local and other special
-    addresses, in IPv4 and IPv6 (unique local, link-local, IPv4-mapped, NAT64);
+    addresses, in IPv4 and IPv6 (unique local, link-local, IPv4-mapped, SIIT
+    `::ffff:0:0:0/96`, NAT64, 6to4 `2002::/16`);
   - names that are local by their form (`.local`, `.lan`, `.internal`, `.home.arpa`,
     single labels);
   - numeric forms a resolver reads as an address (`2130706433`, `0x7f.1`, `127.1`).
 - **The user confirms the host before the claim.** The screen shows it, warns when it
   isn't SimpleFIN's own (`simplefin.org`), and the claim refuses any host but the
   confirmed one.
+- **The access URL must be on the confirmed server** (same scheme, host and port, T5.10).
+  A claim server can't hand back a server the user never saw, such as a public name
+  that resolves to this machine. Otherwise the claim fails with `BridgeHostChanged`
+  before anything is saved or allowed.
 - Not caught: a public name that resolves to a private address (DNS rebinding). The
   confirmation step is the defence there.
 - Plain `http` to `127.0.0.1` or `localhost` is accepted only in this crate's tests, for
@@ -84,6 +89,9 @@ nothing more.
   disables tokens that keep using more. Every `/accounts` request is counted in a
   rolling 24 hours before it is sent, and the count is kept in the ledger, so it
   survives a restart.
+  - Each request is counted at the time it is sent (`SyncRun::next` takes the step's
+    time), never before the sync's start or an earlier request, so a slow sync's later
+    requests count for the full day after they go out.
   - Unreadable entries count as now.
   - A stamp in the future still counts, so setting the clock back frees nothing. A
     stamp more than a day ahead counts as a day ahead, so it blocks for two days at

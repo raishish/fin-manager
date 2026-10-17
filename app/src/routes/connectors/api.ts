@@ -50,8 +50,16 @@ export function isConnectorError(e: unknown): e is ConnectorError {
 	return typeof e === 'object' && e !== null && 'code' in e && 'message' in e;
 }
 
-export function connectorErrorMessage(e: unknown): string {
+/** `confirmedHost`: the host the user confirmed, when connecting. */
+export function connectorErrorMessage(e: unknown, confirmedHost?: string): string {
 	if (!isConnectorError(e)) return String(e);
+	if (e.code === 'BridgeHostChanged' && confirmedHost) {
+		return (
+			`The bridge answered with a different host than the one you confirmed ` +
+			`(${confirmedHost}), so nothing was saved. If you didn't expect this, disable the ` +
+			`token in SimpleFIN.`
+		);
+	}
 	if (e.code === 'QuotaReached' && e.nextAllowed) {
 		return `${e.message} (after ${formatTime(e.nextAllowed)}).`;
 	}
