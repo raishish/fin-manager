@@ -271,25 +271,9 @@ fn a_damaged_backup_restores_nothing() {
     }
 }
 
-/// Review finding 4: a FIFO (or a device) is refused at once instead of hanging.
-#[cfg(unix)]
-#[test]
-fn restore_refuses_a_fifo_without_hanging() {
-    let f = Fixture::new();
-    let fifo = f.root.join("not-a-file.fmbackup");
-    let made = std::process::Command::new("mkfifo")
-        .arg(&fifo)
-        .status()
-        .unwrap();
-    assert!(made.success());
-    let (tx, rx) = std::sync::mpsc::channel();
-    let vault = f.fresh_vault("target");
-    std::thread::spawn(move || tx.send(restore(&fifo, &vault).map_err(|e| e.to_string())));
-    let result = rx
-        .recv_timeout(Duration::from_secs(5))
-        .expect("restore hung on a FIFO");
-    assert_eq!(result.unwrap_err(), BackupError::NotABackup.to_string());
-}
+// Review finding 4 (a FIFO is refused at once instead of hanging) is tested in
+// tests/backup_fifo.rs: it starts a process, which must not happen in this binary
+// (see that file).
 
 /// Review finding 7: staging folders left by an interrupted restore are cleaned up.
 #[test]
