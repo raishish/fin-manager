@@ -69,7 +69,7 @@ jobs:
   synthetic-data:
     # The committed test ledgers must stay exactly what the generator produces, and the
     # generator must keep compiling against fm-core's model (TD.1).
-    name: Test data (synthetic ledgers, bank exports, questions, import edge cases)
+    name: Test data (synthetic ledgers, bank exports, questions, import edge cases, transfer look-alikes)
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
@@ -83,6 +83,8 @@ jobs:
       - run: cargo test --manifest-path testdata/questions/Cargo.toml --release --locked
       # Adversarial import fixtures (TD.4): every file must parse to exactly its listed rows.
       - run: cargo test --manifest-path testdata/import-edge-cases/Cargo.toml --release --locked
+      # Transfer look-alikes (TD.6), generated from a seed.
+      - run: cargo test --manifest-path testdata/transfer-lookalikes/Cargo.toml --release --locked
 
   model-tests:
     # fm-llm against a real (tiny) model: SmolLM2-135M-Instruct Q8_0, pinned by SHA-256
@@ -165,3 +167,4 @@ jobs:
       - run: cargo deny --manifest-path testdata/bank-exports/Cargo.toml --all-features --locked check
       - run: cargo deny --manifest-path testdata/questions/Cargo.toml --all-features --locked check
       - run: cargo deny --manifest-path testdata/import-edge-cases/Cargo.toml --all-features --locked check
+      - run: cargo deny --manifest-path testdata/transfer-lookalikes/Cargo.toml --all-features --locked check
