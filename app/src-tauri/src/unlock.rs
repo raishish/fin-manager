@@ -4,6 +4,7 @@
 //! an open ledger, and runs the auto-lock timer.
 
 use std::path::Path;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Mutex, MutexGuard};
 use std::thread;
 use std::time::Duration;
@@ -42,6 +43,8 @@ pub const ALLOWED_WHILE_LOCKED: &[&str] = &[
     "confirm_recovery_key",
     "lock",
     "activity",
+    // Restoring a backup on a fresh install; refused unless there is no ledger yet.
+    "restore_backup",
 ];
 
 /// The error every other command returns while locked.
@@ -156,6 +159,12 @@ type Observer<O> = Box<dyn Fn(Option<&O>) + Send + Sync>;
 pub struct UnlockState<S: LedgerStore, K: TouchIdKeychain> {
     session: Mutex<Session<S, K>>,
     observer: Observer<S::Open>,
+    /// Set while a lock is waiting for the session: long work holding it (a backup)
+    /// checks this and stops, so locking never waits for it.
+    pub(crate) interrupt: AtomicBool,
+    /// A backup was restored in this run; the ledger takes a new backup id on first
+    /// use (see `backup.rs`).
+    pub(crate) restored: AtomicBool,
 }
 
 impl<S: LedgerStore, K: TouchIdKeychain> UnlockState<S, K> {
@@ -163,6 +172,8 @@ impl<S: LedgerStore, K: TouchIdKeychain> UnlockState<S, K> {
         Self {
             session: Mutex::new(Session::new(store, keychain, Now::current())),
             observer: Box::new(|_| {}),
+            interrupt: AtomicBool::new(false),
+            restored: AtomicBool::new(false),
         }
     }
 
@@ -192,7 +203,7 @@ impl<S: LedgerStore, K: TouchIdKeychain> UnlockState<S, K> {
     }
 
     /// Runs a change on the session and tells the observer, all under one lock.
-    fn change<T>(&self, f: impl FnOnce(&mut Session<S, K>) -> T) -> T {
+    pub(crate) fn change<T>(&self, f: impl FnOnce(&mut Session<S, K>) -> T) -> T {
         let mut session = self.session();
         let out = f(&mut session);
         (self.observer)(session.ledger());
@@ -200,10 +211,6 @@ impl<S: LedgerStore, K: TouchIdKeychain> UnlockState<S, K> {
     }
 
     /// Runs `f` on the open ledger, if it is fully unlocked.
-    #[cfg_attr(
-        not(test),
-        expect(dead_code, reason = "for the features that read and write the ledger")
-    )]
     pub fn with_ledger<T>(&self, f: impl FnOnce(&S::Open) -> T) -> Option<T> {
         self.session().ledger().map(f)
     }
@@ -299,15 +306,26 @@ impl<S: LedgerStore, K: TouchIdKeychain> UnlockState<S, K> {
     }
 
     pub fn lock(&self) {
-        self.change(|s| s.lock(Now::current()));
+        self.interrupting(|| self.change(|s| s.lock(Now::current())));
+    }
+
+    /// Runs `f` (which waits for the session) with [`Self::interrupt`] raised, so
+    /// whatever holds the session lets go promptly.
+    fn interrupting<T>(&self, f: impl FnOnce() -> T) -> T {
+        self.interrupt.store(true, Ordering::SeqCst);
+        let out = f();
+        self.interrupt.store(false, Ordering::SeqCst);
+        out
     }
 
     /// Locks and deletes the Touch ID Keychain item: the app is quitting, and the item
     /// must not outlive the process.
     pub fn shut_down(&self) {
-        self.change(|s| {
-            s.lock(Now::current());
-            s.forget_touch_id();
+        self.interrupting(|| {
+            self.change(|s| {
+                s.lock(Now::current());
+                s.forget_touch_id();
+            })
         });
     }
 
@@ -382,13 +400,18 @@ pub fn gated<R: Runtime>(
     }
 }
 
-/// Locks the ledger after the idle timeout, checking every [`TICK`].
+/// Locks the ledger after the idle timeout, checking every [`TICK`], and runs the daily
+/// backup while it is open.
 pub fn start_autolock_timer<R: Runtime>(app: AppHandle<R>) {
     thread::spawn(move || {
         loop {
             thread::sleep(TICK);
-            if app.state::<AppUnlock>().tick() {
+            let unlock = app.state::<AppUnlock>();
+            if unlock.tick() {
                 let _ = app.emit(LOCKED_EVENT, ());
+            } else {
+                // While open: the daily backup, if one is due (T5.2).
+                unlock.daily_backup();
             }
         }
     });

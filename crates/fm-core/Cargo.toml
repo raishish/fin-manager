@@ -22,9 +22,10 @@ unicode-normalization = { version = "=0.1.25", default-features = false }
 zxcvbn = { version = "=3.1.1", default-features = false }
 zeroize = { version = "=1.9.1", default-features = false, features = ["alloc"] }
 
-# A monotonic clock that counts sleep, for the unlock time limits (T5.1).
+# A monotonic clock that counts sleep, for the unlock time limits (T5.1), and a
+# non-blocking open for restoring backups (T5.2).
 [target.'cfg(unix)'.dependencies]
-rustix = { version = "=1.1.5", default-features = false, features = ["std", "time"] }
+rustix = { version = "=1.1.5", default-features = false, features = ["fs", "std", "time"] }
 
 # Touch ID (T5.1): the Keychain item holding the data key's Touch ID copy.
 [target.'cfg(target_os = "macos")'.dependencies]

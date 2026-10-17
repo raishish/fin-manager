@@ -76,6 +76,7 @@
 			<NewPassword bind:password={newPassword} bind:ok={newPasswordOk} label="Master password" />
 			<button type="submit" disabled={busy || !newPasswordOk}>Create</button>
 		</form>
+		<p><a href="/backup/restore">Restore from a backup instead</a></p>
 	{:else if info.status === 'Incomplete'}
 		<h2>Finish setting up</h2>
 		<p>Setup was interrupted. Enter the master password you chose to finish it.</p>
