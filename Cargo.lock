@@ -988,6 +988,14 @@ name = "fm-import-ofx"
 version = "0.0.0"
 
 [[package]]
+name = "fm-import-types"
+version = "0.0.0"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "fm-llm"
 version = "0.0.0"
 
