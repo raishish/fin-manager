@@ -9,9 +9,9 @@ permissions:
   contents: read
 
 concurrency:
-  group: ci-${{ github.ref }}
-  # Supersede runs only on pull requests; every push to main runs to completion so each
-  # landed commit gets a full result.
+  # Pull requests: one run per PR, and a new push supersedes the old run.
+  # main: one group per commit, so every landed commit gets its own complete run.
+  group: ${{ github.event_name == 'pull_request' && format('ci-pr-{0}', github.ref) || format('ci-{0}', github.sha) }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
