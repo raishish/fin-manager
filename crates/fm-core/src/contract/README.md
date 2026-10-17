@@ -3,7 +3,7 @@
 SPEC §6 defines eight hard constraints that the app's output must never break (decision 20). A violation is a bug. This module checks a whole `Ledger` against them:
 
 ```rust
-let report = fm_core::contract::check(&ledger);   // constraints 1, 4 and 8 so far
+let report = fm_core::contract::check(&ledger);   // constraints 1, 2, 4 and 8 so far
 assert!(report.is_ok(), "{report}");
 ```
 
@@ -15,7 +15,7 @@ To check a ledger in an encrypted database, run it on `unlocked.load_ledger()?`.
 
   | Constraint | Added by |
   |---|---|
-  | 2 | T2.2 |
+  | 2 | T2.2 (done) |
   | 3, 5, 7 | T2.5 |
   | 6 | T4.3 |
 
@@ -36,6 +36,17 @@ Amounts are integer minor units by type, so this checks what could still make to
 | `total_overflow` | account or ledger | Money in or out of an account, or of the whole ledger in one currency, doesn't fit in `i64` minor units |
 | `duplicate_account_id` | account | Two accounts share an id |
 | `totals_not_reproducible` | ledger | Summing in reverse order gave different totals. A self-check of the arithmetic: no ledger can trigger it, so it has no broken fixture |
+
+### Constraint 2: user inputs always win
+Sources rank user > rule > fixed logic (transfer matcher, merchant clean-up) > model > the Needs-review placeholder (`categorize` module docs). Every decision is about one assignment kind of one transaction: its bucket or its merchant name.
+
+| Code | Subject | Meaning |
+|---|---|---|
+| `user_input_overridden` | decision | An applied decision replaced (`replaces`) a user's correction or a rule's decision, from a weaker source. The transfer matcher's pair replacing a rule's unpaired transfer is a refinement and allowed |
+| `user_choice_not_in_effect` | transaction | The user's newest correction for a kind isn't applied, and no newer correction is |
+| `model_over_matching_rule` | decision | An applied model decision where one of the user's enabled rules matches (and its bucket fits the transaction) |
+
+Account designations (`own_account`) are plain fields no model writes, so they need no check.
 
 ### Constraint 4: everything adds up
 Only **applied** decisions count; suggested, dismissed and superseded ones don't.
@@ -77,5 +88,5 @@ The type guarantees every decision has a source. This checks that the source can
 - **Must pass:**
   - The T0.5 sample ledger, which covers every type, variant, source and state.
   - TD.1's four households, with one applied user decision per ground-truth bucket and merchant, built from `truth.json` in the test.
-- **Must fail:** every code above except `totals_not_reproducible` has a broken fixture. Each one is the sample with one thing broken, and the test checks that exact code, on that subject, under that constraint.
-- **Also checked:** an unlabelled TD.1 ledger fails `no_bucket` for every transaction. Reports are identical when rows are reversed, and contain no financial data. A custom check plugs into `Checker`.
+- **Must fail:** every code above except `totals_not_reproducible` has a broken fixture (constraint 2's include a rule, not only the model, replacing a correction). Each one is the sample with one thing broken, and the test checks that exact code, on that subject, under that constraint.
+- **Also checked:** a transfer pair refining a rule's unpaired transfer passes constraint 2. An unlabelled TD.1 ledger fails `no_bucket` for every transaction. Reports are identical when rows are reversed, and contain no financial data. A custom check plugs into `Checker`.

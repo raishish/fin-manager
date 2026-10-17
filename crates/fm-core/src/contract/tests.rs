@@ -86,6 +86,7 @@ fn td1_households_labelled_from_truth_pass() {
             report.checked,
             [
                 Constraint::ExactNumbers,
+                Constraint::UserInputsWin,
                 Constraint::EverythingAddsUp,
                 Constraint::SourceShown
             ]
@@ -173,6 +174,92 @@ fn assert_caught(constraint: Constraint, breakages: &[Breakage]) {
             "{code} on {subject} not caught; got:\n{report}"
         );
     }
+}
+
+#[test]
+fn constraint_2_broken_fixtures() {
+    assert_caught(
+        Constraint::UserInputsWin,
+        &[
+            (
+                // A model decision replaced the user's correction of transaction 2.
+                "user_input_overridden",
+                |l| {
+                    decision(l, 3).state = DecisionState::Superseded;
+                    let mut model = decision(l, 9).clone();
+                    model.id = DecisionId(12);
+                    model.transaction_id = TransactionId(2);
+                    model.state = DecisionState::Applied;
+                    model.replaces = Some(DecisionId(3));
+                    l.decisions.push(model);
+                },
+                Subject::Decision(DecisionId(12)),
+            ),
+            (
+                // A rule replaced the user's correction.
+                "user_input_overridden",
+                |l| {
+                    decision(l, 3).state = DecisionState::Superseded;
+                    let mut by_rule = decision(l, 7).clone();
+                    by_rule.id = DecisionId(12);
+                    by_rule.transaction_id = TransactionId(2);
+                    by_rule.replaces = Some(DecisionId(3));
+                    l.decisions.push(by_rule);
+                },
+                Subject::Decision(DecisionId(12)),
+            ),
+            (
+                // The correction was set aside and the model's decision put back.
+                "user_choice_not_in_effect",
+                |l| {
+                    decision(l, 3).state = DecisionState::Superseded;
+                    decision(l, 2).state = DecisionState::Applied;
+                },
+                Subject::Transaction(TransactionId(2)),
+            ),
+            (
+                // Rule 1 matches transaction 5, but the model's decision is in effect.
+                "model_over_matching_rule",
+                |l| {
+                    l.rules[0].matcher.amount = None;
+                    tx(l, 5).description = "TRADER JOE'S #9".into();
+                },
+                Subject::Decision(DecisionId(9)),
+            ),
+        ],
+    );
+}
+
+#[test]
+fn constraint_2_allows_a_pair_refining_a_rules_unpaired_transfer() {
+    let mut l = sample_ledger();
+    // Transaction 6's user transfer becomes a rule's; the matcher then pairs it.
+    let rule_transfer = Decision {
+        id: DecisionId(12),
+        source: DecisionSource::Rule { rule_id: RuleId(1) },
+        state: DecisionState::Superseded,
+        ..decision(&mut l, 8).clone()
+    };
+    l.decisions.retain(|d| d.id.0 != 8);
+    l.decisions.push(rule_transfer);
+    let pair = Decision {
+        id: DecisionId(13),
+        source: DecisionSource::Builtin {
+            logic: BuiltinLogic::TransferMatcher,
+            version: 1,
+        },
+        assignment: Assignment::Bucket(Bucket::Transfer {
+            counterpart: Some(TransactionId(1)),
+        }),
+        replaces: Some(DecisionId(12)),
+        state: DecisionState::Applied,
+        ..decision(&mut l, 12).clone()
+    };
+    l.decisions.push(pair);
+    let report = Checker::empty()
+        .with(super::user_inputs_win::UserInputsWin)
+        .run(&l);
+    assert!(report.is_ok(), "{report}");
 }
 
 #[test]
@@ -468,7 +555,7 @@ fn reports_are_deterministic_and_carry_no_financial_data() {
 
     let printed = a.to_string();
     assert!(
-        printed.starts_with("contract check (constraints 1, 4, 8): "),
+        printed.starts_with("contract check (constraints 1, 2, 4, 8): "),
         "{printed}"
     );
     for secret in [

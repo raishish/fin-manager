@@ -1,6 +1,7 @@
 //! Ledger, storage, import pipeline, categorisation, views, queries and the output contract.
 
 pub mod backup;
+pub mod categorize;
 pub mod contract;
 pub mod crash;
 pub mod model;

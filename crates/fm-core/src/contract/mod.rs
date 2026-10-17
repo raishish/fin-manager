@@ -2,10 +2,10 @@
 //! [`Ledger`]. A violation is a bug: the checker runs in tests and in the app.
 //!
 //! This module provides the framework and constraints 1 (numbers are exact),
-//! 4 (everything adds up) and 8 (every decision shows its source). The others plug in as
-//! later tasks add them: 2 (user inputs win, T2.2), 3 (closed list, T2.5), 5 (admit
-//! uncertainty, T2.5), 6 (explanations match the numbers, T4.3), 7 (no silent changes,
-//! T2.5). See `README.md` for what each check means.
+//! 2 (user inputs always win, T2.2), 4 (everything adds up) and 8 (every decision shows
+//! its source). The others plug in as later tasks add them: 3 (closed list, T2.5),
+//! 5 (admit uncertainty, T2.5), 6 (explanations match the numbers, T4.3), 7 (no silent
+//! changes, T2.5). See `README.md` for what each check means.
 //!
 //! ```
 //! # use fm_core::{contract, model::Ledger};
@@ -19,6 +19,7 @@ mod adds_up;
 mod exact_numbers;
 mod index;
 mod source_shown;
+mod user_inputs_win;
 
 #[cfg(test)]
 mod tests;
@@ -199,10 +200,11 @@ impl Checker {
         Checker { checks: Vec::new() }
     }
 
-    /// Every constraint implemented so far: 1, 4 and 8.
+    /// Every constraint implemented so far: 1, 2, 4 and 8.
     pub fn all() -> Checker {
         Checker::empty()
             .with(exact_numbers::ExactNumbers)
+            .with(user_inputs_win::UserInputsWin)
             .with(adds_up::EverythingAddsUp)
             .with(source_shown::SourceShown)
     }
