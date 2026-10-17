@@ -1,0 +1,23 @@
+[package]
+name = "fm-import-edge-cases"
+description = "Checks for the adversarial import fixtures (TD.4): every file parses with the importers and expected.json is consistent."
+version = "0.0.0"
+edition = "2024"
+license = "AGPL-3.0-or-later"
+repository = "https://github.com/raishish/fin-manager"
+publish = false
+
+# A standalone workspace, like the other test-data folders: kept out of the app's
+# build. The fixtures are plain files; this crate only tests them.
+[workspace]
+
+[dependencies]
+fm-import-csv = { path = "../../crates/fm-import-csv" }
+fm-import-ofx = { path = "../../crates/fm-import-ofx" }
+serde_json = "=1.0.154"
+
+[lints.rust]
+unsafe_code = "deny"
+
+[lints.clippy]
+all = { level = "warn", priority = -1 }

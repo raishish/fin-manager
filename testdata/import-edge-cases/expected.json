@@ -1,0 +1,2017 @@
+{
+ "version": 1,
+ "description": "Adversarial import fixtures for the import pipeline's matcher (T1.3). Each case is independent: import its files, in import_order, into an empty ledger. 'transactions' is the ground truth: the distinct transactions the ledger must end with. Every row of every file names the transaction it is ('transaction'), so rows sharing a key are one transaction and rows with different keys are distinct, whatever the import order. 'outcome' is the pipeline outcome expected when importing in import_order.",
+ "cases": [
+  {
+   "id": "01_month_boundary_transit",
+   "title": "Daily $2.90 fares across a January/February statement overlap",
+   "what_it_tests": "Same merchant, same amount, adjacent days. Fares posted a day or two after the ride share posted dates with the neighbouring day's fare, so a date-set overlap rule merges distinct rides. Rows posted on 2026-02-01 appear in both downloads and ARE the same transactions.",
+   "target": "account",
+   "accounts": [
+    {
+     "key": "card",
+     "name": "Chase Freedom Unlimited",
+     "kind": "credit_card",
+     "currency": "USD",
+     "institution": "Chase",
+     "last4": "7731"
+    }
+   ],
+   "files": [
+    {
+     "path": "cases/01_month_boundary_transit/chase_freedom_2026_01.csv",
+     "format": "csv",
+     "layout": "chase_card_csv",
+     "account": "card"
+    },
+    {
+     "path": "cases/01_month_boundary_transit/chase_freedom_2026_02.csv",
+     "format": "csv",
+     "layout": "chase_card_csv",
+     "account": "card"
+    }
+   ],
+   "import_order": [
+    "cases/01_month_boundary_transit/chase_freedom_2026_01.csv",
+    "cases/01_month_boundary_transit/chase_freedom_2026_02.csv"
+   ],
+   "transactions": [
+    {
+     "key": "fare_2026-01-24",
+     "account": "card",
+     "final_status": "posted",
+     "amount_minor": -290,
+     "transaction_date": "2026-01-24",
+     "posted_date": "2026-01-25",
+     "description": "MTA*NYCT PAYGO"
+    },
+    {
+     "key": "fare_2026-01-25",
+     "account": "card",
+     "final_status": "posted",
+     "amount_minor": -290,
+     "transaction_date": "2026-01-25",
+     "posted_date": "2026-01-26",
+     "description": "MTA*NYCT PAYGO"
+    },
+    {
+     "key": "fare_2026-01-26",
+     "account": "card",
+     "final_status": "posted",
+     "amount_minor": -290,
+     "transaction_date": "2026-01-26",
+     "posted_date": "2026-01-27",
+     "description": "MTA*NYCT PAYGO"
+    },
+    {
+     "key": "fare_2026-01-27",
+     "account": "card",
+     "final_status": "posted",
+     "amount_minor": -290,
+     "transaction_date": "2026-01-27",
+     "posted_date": "2026-01-28",
+     "description": "MTA*NYCT PAYGO"
+    },
+    {
+     "key": "fare_2026-01-28",
+     "account": "card",
+     "final_status": "posted",
+     "amount_minor": -290,
+     "transaction_date": "2026-01-28",
+     "posted_date": "2026-01-29",
+     "description": "MTA*NYCT PAYGO"
+    },
+    {
+     "key": "fare_2026-01-29",
+     "account": "card",
+     "final_status": "posted",
+     "amount_minor": -290,
+     "transaction_date": "2026-01-29",
+     "posted_date": "2026-01-30",
+     "description": "MTA*NYCT PAYGO"
+    },
+    {
+     "key": "fare_2026-01-30",
+     "account": "card",
+     "final_status": "posted",
+     "amount_minor": -290,
+     "transaction_date": "2026-01-30",
+     "posted_date": "2026-02-01",
+     "description": "MTA*NYCT PAYGO"
+    },
+    {
+     "key": "fare_2026-01-31",
+     "account": "card",
+     "final_status": "posted",
+     "amount_minor": -290,
+     "transaction_date": "2026-01-31",
+     "posted_date": "2026-02-01",
+     "description": "MTA*NYCT PAYGO"
+    },
+    {
+     "key": "fare_2026-02-01",
+     "account": "card",
+     "final_status": "posted",
+     "amount_minor": -290,
+     "transaction_date": "2026-02-01",
+     "posted_date": "2026-02-02",
+     "description": "MTA*NYCT PAYGO"
+    },
+    {
+     "key": "fare_2026-02-02",
+     "account": "card",
+     "final_status": "posted",
+     "amount_minor": -290,
+     "transaction_date": "2026-02-02",
+     "posted_date": "2026-02-03",
+     "description": "MTA*NYCT PAYGO"
+    },
+    {
+     "key": "fare_2026-02-03",
+     "account": "card",
+     "final_status": "posted",
+     "amount_minor": -290,
+     "transaction_date": "2026-02-03",
+     "posted_date": "2026-02-05",
+     "description": "MTA*NYCT PAYGO"
+    },
+    {
+     "key": "fare_2026-02-04",
+     "account": "card",
+     "final_status": "posted",
+     "amount_minor": -290,
+     "transaction_date": "2026-02-04",
+     "posted_date": "2026-02-05",
+     "description": "MTA*NYCT PAYGO"
+    },
+    {
+     "key": "fare_2026-02-05",
+     "account": "card",
+     "final_status": "posted",
+     "amount_minor": -290,
+     "transaction_date": "2026-02-05",
+     "posted_date": "2026-02-06",
+     "description": "MTA*NYCT PAYGO"
+    },
+    {
+     "key": "fare_2026-02-06",
+     "account": "card",
+     "final_status": "posted",
+     "amount_minor": -290,
+     "transaction_date": "2026-02-06",
+     "posted_date": "2026-02-07",
+     "description": "MTA*NYCT PAYGO"
+    },
+    {
+     "key": "fare_2026-02-07",
+     "account": "card",
+     "final_status": "posted",
+     "amount_minor": -290,
+     "transaction_date": "2026-02-07",
+     "posted_date": "2026-02-08",
+     "description": "MTA*NYCT PAYGO"
+    },
+    {
+     "key": "fare_2026-02-05_return",
+     "account": "card",
+     "final_status": "posted",
+     "amount_minor": -290,
+     "transaction_date": "2026-02-05",
+     "posted_date": "2026-02-06",
+     "description": "MTA*NYCT PAYGO"
+    },
+    {
+     "key": "payment_jan25",
+     "account": "card",
+     "final_status": "posted",
+     "amount_minor": 25000,
+     "transaction_date": "2026-01-25",
+     "posted_date": "2026-01-25",
+     "description": "AUTOMATIC PAYMENT - THANK"
+    },
+    {
+     "key": "wholefoods_jan28",
+     "account": "card",
+     "final_status": "posted",
+     "amount_minor": -5412,
+     "transaction_date": "2026-01-28",
+     "posted_date": "2026-01-29",
+     "description": "WHOLEFDS MKT #10234"
+    },
+    {
+     "key": "netflix_feb04",
+     "account": "card",
+     "final_status": "posted",
+     "amount_minor": -1799,
+     "transaction_date": "2026-02-04",
+     "posted_date": "2026-02-05",
+     "description": "NETFLIX.COM"
+    }
+   ],
+   "rows": [
+    {
+     "file": "cases/01_month_boundary_transit/chase_freedom_2026_01.csv",
+     "statement": 0,
+     "row": 0,
+     "transaction": "fare_2026-01-31",
+     "outcome": "inserted",
+     "amount_minor": -290,
+     "posted_date": "2026-02-01",
+     "transaction_date": "2026-01-31",
+     "status": "posted",
+     "external_id": null
+    },
+    {
+     "file": "cases/01_month_boundary_transit/chase_freedom_2026_01.csv",
+     "statement": 0,
+     "row": 1,
+     "transaction": "fare_2026-01-30",
+     "outcome": "inserted",
+     "amount_minor": -290,
+     "posted_date": "2026-02-01",
+     "transaction_date": "2026-01-30",
+     "status": "posted",
+     "external_id": null
+    },
+    {
+     "file": "cases/01_month_boundary_transit/chase_freedom_2026_01.csv",
+     "statement": 0,
+     "row": 2,
+     "transaction": "fare_2026-01-29",
+     "outcome": "inserted",
+     "amount_minor": -290,
+     "posted_date": "2026-01-30",
+     "transaction_date": "2026-01-29",
+     "status": "posted",
+     "external_id": null
+    },
+    {
+     "file": "cases/01_month_boundary_transit/chase_freedom_2026_01.csv",
+     "statement": 0,
+     "row": 3,
+     "transaction": "wholefoods_jan28",
+     "outcome": "inserted",
+     "amount_minor": -5412,
+     "posted_date": "2026-01-29",
+     "transaction_date": "2026-01-28",
+     "status": "posted",
+     "external_id": null
+    },
+    {
+     "file": "cases/01_month_boundary_transit/chase_freedom_2026_01.csv",
+     "statement": 0,
+     "row": 4,
+     "transaction": "fare_2026-01-28",
+     "outcome": "inserted",
+     "amount_minor": -290,
+     "posted_date": "2026-01-29",
+     "transaction_date": "2026-01-28",
+     "status": "posted",
+     "external_id": null
+    },
+    {
+     "file": "cases/01_month_boundary_transit/chase_freedom_2026_01.csv",
+     "statement": 0,
+     "row": 5,
+     "transaction": "fare_2026-01-27",
+     "outcome": "inserted",
+     "amount_minor": -290,
+     "posted_date": "2026-01-28",
+     "transaction_date": "2026-01-27",
+     "status": "posted",
+     "external_id": null
+    },
+    {
+     "file": "cases/01_month_boundary_transit/chase_freedom_2026_01.csv",
+     "statement": 0,
+     "row": 6,
+     "transaction": "fare_2026-01-26",
+     "outcome": "inserted",
+     "amount_minor": -290,
+     "posted_date": "2026-01-27",
+     "transaction_date": "2026-01-26",
+     "status": "posted",
+     "external_id": null
+    },
+    {
+     "file": "cases/01_month_boundary_transit/chase_freedom_2026_01.csv",
+     "statement": 0,
+     "row": 7,
+     "transaction": "fare_2026-01-25",
+     "outcome": "inserted",
+     "amount_minor": -290,
+     "posted_date": "2026-01-26",
+     "transaction_date": "2026-01-25",
+     "status": "posted",
+     "external_id": null
+    },
+    {
+     "file": "cases/01_month_boundary_transit/chase_freedom_2026_01.csv",
+     "statement": 0,
+     "row": 8,
+     "transaction": "payment_jan25",
+     "outcome": "inserted",
+     "amount_minor": 25000,
+     "posted_date": "2026-01-25",
+     "transaction_date": "2026-01-25",
+     "status": "posted",
+     "external_id": null
+    },
+    {
+     "file": "cases/01_month_boundary_transit/chase_freedom_2026_01.csv",
+     "statement": 0,
+     "row": 9,
+     "transaction": "fare_2026-01-24",
+     "outcome": "inserted",
+     "amount_minor": -290,
+     "posted_date": "2026-01-25",
+     "transaction_date": "2026-01-24",
+     "status": "posted",
+     "external_id": null
+    },
+    {
+     "file": "cases/01_month_boundary_transit/chase_freedom_2026_02.csv",
+     "statement": 0,
+     "row": 0,
+     "transaction": "fare_2026-02-07",
+     "outcome": "inserted",
+     "amount_minor": -290,
+     "posted_date": "2026-02-08",
+     "transaction_date": "2026-02-07",
+     "status": "posted",
+     "external_id": null
+    },
+    {
+     "file": "cases/01_month_boundary_transit/chase_freedom_2026_02.csv",
+     "statement": 0,
+     "row": 1,
+     "transaction": "fare_2026-02-06",
+     "outcome": "inserted",
+     "amount_minor": -290,
+     "posted_date": "2026-02-07",
+     "transaction_date": "2026-02-06",
+     "status": "posted",
+     "external_id": null
+    },
+    {
+     "file": "cases/01_month_boundary_transit/chase_freedom_2026_02.csv",
+     "statement": 0,
+     "row": 2,
+     "transaction": "fare_2026-02-05_return",
+     "outcome": "inserted",
+     "amount_minor": -290,
+     "posted_date": "2026-02-06",
+     "transaction_date": "2026-02-05",
+     "status": "posted",
+     "external_id": null
+    },
+    {
+     "file": "cases/01_month_boundary_transit/chase_freedom_2026_02.csv",
+     "statement": 0,
+     "row": 3,
+     "transaction": "fare_2026-02-05",
+     "outcome": "inserted",
+     "amount_minor": -290,
+     "posted_date": "2026-02-06",
+     "transaction_date": "2026-02-05",
+     "status": "posted",
+     "external_id": null
+    },
+    {
+     "file": "cases/01_month_boundary_transit/chase_freedom_2026_02.csv",
+     "statement": 0,
+     "row": 4,
+     "transaction": "netflix_feb04",
+     "outcome": "inserted",
+     "amount_minor": -1799,
+     "posted_date": "2026-02-05",
+     "transaction_date": "2026-02-04",
+     "status": "posted",
+     "external_id": null
+    },
+    {
+     "file": "cases/01_month_boundary_transit/chase_freedom_2026_02.csv",
+     "statement": 0,
+     "row": 5,
+     "transaction": "fare_2026-02-04",
+     "outcome": "inserted",
+     "amount_minor": -290,
+     "posted_date": "2026-02-05",
+     "transaction_date": "2026-02-04",
+     "status": "posted",
+     "external_id": null
+    },
+    {
+     "file": "cases/01_month_boundary_transit/chase_freedom_2026_02.csv",
+     "statement": 0,
+     "row": 6,
+     "transaction": "fare_2026-02-03",
+     "outcome": "inserted",
+     "amount_minor": -290,
+     "posted_date": "2026-02-05",
+     "transaction_date": "2026-02-03",
+     "status": "posted",
+     "external_id": null
+    },
+    {
+     "file": "cases/01_month_boundary_transit/chase_freedom_2026_02.csv",
+     "statement": 0,
+     "row": 7,
+     "transaction": "fare_2026-02-02",
+     "outcome": "inserted",
+     "amount_minor": -290,
+     "posted_date": "2026-02-03",
+     "transaction_date": "2026-02-02",
+     "status": "posted",
+     "external_id": null
+    },
+    {
+     "file": "cases/01_month_boundary_transit/chase_freedom_2026_02.csv",
+     "statement": 0,
+     "row": 8,
+     "transaction": "fare_2026-02-01",
+     "outcome": "inserted",
+     "amount_minor": -290,
+     "posted_date": "2026-02-02",
+     "transaction_date": "2026-02-01",
+     "status": "posted",
+     "external_id": null
+    },
+    {
+     "file": "cases/01_month_boundary_transit/chase_freedom_2026_02.csv",
+     "statement": 0,
+     "row": 9,
+     "transaction": "fare_2026-01-31",
+     "outcome": "duplicate",
+     "amount_minor": -290,
+     "posted_date": "2026-02-01",
+     "transaction_date": "2026-01-31",
+     "status": "posted",
+     "external_id": null
+    },
+    {
+     "file": "cases/01_month_boundary_transit/chase_freedom_2026_02.csv",
+     "statement": 0,
+     "row": 10,
+     "transaction": "fare_2026-01-30",
+     "outcome": "duplicate",
+     "amount_minor": -290,
+     "posted_date": "2026-02-01",
+     "transaction_date": "2026-01-30",
+     "status": "posted",
+     "external_id": null
+    }
+   ]
+  },
+  {
+   "id": "02_generic_memos",
+   "title": "Generic NAME text with the merchant only in MEMO, re-downloaded with new FITIDs",
+   "what_it_tests": "A credit union sends NAME 'POS PURCHASE' or 'ACH DEBIT' and puts the merchant in MEMO. Different merchants share amount and day; a second download of the month regenerates every FITID. True duplicates must be found by MEMO, and same-day same-amount rows at different merchants must stay distinct, including a third one that only appears in the second download.",
+   "target": "account",
+   "accounts": [
+    {
+     "key": "checking",
+     "name": "Share Draft Checking",
+     "kind": "checking",
+     "currency": "USD",
+     "institution": "Lakeline Federal Credit Union",
+     "last4": "0193"
+    }
+   ],
+   "files": [
+    {
+     "path": "cases/02_generic_memos/lakeline_2026_03_01-15.qfx",
+     "format": "qfx",
+     "layout": null,
+     "account": "checking"
+    },
+    {
+     "path": "cases/02_generic_memos/lakeline_2026_03.qfx",
+     "format": "qfx",
+     "layout": null,
+     "account": "checking"
+    }
+   ],
+   "import_order": [
+    "cases/02_generic_memos/lakeline_2026_03_01-15.qfx",
+    "cases/02_generic_memos/lakeline_2026_03.qfx"
+   ],
+   "transactions": [
+    {
+     "key": "tj_mar03",
+     "account": "checking",
+     "final_status": "posted",
+     "amount_minor": -2345,
+     "transaction_date": null,
+     "posted_date": "2026-03-03",
+     "description": "POS PURCHASE TRADER JOE S #552 AUSTIN TX"
+    },
+    {
+     "key": "shell_mar03",
+     "account": "checking",
+     "final_status": "posted",
+     "amount_minor": -2345,
+     "transaction_date": null,
+     "posted_date": "2026-03-03",
+     "description": "POS PURCHASE SHELL OIL 57444 AUSTIN TX"
+    },
+    {
+     "key": "energy_mar05",
+     "account": "checking",
+     "final_status": "posted",
+     "amount_minor": -11000,
+     "transaction_date": null,
+     "posted_date": "2026-03-05",
+     "description": "ACH DEBIT AUSTIN ENERGY UTILITY"
+    },
+    {
+     "key": "fiber_mar05",
+     "account": "checking",
+     "final_status": "posted",
+     "amount_minor": -11000,
+     "transaction_date": null,
+     "posted_date": "2026-03-05",
+     "description": "ACH DEBIT GOOGLE FIBER INTERNET"
+    },
+    {
+     "key": "retainer_mar05",
+     "account": "checking",
+     "final_status": "posted",
+     "amount_minor": 460000,
+     "transaction_date": null,
+     "posted_date": "2026-03-05",
+     "description": "ACH CREDIT TAILSPIN TOYS INC ACH PMT"
+    },
+    {
+     "key": "heb_mar09",
+     "account": "checking",
+     "final_status": "posted",
+     "amount_minor": -6120,
+     "transaction_date": null,
+     "posted_date": "2026-03-09",
+     "description": "POS PURCHASE H-E-B #475 AUSTIN TX"
+    },
+    {
+     "key": "coffee_mar12",
+     "account": "checking",
+     "final_status": "posted",
+     "amount_minor": -475,
+     "transaction_date": null,
+     "posted_date": "2026-03-12",
+     "description": "POS PURCHASE COSMIC CUP COFFEE AUSTIN TX"
+    },
+    {
+     "key": "chevron_mar03",
+     "account": "checking",
+     "final_status": "posted",
+     "amount_minor": -2345,
+     "transaction_date": null,
+     "posted_date": "2026-03-03",
+     "description": "POS PURCHASE CHEVRON 0204511 AUSTIN TX"
+    },
+    {
+     "key": "water_mar05",
+     "account": "checking",
+     "final_status": "posted",
+     "amount_minor": -11000,
+     "transaction_date": null,
+     "posted_date": "2026-03-05",
+     "description": "ACH DEBIT CITY OF AUSTIN WATER"
+    },
+    {
+     "key": "heb_mar23",
+     "account": "checking",
+     "final_status": "posted",
+     "amount_minor": -6120,
+     "transaction_date": null,
+     "posted_date": "2026-03-23",
+     "description": "POS PURCHASE H-E-B #475 AUSTIN TX"
+    },
+    {
+     "key": "bcbs_mar31",
+     "account": "checking",
+     "final_status": "posted",
+     "amount_minor": -54890,
+     "transaction_date": null,
+     "posted_date": "2026-03-31",
+     "description": "ACH DEBIT BCBSTX PREMIUM"
+    }
+   ],
+   "rows": [
+    {
+     "file": "cases/02_generic_memos/lakeline_2026_03_01-15.qfx",
+     "statement": 0,
+     "row": 0,
+     "transaction": "tj_mar03",
+     "outcome": "inserted",
+     "amount_minor": -2345,
+     "posted_date": "2026-03-03",
+     "transaction_date": null,
+     "status": "posted",
+     "external_id": "A0001"
+    },
+    {
+     "file": "cases/02_generic_memos/lakeline_2026_03_01-15.qfx",
+     "statement": 0,
+     "row": 1,
+     "transaction": "shell_mar03",
+     "outcome": "inserted",
+     "amount_minor": -2345,
+     "posted_date": "2026-03-03",
+     "transaction_date": null,
+     "status": "posted",
+     "external_id": "A0002"
+    },
+    {
+     "file": "cases/02_generic_memos/lakeline_2026_03_01-15.qfx",
+     "statement": 0,
+     "row": 2,
+     "transaction": "energy_mar05",
+     "outcome": "inserted",
+     "amount_minor": -11000,
+     "posted_date": "2026-03-05",
+     "transaction_date": null,
+     "status": "posted",
+     "external_id": "A0003"
+    },
+    {
+     "file": "cases/02_generic_memos/lakeline_2026_03_01-15.qfx",
+     "statement": 0,
+     "row": 3,
+     "transaction": "fiber_mar05",
+     "outcome": "inserted",
+     "amount_minor": -11000,
+     "posted_date": "2026-03-05",
+     "transaction_date": null,
+     "status": "posted",
+     "external_id": "A0004"
+    },
+    {
+     "file": "cases/02_generic_memos/lakeline_2026_03_01-15.qfx",
+     "statement": 0,
+     "row": 4,
+     "transaction": "retainer_mar05",
+     "outcome": "inserted",
+     "amount_minor": 460000,
+     "posted_date": "2026-03-05",
+     "transaction_date": null,
+     "status": "posted",
+     "external_id": "A0005"
+    },
+    {
+     "file": "cases/02_generic_memos/lakeline_2026_03_01-15.qfx",
+     "statement": 0,
+     "row": 5,
+     "transaction": "heb_mar09",
+     "outcome": "inserted",
+     "amount_minor": -6120,
+     "posted_date": "2026-03-09",
+     "transaction_date": null,
+     "status": "posted",
+     "external_id": "A0006"
+    },
+    {
+     "file": "cases/02_generic_memos/lakeline_2026_03_01-15.qfx",
+     "statement": 0,
+     "row": 6,
+     "transaction": "coffee_mar12",
+     "outcome": "inserted",
+     "amount_minor": -475,
+     "posted_date": "2026-03-12",
+     "transaction_date": null,
+     "status": "posted",
+     "external_id": "A0007"
+    },
+    {
+     "file": "cases/02_generic_memos/lakeline_2026_03.qfx",
+     "statement": 0,
+     "row": 0,
+     "transaction": "chevron_mar03",
+     "outcome": "inserted",
+     "amount_minor": -2345,
+     "posted_date": "2026-03-03",
+     "transaction_date": null,
+     "status": "posted",
+     "external_id": "B0001"
+    },
+    {
+     "file": "cases/02_generic_memos/lakeline_2026_03.qfx",
+     "statement": 0,
+     "row": 1,
+     "transaction": "tj_mar03",
+     "outcome": "duplicate",
+     "amount_minor": -2345,
+     "posted_date": "2026-03-03",
+     "transaction_date": null,
+     "status": "posted",
+     "external_id": "B0002"
+    },
+    {
+     "file": "cases/02_generic_memos/lakeline_2026_03.qfx",
+     "statement": 0,
+     "row": 2,
+     "transaction": "shell_mar03",
+     "outcome": "duplicate",
+     "amount_minor": -2345,
+     "posted_date": "2026-03-03",
+     "transaction_date": null,
+     "status": "posted",
+     "external_id": "B0003"
+    },
+    {
+     "file": "cases/02_generic_memos/lakeline_2026_03.qfx",
+     "statement": 0,
+     "row": 3,
+     "transaction": "water_mar05",
+     "outcome": "inserted",
+     "amount_minor": -11000,
+     "posted_date": "2026-03-05",
+     "transaction_date": null,
+     "status": "posted",
+     "external_id": "B0004"
+    },
+    {
+     "file": "cases/02_generic_memos/lakeline_2026_03.qfx",
+     "statement": 0,
+     "row": 4,
+     "transaction": "energy_mar05",
+     "outcome": "duplicate",
+     "amount_minor": -11000,
+     "posted_date": "2026-03-05",
+     "transaction_date": null,
+     "status": "posted",
+     "external_id": "B0005"
+    },
+    {
+     "file": "cases/02_generic_memos/lakeline_2026_03.qfx",
+     "statement": 0,
+     "row": 5,
+     "transaction": "fiber_mar05",
+     "outcome": "duplicate",
+     "amount_minor": -11000,
+     "posted_date": "2026-03-05",
+     "transaction_date": null,
+     "status": "posted",
+     "external_id": "B0006"
+    },
+    {
+     "file": "cases/02_generic_memos/lakeline_2026_03.qfx",
+     "statement": 0,
+     "row": 6,
+     "transaction": "retainer_mar05",
+     "outcome": "duplicate",
+     "amount_minor": 460000,
+     "posted_date": "2026-03-05",
+     "transaction_date": null,
+     "status": "posted",
+     "external_id": "B0007"
+    },
+    {
+     "file": "cases/02_generic_memos/lakeline_2026_03.qfx",
+     "statement": 0,
+     "row": 7,
+     "transaction": "heb_mar09",
+     "outcome": "duplicate",
+     "amount_minor": -6120,
+     "posted_date": "2026-03-09",
+     "transaction_date": null,
+     "status": "posted",
+     "external_id": "B0008"
+    },
+    {
+     "file": "cases/02_generic_memos/lakeline_2026_03.qfx",
+     "statement": 0,
+     "row": 8,
+     "transaction": "coffee_mar12",
+     "outcome": "duplicate",
+     "amount_minor": -475,
+     "posted_date": "2026-03-12",
+     "transaction_date": null,
+     "status": "posted",
+     "external_id": "B0009"
+    },
+    {
+     "file": "cases/02_generic_memos/lakeline_2026_03.qfx",
+     "statement": 0,
+     "row": 9,
+     "transaction": "heb_mar23",
+     "outcome": "inserted",
+     "amount_minor": -6120,
+     "posted_date": "2026-03-23",
+     "transaction_date": null,
+     "status": "posted",
+     "external_id": "B0010"
+    },
+    {
+     "file": "cases/02_generic_memos/lakeline_2026_03.qfx",
+     "statement": 0,
+     "row": 10,
+     "transaction": "bcbs_mar31",
+     "outcome": "inserted",
+     "amount_minor": -54890,
+     "posted_date": "2026-03-31",
+     "transaction_date": null,
+     "status": "posted",
+     "external_id": "B0011"
+    }
+   ]
+  },
+  {
+   "id": "03a_reused_fitid",
+   "title": "A bank that recycles short FITIDs",
+   "what_it_tests": "FITIDs are short sequence numbers the bank reuses. The same FITID on a different date and amount is a different transaction; the same FITID on the same date with a different amount and merchant is too. A row repeated in the overlap with the same FITID and the same facts is a duplicate.",
+   "target": "account",
+   "accounts": [
+    {
+     "key": "checking",
+     "name": "Easy Checking",
+     "kind": "checking",
+     "currency": "USD",
+     "institution": "U.S. Bank",
+     "last4": "4410"
+    }
+   ],
+   "files": [
+    {
+     "path": "cases/03a_reused_fitid/usbank_2026_02.qfx",
+     "format": "qfx",
+     "layout": null,
+     "account": "checking"
+    },
+    {
+     "path": "cases/03a_reused_fitid/usbank_2026_02-26_03.qfx",
+     "format": "qfx",
+     "layout": null,
+     "account": "checking"
+    }
+   ],
+   "import_order": [
+    "cases/03a_reused_fitid/usbank_2026_02.qfx",
+    "cases/03a_reused_fitid/usbank_2026_02-26_03.qfx"
+   ],
+   "transactions": [
+    {
+     "key": "lunch_feb10",
+     "account": "checking",
+     "final_status": "posted",
+     "amount_minor": -1200,
+     "transaction_date": null,
+     "posted_date": "2026-02-10",
+     "description": "SUBWAY 40980 AUSTIN TX"
+    },
+    {
+     "key": "gas_feb26",
+     "account": "checking",
+     "final_status": "posted",
+     "amount_minor": -2000,
+     "transaction_date": null,
+     "posted_date": "2026-02-26",
+     "description": "SHELL OIL 57444 AUSTIN TX"
+    },
+    {
+     "key": "groceries_feb27",
+     "account": "checking",
+     "final_status": "posted",
+     "amount_minor": -6120,
+     "transaction_date": null,
+     "posted_date": "2026-02-27",
+     "description": "H-E-B #475 AUSTIN TX"
+    },
+    {
+     "key": "parking_feb26",
+     "account": "checking",
+     "final_status": "posted",
+     "amount_minor": -2500,
+     "transaction_date": null,
+     "posted_date": "2026-02-26",
+     "description": "PARKMOBILE 877 727 5718"
+    },
+    {
+     "key": "dinner_mar12",
+     "account": "checking",
+     "final_status": "posted",
+     "amount_minor": -4550,
+     "transaction_date": null,
+     "posted_date": "2026-03-12",
+     "description": "LONE STAR SMOKEHOUSE"
+    },
+    {
+     "key": "phone_mar21",
+     "account": "checking",
+     "final_status": "posted",
+     "amount_minor": -7000,
+     "transaction_date": null,
+     "posted_date": "2026-03-21",
+     "description": "T-MOBILE AUTO PAY"
+    }
+   ],
+   "rows": [
+    {
+     "file": "cases/03a_reused_fitid/usbank_2026_02.qfx",
+     "statement": 0,
+     "row": 0,
+     "transaction": "lunch_feb10",
+     "outcome": "inserted",
+     "amount_minor": -1200,
+     "posted_date": "2026-02-10",
+     "transaction_date": null,
+     "status": "posted",
+     "external_id": "4471"
+    },
+    {
+     "file": "cases/03a_reused_fitid/usbank_2026_02.qfx",
+     "statement": 0,
+     "row": 1,
+     "transaction": "gas_feb26",
+     "outcome": "inserted",
+     "amount_minor": -2000,
+     "posted_date": "2026-02-26",
+     "transaction_date": null,
+     "status": "posted",
+     "external_id": "4479"
+    },
+    {
+     "file": "cases/03a_reused_fitid/usbank_2026_02.qfx",
+     "statement": 0,
+     "row": 2,
+     "transaction": "groceries_feb27",
+     "outcome": "inserted",
+     "amount_minor": -6120,
+     "posted_date": "2026-02-27",
+     "transaction_date": null,
+     "status": "posted",
+     "external_id": "4480"
+    },
+    {
+     "file": "cases/03a_reused_fitid/usbank_2026_02-26_03.qfx",
+     "statement": 0,
+     "row": 0,
+     "transaction": "groceries_feb27",
+     "outcome": "duplicate",
+     "amount_minor": -6120,
+     "posted_date": "2026-02-27",
+     "transaction_date": null,
+     "status": "posted",
+     "external_id": "4480"
+    },
+    {
+     "file": "cases/03a_reused_fitid/usbank_2026_02-26_03.qfx",
+     "statement": 0,
+     "row": 1,
+     "transaction": "parking_feb26",
+     "outcome": "inserted",
+     "amount_minor": -2500,
+     "posted_date": "2026-02-26",
+     "transaction_date": null,
+     "status": "posted",
+     "external_id": "4479"
+    },
+    {
+     "file": "cases/03a_reused_fitid/usbank_2026_02-26_03.qfx",
+     "statement": 0,
+     "row": 2,
+     "transaction": "dinner_mar12",
+     "outcome": "inserted",
+     "amount_minor": -4550,
+     "posted_date": "2026-03-12",
+     "transaction_date": null,
+     "status": "posted",
+     "external_id": "4471"
+    },
+    {
+     "file": "cases/03a_reused_fitid/usbank_2026_02-26_03.qfx",
+     "statement": 0,
+     "row": 3,
+     "transaction": "phone_mar21",
+     "outcome": "inserted",
+     "amount_minor": -7000,
+     "posted_date": "2026-03-21",
+     "transaction_date": null,
+     "status": "posted",
+     "external_id": "4501"
+    }
+   ]
+  },
+  {
+   "id": "03b_nonunique_reference",
+   "title": "A CSV reference number shared by different transactions",
+   "what_it_tests": "Bank of America card CSV. A refund carries its purchase's reference number, and a later purchase reuses an earlier reference. Same reference does not mean same transaction; the re-download's repeats are duplicates.",
+   "target": "account",
+   "accounts": [
+    {
+     "key": "card",
+     "name": "Customized Cash Rewards",
+     "kind": "credit_card",
+     "currency": "USD",
+     "institution": "Bank of America",
+     "last4": "8820"
+    }
+   ],
+   "files": [
+    {
+     "path": "cases/03b_nonunique_reference/bofa_card_2026_04_15.csv",
+     "format": "csv",
+     "layout": "bofa_card_csv",
+     "account": "card"
+    },
+    {
+     "path": "cases/03b_nonunique_reference/bofa_card_2026_04_30.csv",
+     "format": "csv",
+     "layout": "bofa_card_csv",
+     "account": "card"
+    }
+   ],
+   "import_order": [
+    "cases/03b_nonunique_reference/bofa_card_2026_04_15.csv",
+    "cases/03b_nonunique_reference/bofa_card_2026_04_30.csv"
+   ],
+   "transactions": [
+    {
+     "key": "coffee_apr22",
+     "account": "card",
+     "final_status": "posted",
+     "amount_minor": -525,
+     "transaction_date": null,
+     "posted_date": "2026-04-22",
+     "description": "STARBUCKS STORE 05432"
+    },
+    {
+     "key": "netflix_apr14",
+     "account": "card",
+     "final_status": "posted",
+     "amount_minor": -1549,
+     "transaction_date": null,
+     "posted_date": "2026-04-14",
+     "description": "NETFLIX.COM"
+    },
+    {
+     "key": "refund_apr10",
+     "account": "card",
+     "final_status": "posted",
+     "amount_minor": 19999,
+     "transaction_date": null,
+     "posted_date": "2026-04-10",
+     "description": "BEST BUY 00012345"
+    },
+    {
+     "key": "coffee_apr08_a",
+     "account": "card",
+     "final_status": "posted",
+     "amount_minor": -525,
+     "transaction_date": null,
+     "posted_date": "2026-04-08",
+     "description": "STARBUCKS STORE 05432"
+    },
+    {
+     "key": "coffee_apr08_b",
+     "account": "card",
+     "final_status": "posted",
+     "amount_minor": -525,
+     "transaction_date": null,
+     "posted_date": "2026-04-08",
+     "description": "STARBUCKS STORE 05432"
+    },
+    {
+     "key": "tv_apr03",
+     "account": "card",
+     "final_status": "posted",
+     "amount_minor": -19999,
+     "transaction_date": null,
+     "posted_date": "2026-04-03",
+     "description": "BEST BUY 00012345"
+    }
+   ],
+   "rows": [
+    {
+     "file": "cases/03b_nonunique_reference/bofa_card_2026_04_15.csv",
+     "statement": 0,
+     "row": 0,
+     "transaction": "netflix_apr14",
+     "outcome": "inserted",
+     "amount_minor": -1549,
+     "posted_date": "2026-04-14",
+     "transaction_date": null,
+     "status": "posted",
+     "external_id": "24011346104500555511122"
+    },
+    {
+     "file": "cases/03b_nonunique_reference/bofa_card_2026_04_15.csv",
+     "statement": 0,
+     "row": 1,
+     "transaction": "refund_apr10",
+     "outcome": "inserted",
+     "amount_minor": 19999,
+     "posted_date": "2026-04-10",
+     "transaction_date": null,
+     "status": "posted",
+     "external_id": "24692166093100123456789"
+    },
+    {
+     "file": "cases/03b_nonunique_reference/bofa_card_2026_04_15.csv",
+     "statement": 0,
+     "row": 2,
+     "transaction": "coffee_apr08_a",
+     "outcome": "inserted",
+     "amount_minor": -525,
+     "posted_date": "2026-04-08",
+     "transaction_date": null,
+     "status": "posted",
+     "external_id": "24445006098200987654321"
+    },
+    {
+     "file": "cases/03b_nonunique_reference/bofa_card_2026_04_15.csv",
+     "statement": 0,
+     "row": 3,
+     "transaction": "coffee_apr08_b",
+     "outcome": "inserted",
+     "amount_minor": -525,
+     "posted_date": "2026-04-08",
+     "transaction_date": null,
+     "status": "posted",
+     "external_id": "24445006098200987654322"
+    },
+    {
+     "file": "cases/03b_nonunique_reference/bofa_card_2026_04_15.csv",
+     "statement": 0,
+     "row": 4,
+     "transaction": "tv_apr03",
+     "outcome": "inserted",
+     "amount_minor": -19999,
+     "posted_date": "2026-04-03",
+     "transaction_date": null,
+     "status": "posted",
+     "external_id": "24692166093100123456789"
+    },
+    {
+     "file": "cases/03b_nonunique_reference/bofa_card_2026_04_30.csv",
+     "statement": 0,
+     "row": 0,
+     "transaction": "coffee_apr22",
+     "outcome": "inserted",
+     "amount_minor": -525,
+     "posted_date": "2026-04-22",
+     "transaction_date": null,
+     "status": "posted",
+     "external_id": "24445006098200987654321"
+    },
+    {
+     "file": "cases/03b_nonunique_reference/bofa_card_2026_04_30.csv",
+     "statement": 0,
+     "row": 1,
+     "transaction": "netflix_apr14",
+     "outcome": "duplicate",
+     "amount_minor": -1549,
+     "posted_date": "2026-04-14",
+     "transaction_date": null,
+     "status": "posted",
+     "external_id": "24011346104500555511122"
+    },
+    {
+     "file": "cases/03b_nonunique_reference/bofa_card_2026_04_30.csv",
+     "statement": 0,
+     "row": 2,
+     "transaction": "refund_apr10",
+     "outcome": "duplicate",
+     "amount_minor": 19999,
+     "posted_date": "2026-04-10",
+     "transaction_date": null,
+     "status": "posted",
+     "external_id": "24692166093100123456789"
+    },
+    {
+     "file": "cases/03b_nonunique_reference/bofa_card_2026_04_30.csv",
+     "statement": 0,
+     "row": 3,
+     "transaction": "coffee_apr08_a",
+     "outcome": "duplicate",
+     "amount_minor": -525,
+     "posted_date": "2026-04-08",
+     "transaction_date": null,
+     "status": "posted",
+     "external_id": "24445006098200987654321"
+    },
+    {
+     "file": "cases/03b_nonunique_reference/bofa_card_2026_04_30.csv",
+     "statement": 0,
+     "row": 4,
+     "transaction": "coffee_apr08_b",
+     "outcome": "duplicate",
+     "amount_minor": -525,
+     "posted_date": "2026-04-08",
+     "transaction_date": null,
+     "status": "posted",
+     "external_id": "24445006098200987654322"
+    },
+    {
+     "file": "cases/03b_nonunique_reference/bofa_card_2026_04_30.csv",
+     "statement": 0,
+     "row": 5,
+     "transaction": "tv_apr03",
+     "outcome": "duplicate",
+     "amount_minor": -19999,
+     "posted_date": "2026-04-03",
+     "transaction_date": null,
+     "status": "posted",
+     "external_id": "24692166093100123456789"
+    }
+   ]
+  },
+  {
+   "id": "04_same_last4_two_banks",
+   "title": "Two cards that both end in 4821, at different banks",
+   "what_it_tests": "Imported with automatic account matching. Each card's QFX carries its own full account number; the Capital One CSV only prints the last four. They are two accounts and must never be merged, and the CSV belongs to the Capital One card (same institution, same last four).",
+   "target": "auto",
+   "accounts": [
+    {
+     "key": "chase_4821",
+     "name": "Chase Sapphire Preferred",
+     "kind": "credit_card",
+     "currency": "USD",
+     "institution": "Chase",
+     "last4": "4821",
+     "number": "9999000000004821"
+    },
+    {
+     "key": "capone_4821",
+     "name": "Capital One Venture",
+     "kind": "credit_card",
+     "currency": "USD",
+     "institution": "Capital One",
+     "last4": "4821",
+     "number": "9999111100004821"
+    }
+   ],
+   "files": [
+    {
+     "path": "cases/04_same_last4_two_banks/chase_card_2026_05.qfx",
+     "format": "qfx",
+     "layout": null,
+     "account": "chase_4821"
+    },
+    {
+     "path": "cases/04_same_last4_two_banks/capone_card_2026_05.qfx",
+     "format": "qfx",
+     "layout": null,
+     "account": "capone_4821"
+    },
+    {
+     "path": "cases/04_same_last4_two_banks/capone_card_2026_05.csv",
+     "format": "csv",
+     "layout": "capital_one_card_csv",
+     "account": "capone_4821"
+    }
+   ],
+   "import_order": [
+    "cases/04_same_last4_two_banks/chase_card_2026_05.qfx",
+    "cases/04_same_last4_two_banks/capone_card_2026_05.qfx",
+    "cases/04_same_last4_two_banks/capone_card_2026_05.csv"
+   ],
+   "transactions": [
+    {
+     "key": "chase_spotify",
+     "account": "chase_4821",
+     "final_status": "posted",
+     "amount_minor": -1199,
+     "transaction_date": "2026-05-22",
+     "posted_date": "2026-05-23",
+     "description": "SPOTIFY USA"
+    },
+    {
+     "key": "chase_coffee",
+     "account": "chase_4821",
+     "final_status": "posted",
+     "amount_minor": -575,
+     "transaction_date": "2026-05-20",
+     "posted_date": "2026-05-21",
+     "description": "STARBUCKS STORE 05432"
+    },
+    {
+     "key": "capone_spotify",
+     "account": "capone_4821",
+     "final_status": "posted",
+     "amount_minor": -1199,
+     "transaction_date": "2026-05-22",
+     "posted_date": "2026-05-23",
+     "description": "SPOTIFY USA"
+    },
+    {
+     "key": "capone_fuel",
+     "account": "capone_4821",
+     "final_status": "posted",
+     "amount_minor": -4410,
+     "transaction_date": "2026-05-18",
+     "posted_date": "2026-05-19",
+     "description": "SHELL OIL 57444"
+    }
+   ],
+   "rows": [
+    {
+     "file": "cases/04_same_last4_two_banks/chase_card_2026_05.qfx",
+     "statement": 0,
+     "row": 0,
+     "transaction": "chase_spotify",
+     "outcome": "inserted",
+     "amount_minor": -1199,
+     "posted_date": "2026-05-23",
+     "transaction_date": "2026-05-22",
+     "status": "posted",
+     "external_id": "CH1"
+    },
+    {
+     "file": "cases/04_same_last4_two_banks/chase_card_2026_05.qfx",
+     "statement": 0,
+     "row": 1,
+     "transaction": "chase_coffee",
+     "outcome": "inserted",
+     "amount_minor": -575,
+     "posted_date": "2026-05-21",
+     "transaction_date": "2026-05-20",
+     "status": "posted",
+     "external_id": "CH2"
+    },
+    {
+     "file": "cases/04_same_last4_two_banks/capone_card_2026_05.qfx",
+     "statement": 0,
+     "row": 0,
+     "transaction": "capone_spotify",
+     "outcome": "inserted",
+     "amount_minor": -1199,
+     "posted_date": "2026-05-23",
+     "transaction_date": "2026-05-22",
+     "status": "posted",
+     "external_id": "CO1"
+    },
+    {
+     "file": "cases/04_same_last4_two_banks/capone_card_2026_05.qfx",
+     "statement": 0,
+     "row": 1,
+     "transaction": "capone_fuel",
+     "outcome": "inserted",
+     "amount_minor": -4410,
+     "posted_date": "2026-05-19",
+     "transaction_date": "2026-05-18",
+     "status": "posted",
+     "external_id": "CO2"
+    },
+    {
+     "file": "cases/04_same_last4_two_banks/capone_card_2026_05.csv",
+     "statement": 0,
+     "row": 0,
+     "transaction": "capone_spotify",
+     "outcome": "duplicate",
+     "amount_minor": -1199,
+     "posted_date": "2026-05-23",
+     "transaction_date": "2026-05-22",
+     "status": "posted",
+     "external_id": null
+    },
+    {
+     "file": "cases/04_same_last4_two_banks/capone_card_2026_05.csv",
+     "statement": 0,
+     "row": 1,
+     "transaction": "capone_fuel",
+     "outcome": "duplicate",
+     "amount_minor": -4410,
+     "posted_date": "2026-05-19",
+     "transaction_date": "2026-05-18",
+     "status": "posted",
+     "external_id": null
+    }
+   ]
+  },
+  {
+   "id": "05_two_statements_one_account",
+   "title": "One OFX file with two statements for the same account",
+   "what_it_tests": "The bank answers a two-month request with one statement per month in one file. Both belong to the same account. The statements overlap on 2026-04-30 and repeat that row with the same FITID: one transaction, even though both copies are in the same file. Two $20.00 ATM withdrawals on 2026-05-02 are two transactions.",
+   "target": "account",
+   "accounts": [
+    {
+     "key": "checking",
+     "name": "Virtual Wallet Spend",
+     "kind": "checking",
+     "currency": "USD",
+     "institution": "PNC",
+     "last4": "5521"
+    }
+   ],
+   "files": [
+    {
+     "path": "cases/05_two_statements_one_account/pnc_checking_2026_04-05.qfx",
+     "format": "qfx",
+     "layout": null,
+     "account": "checking"
+    }
+   ],
+   "import_order": [
+    "cases/05_two_statements_one_account/pnc_checking_2026_04-05.qfx"
+   ],
+   "transactions": [
+    {
+     "key": "rent_apr01",
+     "account": "checking",
+     "final_status": "posted",
+     "amount_minor": -194000,
+     "transaction_date": null,
+     "posted_date": "2026-04-01",
+     "description": "APPFOLIO RIVERSIDE WEB PMTS"
+    },
+    {
+     "key": "coffee_apr15",
+     "account": "checking",
+     "final_status": "posted",
+     "amount_minor": -480,
+     "transaction_date": null,
+     "posted_date": "2026-04-15",
+     "description": "COSMIC CUP COFFEE"
+    },
+    {
+     "key": "energy_apr30",
+     "account": "checking",
+     "final_status": "posted",
+     "amount_minor": -18230,
+     "transaction_date": null,
+     "posted_date": "2026-04-30",
+     "description": "CITY OF AUSTIN UTILITY"
+    },
+    {
+     "key": "rent_may01",
+     "account": "checking",
+     "final_status": "posted",
+     "amount_minor": -194000,
+     "transaction_date": null,
+     "posted_date": "2026-05-01",
+     "description": "APPFOLIO RIVERSIDE WEB PMTS"
+    },
+    {
+     "key": "atm_may02_a",
+     "account": "checking",
+     "final_status": "posted",
+     "amount_minor": -2000,
+     "transaction_date": null,
+     "posted_date": "2026-05-02",
+     "description": "ATM WITHDRAWAL 1200 CONGRESS AVE"
+    },
+    {
+     "key": "atm_may02_b",
+     "account": "checking",
+     "final_status": "posted",
+     "amount_minor": -2000,
+     "transaction_date": null,
+     "posted_date": "2026-05-02",
+     "description": "ATM WITHDRAWAL 1200 CONGRESS AVE"
+    }
+   ],
+   "rows": [
+    {
+     "file": "cases/05_two_statements_one_account/pnc_checking_2026_04-05.qfx",
+     "statement": 0,
+     "row": 0,
+     "transaction": "rent_apr01",
+     "outcome": "inserted",
+     "amount_minor": -194000,
+     "posted_date": "2026-04-01",
+     "transaction_date": null,
+     "status": "posted",
+     "external_id": "P0401A"
+    },
+    {
+     "file": "cases/05_two_statements_one_account/pnc_checking_2026_04-05.qfx",
+     "statement": 0,
+     "row": 1,
+     "transaction": "coffee_apr15",
+     "outcome": "inserted",
+     "amount_minor": -480,
+     "posted_date": "2026-04-15",
+     "transaction_date": null,
+     "status": "posted",
+     "external_id": "P0415A"
+    },
+    {
+     "file": "cases/05_two_statements_one_account/pnc_checking_2026_04-05.qfx",
+     "statement": 0,
+     "row": 2,
+     "transaction": "energy_apr30",
+     "outcome": "inserted",
+     "amount_minor": -18230,
+     "posted_date": "2026-04-30",
+     "transaction_date": null,
+     "status": "posted",
+     "external_id": "P0430A"
+    },
+    {
+     "file": "cases/05_two_statements_one_account/pnc_checking_2026_04-05.qfx",
+     "statement": 1,
+     "row": 0,
+     "transaction": "energy_apr30",
+     "outcome": "duplicate",
+     "amount_minor": -18230,
+     "posted_date": "2026-04-30",
+     "transaction_date": null,
+     "status": "posted",
+     "external_id": "P0430A"
+    },
+    {
+     "file": "cases/05_two_statements_one_account/pnc_checking_2026_04-05.qfx",
+     "statement": 1,
+     "row": 1,
+     "transaction": "rent_may01",
+     "outcome": "inserted",
+     "amount_minor": -194000,
+     "posted_date": "2026-05-01",
+     "transaction_date": null,
+     "status": "posted",
+     "external_id": "P0501A"
+    },
+    {
+     "file": "cases/05_two_statements_one_account/pnc_checking_2026_04-05.qfx",
+     "statement": 1,
+     "row": 2,
+     "transaction": "atm_may02_a",
+     "outcome": "inserted",
+     "amount_minor": -2000,
+     "posted_date": "2026-05-02",
+     "transaction_date": null,
+     "status": "posted",
+     "external_id": "P0502A"
+    },
+    {
+     "file": "cases/05_two_statements_one_account/pnc_checking_2026_04-05.qfx",
+     "statement": 1,
+     "row": 3,
+     "transaction": "atm_may02_b",
+     "outcome": "inserted",
+     "amount_minor": -2000,
+     "posted_date": "2026-05-02",
+     "transaction_date": null,
+     "status": "posted",
+     "external_id": "P0502B"
+    }
+   ]
+  },
+  {
+   "id": "06_tipped_pending_same_price",
+   "title": "A pending dinner, its tipped settlement, and a same-price takeout three days later",
+   "what_it_tests": "A $40.00 dinner shows as pending on 2026-03-06 and settles at $48.00 with the tip. On 2026-03-09 the same restaurant charges exactly $40.00 for takeout. The pending item settles into the $48.00 row (same purchase date), not into the exact-amount takeout; the takeout is a new transaction. An earlier $40.00 lunch on 2026-03-03 appears in both downloads.",
+   "target": "account",
+   "accounts": [
+    {
+     "key": "card",
+     "name": "Citi Custom Cash",
+     "kind": "credit_card",
+     "currency": "USD",
+     "institution": "Citi",
+     "last4": "6630"
+    }
+   ],
+   "files": [
+    {
+     "path": "cases/06_tipped_pending_same_price/citi_card_2026_03_07.csv",
+     "format": "csv",
+     "layout": "citi_card_csv",
+     "account": "card"
+    },
+    {
+     "path": "cases/06_tipped_pending_same_price/citi_card_2026_03_14.csv",
+     "format": "csv",
+     "layout": "citi_card_csv",
+     "account": "card"
+    }
+   ],
+   "import_order": [
+    "cases/06_tipped_pending_same_price/citi_card_2026_03_07.csv",
+    "cases/06_tipped_pending_same_price/citi_card_2026_03_14.csv"
+   ],
+   "transactions": [
+    {
+     "key": "dinner_mar06",
+     "account": "card",
+     "final_status": "posted",
+     "amount_minor": -4800,
+     "transaction_date": "2026-03-06",
+     "posted_date": "2026-03-06",
+     "description": "TST* BLUE HERON BISTRO"
+    },
+    {
+     "key": "lunch_mar03",
+     "account": "card",
+     "final_status": "posted",
+     "amount_minor": -4000,
+     "transaction_date": "2026-03-03",
+     "posted_date": "2026-03-03",
+     "description": "TST* BLUE HERON BISTRO"
+    },
+    {
+     "key": "coffee_mar04",
+     "account": "card",
+     "final_status": "posted",
+     "amount_minor": -550,
+     "transaction_date": "2026-03-04",
+     "posted_date": "2026-03-04",
+     "description": "SQ *DAILY GRIND"
+    },
+    {
+     "key": "takeout_mar09",
+     "account": "card",
+     "final_status": "posted",
+     "amount_minor": -4000,
+     "transaction_date": "2026-03-09",
+     "posted_date": "2026-03-09",
+     "description": "TST* BLUE HERON BISTRO"
+    }
+   ],
+   "rows": [
+    {
+     "file": "cases/06_tipped_pending_same_price/citi_card_2026_03_07.csv",
+     "statement": 0,
+     "row": 0,
+     "transaction": "dinner_mar06",
+     "outcome": "inserted",
+     "amount_minor": -4000,
+     "posted_date": "2026-03-06",
+     "transaction_date": "2026-03-06",
+     "status": "pending",
+     "external_id": null
+    },
+    {
+     "file": "cases/06_tipped_pending_same_price/citi_card_2026_03_07.csv",
+     "statement": 0,
+     "row": 1,
+     "transaction": "coffee_mar04",
+     "outcome": "inserted",
+     "amount_minor": -550,
+     "posted_date": "2026-03-04",
+     "transaction_date": "2026-03-04",
+     "status": "posted",
+     "external_id": null
+    },
+    {
+     "file": "cases/06_tipped_pending_same_price/citi_card_2026_03_07.csv",
+     "statement": 0,
+     "row": 2,
+     "transaction": "lunch_mar03",
+     "outcome": "inserted",
+     "amount_minor": -4000,
+     "posted_date": "2026-03-03",
+     "transaction_date": "2026-03-03",
+     "status": "posted",
+     "external_id": null
+    },
+    {
+     "file": "cases/06_tipped_pending_same_price/citi_card_2026_03_14.csv",
+     "statement": 0,
+     "row": 0,
+     "transaction": "takeout_mar09",
+     "outcome": "inserted",
+     "amount_minor": -4000,
+     "posted_date": "2026-03-09",
+     "transaction_date": "2026-03-09",
+     "status": "posted",
+     "external_id": null
+    },
+    {
+     "file": "cases/06_tipped_pending_same_price/citi_card_2026_03_14.csv",
+     "statement": 0,
+     "row": 1,
+     "transaction": "dinner_mar06",
+     "outcome": "posted_pending",
+     "amount_minor": -4800,
+     "posted_date": "2026-03-06",
+     "transaction_date": "2026-03-06",
+     "status": "posted",
+     "external_id": null
+    },
+    {
+     "file": "cases/06_tipped_pending_same_price/citi_card_2026_03_14.csv",
+     "statement": 0,
+     "row": 2,
+     "transaction": "coffee_mar04",
+     "outcome": "duplicate",
+     "amount_minor": -550,
+     "posted_date": "2026-03-04",
+     "transaction_date": "2026-03-04",
+     "status": "posted",
+     "external_id": null
+    },
+    {
+     "file": "cases/06_tipped_pending_same_price/citi_card_2026_03_14.csv",
+     "statement": 0,
+     "row": 3,
+     "transaction": "lunch_mar03",
+     "outcome": "duplicate",
+     "amount_minor": -4000,
+     "posted_date": "2026-03-03",
+     "transaction_date": "2026-03-03",
+     "status": "posted",
+     "external_id": null
+    }
+   ]
+  },
+  {
+   "id": "07a_purchase_date_only_with_dtuser",
+   "title": "A Barclays CSV (purchase dates only) and the QFX of the same month",
+   "what_it_tests": "The CSV gives only the purchase date; the QFX gives the posted date and DTUSER. Each CSV row is the same transaction as its QFX twin. Two $36.50 ramen dinners two days apart (one posts on the other's purchase date) must pair by purchase date, not cross over.",
+   "target": "account",
+   "accounts": [
+    {
+     "key": "card",
+     "name": "Barclays View Mastercard",
+     "kind": "credit_card",
+     "currency": "USD",
+     "institution": "Barclays",
+     "last4": "2210"
+    }
+   ],
+   "files": [
+    {
+     "path": "cases/07a_purchase_date_only_with_dtuser/barclays_card_2026_06.qfx",
+     "format": "qfx",
+     "layout": null,
+     "account": "card"
+    },
+    {
+     "path": "cases/07a_purchase_date_only_with_dtuser/barclays_card_2026_06.csv",
+     "format": "csv",
+     "layout": "barclays_csv",
+     "account": "card"
+    }
+   ],
+   "import_order": [
+    "cases/07a_purchase_date_only_with_dtuser/barclays_card_2026_06.qfx",
+    "cases/07a_purchase_date_only_with_dtuser/barclays_card_2026_06.csv"
+   ],
+   "transactions": [
+    {
+     "key": "ramen_jun10",
+     "account": "card",
+     "final_status": "posted",
+     "amount_minor": -3650,
+     "transaction_date": "2026-06-10",
+     "posted_date": "2026-06-12",
+     "description": "SQ *SAKURA RAMEN"
+    },
+    {
+     "key": "ramen_jun12",
+     "account": "card",
+     "final_status": "posted",
+     "amount_minor": -3650,
+     "transaction_date": "2026-06-12",
+     "posted_date": "2026-06-14",
+     "description": "SQ *SAKURA RAMEN"
+    },
+    {
+     "key": "books_jun15",
+     "account": "card",
+     "final_status": "posted",
+     "amount_minor": -2899,
+     "transaction_date": "2026-06-15",
+     "posted_date": "2026-06-17",
+     "description": "BARNES & NOBLE #2231"
+    },
+    {
+     "key": "payment_jun20",
+     "account": "card",
+     "final_status": "posted",
+     "amount_minor": 20000,
+     "transaction_date": "2026-06-20",
+     "posted_date": "2026-06-20",
+     "description": "PAYMENT RECEIVED - THANK YOU"
+    }
+   ],
+   "rows": [
+    {
+     "file": "cases/07a_purchase_date_only_with_dtuser/barclays_card_2026_06.qfx",
+     "statement": 0,
+     "row": 0,
+     "transaction": "ramen_jun10",
+     "outcome": "inserted",
+     "amount_minor": -3650,
+     "posted_date": "2026-06-12",
+     "transaction_date": "2026-06-10",
+     "status": "posted",
+     "external_id": "BC06001"
+    },
+    {
+     "file": "cases/07a_purchase_date_only_with_dtuser/barclays_card_2026_06.csv",
+     "statement": 0,
+     "row": 0,
+     "transaction": "ramen_jun10",
+     "outcome": "duplicate",
+     "amount_minor": -3650,
+     "posted_date": "2026-06-10",
+     "transaction_date": "2026-06-10",
+     "status": "posted",
+     "external_id": null
+    },
+    {
+     "file": "cases/07a_purchase_date_only_with_dtuser/barclays_card_2026_06.qfx",
+     "statement": 0,
+     "row": 1,
+     "transaction": "ramen_jun12",
+     "outcome": "inserted",
+     "amount_minor": -3650,
+     "posted_date": "2026-06-14",
+     "transaction_date": "2026-06-12",
+     "status": "posted",
+     "external_id": "BC06002"
+    },
+    {
+     "file": "cases/07a_purchase_date_only_with_dtuser/barclays_card_2026_06.csv",
+     "statement": 0,
+     "row": 1,
+     "transaction": "ramen_jun12",
+     "outcome": "duplicate",
+     "amount_minor": -3650,
+     "posted_date": "2026-06-12",
+     "transaction_date": "2026-06-12",
+     "status": "posted",
+     "external_id": null
+    },
+    {
+     "file": "cases/07a_purchase_date_only_with_dtuser/barclays_card_2026_06.qfx",
+     "statement": 0,
+     "row": 2,
+     "transaction": "books_jun15",
+     "outcome": "inserted",
+     "amount_minor": -2899,
+     "posted_date": "2026-06-17",
+     "transaction_date": "2026-06-15",
+     "status": "posted",
+     "external_id": "BC06003"
+    },
+    {
+     "file": "cases/07a_purchase_date_only_with_dtuser/barclays_card_2026_06.csv",
+     "statement": 0,
+     "row": 2,
+     "transaction": "books_jun15",
+     "outcome": "duplicate",
+     "amount_minor": -2899,
+     "posted_date": "2026-06-15",
+     "transaction_date": "2026-06-15",
+     "status": "posted",
+     "external_id": null
+    },
+    {
+     "file": "cases/07a_purchase_date_only_with_dtuser/barclays_card_2026_06.qfx",
+     "statement": 0,
+     "row": 3,
+     "transaction": "payment_jun20",
+     "outcome": "inserted",
+     "amount_minor": 20000,
+     "posted_date": "2026-06-20",
+     "transaction_date": "2026-06-20",
+     "status": "posted",
+     "external_id": "BC06004"
+    },
+    {
+     "file": "cases/07a_purchase_date_only_with_dtuser/barclays_card_2026_06.csv",
+     "statement": 0,
+     "row": 3,
+     "transaction": "payment_jun20",
+     "outcome": "duplicate",
+     "amount_minor": 20000,
+     "posted_date": "2026-06-20",
+     "transaction_date": "2026-06-20",
+     "status": "posted",
+     "external_id": null
+    }
+   ]
+  },
+  {
+   "id": "07b_purchase_date_only_posted_twin",
+   "title": "A Barclays CSV (purchase dates only) against a QFX with posted dates only",
+   "what_it_tests": "A constructed variant: the QFX has DTPOSTED but no DTUSER, two days after each purchase. The CSV rows (purchase dates) are still the same transactions as the QFX rows. No two rows share amount and merchant, so the pairing is unambiguous.",
+   "target": "account",
+   "accounts": [
+    {
+     "key": "card",
+     "name": "Barclays View Mastercard",
+     "kind": "credit_card",
+     "currency": "USD",
+     "institution": "Barclays",
+     "last4": "2210"
+    }
+   ],
+   "files": [
+    {
+     "path": "cases/07b_purchase_date_only_posted_twin/barclays_card_2026_07.qfx",
+     "format": "qfx",
+     "layout": null,
+     "account": "card"
+    },
+    {
+     "path": "cases/07b_purchase_date_only_posted_twin/barclays_card_2026_07.csv",
+     "format": "csv",
+     "layout": "barclays_csv",
+     "account": "card"
+    }
+   ],
+   "import_order": [
+    "cases/07b_purchase_date_only_posted_twin/barclays_card_2026_07.qfx",
+    "cases/07b_purchase_date_only_posted_twin/barclays_card_2026_07.csv"
+   ],
+   "transactions": [
+    {
+     "key": "fuel_jul02",
+     "account": "card",
+     "final_status": "posted",
+     "amount_minor": -4410,
+     "transaction_date": "2026-07-02",
+     "posted_date": "2026-07-04",
+     "description": "SHELL OIL 57444"
+    },
+    {
+     "key": "dinner_jul05",
+     "account": "card",
+     "final_status": "posted",
+     "amount_minor": -6215,
+     "transaction_date": "2026-07-05",
+     "posted_date": "2026-07-07",
+     "description": "TST* LONE STAR SMOKEHOU"
+    },
+    {
+     "key": "amazon_jul09",
+     "account": "card",
+     "final_status": "posted",
+     "amount_minor": -2388,
+     "transaction_date": "2026-07-09",
+     "posted_date": "2026-07-11",
+     "description": "AMZN MKTP US*2K4L19XZ0"
+    }
+   ],
+   "rows": [
+    {
+     "file": "cases/07b_purchase_date_only_posted_twin/barclays_card_2026_07.qfx",
+     "statement": 0,
+     "row": 0,
+     "transaction": "fuel_jul02",
+     "outcome": "inserted",
+     "amount_minor": -4410,
+     "posted_date": "2026-07-04",
+     "transaction_date": null,
+     "status": "posted",
+     "external_id": "BC07001"
+    },
+    {
+     "file": "cases/07b_purchase_date_only_posted_twin/barclays_card_2026_07.csv",
+     "statement": 0,
+     "row": 0,
+     "transaction": "fuel_jul02",
+     "outcome": "duplicate",
+     "amount_minor": -4410,
+     "posted_date": "2026-07-02",
+     "transaction_date": "2026-07-02",
+     "status": "posted",
+     "external_id": null
+    },
+    {
+     "file": "cases/07b_purchase_date_only_posted_twin/barclays_card_2026_07.qfx",
+     "statement": 0,
+     "row": 1,
+     "transaction": "dinner_jul05",
+     "outcome": "inserted",
+     "amount_minor": -6215,
+     "posted_date": "2026-07-07",
+     "transaction_date": null,
+     "status": "posted",
+     "external_id": "BC07002"
+    },
+    {
+     "file": "cases/07b_purchase_date_only_posted_twin/barclays_card_2026_07.csv",
+     "statement": 0,
+     "row": 1,
+     "transaction": "dinner_jul05",
+     "outcome": "duplicate",
+     "amount_minor": -6215,
+     "posted_date": "2026-07-05",
+     "transaction_date": "2026-07-05",
+     "status": "posted",
+     "external_id": null
+    },
+    {
+     "file": "cases/07b_purchase_date_only_posted_twin/barclays_card_2026_07.qfx",
+     "statement": 0,
+     "row": 2,
+     "transaction": "amazon_jul09",
+     "outcome": "inserted",
+     "amount_minor": -2388,
+     "posted_date": "2026-07-11",
+     "transaction_date": null,
+     "status": "posted",
+     "external_id": "BC07003"
+    },
+    {
+     "file": "cases/07b_purchase_date_only_posted_twin/barclays_card_2026_07.csv",
+     "statement": 0,
+     "row": 2,
+     "transaction": "amazon_jul09",
+     "outcome": "duplicate",
+     "amount_minor": -2388,
+     "posted_date": "2026-07-09",
+     "transaction_date": "2026-07-09",
+     "status": "posted",
+     "external_id": null
+    }
+   ]
+  }
+ ]
+}
