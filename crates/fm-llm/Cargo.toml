@@ -9,3 +9,18 @@ publish.workspace = true
 
 [lints]
 workspace = true
+
+[dependencies]
+# Downloads go through the one network client (SPEC decision 21).
+fm-netguard = { path = "../fm-netguard" }
+# The llama.cpp C++ source ships inside llama-cpp-sys-2 (ggml-org/llama.cpp
+# d81235049384534c167caea52b85a694f6103d14), so this pin and the Cargo.lock
+# checksum pin it too. No default features: no OpenMP, and no `common`, so
+# llama.cpp's own downloader (cpp-httplib) is never built. Metal is switched on
+# by llama-cpp-2 itself for aarch64-apple-darwin; elsewhere it is CPU only.
+llama-cpp-2 = { version = "=0.1.160", default-features = false }
+serde_json = { version = "=1.0.154", default-features = false, features = ["std"] }
+sha2 = { version = "=0.11.1", default-features = false }
+
+[dev-dependencies]
+proptest = { version = "=1.12.0", default-features = false, features = ["std"] }
