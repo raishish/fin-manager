@@ -157,7 +157,7 @@ People own their financial data, and the app adds an intelligence layer on top o
     4. **Everything adds up.** Every transaction is in exactly one bucket (a category, a transfer, or "needs review"). Category totals plus transfers equal total money out. Matched transfers net to zero.
     5. **Admit uncertainty.** Below a confidence threshold, a model decision becomes "needs review", never a guess shown as fact.
     6. **Explanations match the numbers.** Every number in an LLM-written explanation is extracted and checked against computed values; on a mismatch the app regenerates or falls back to a template.
-    7. **No silent changes.** Model decisions the user has already seen are never changed silently; re-run changes appear as suggestions to review.
+    7. **No silent changes.** Model decisions the user has already seen are never changed silently; re-run changes appear as suggestions to review. A decision counts as seen only once the user acts on it: confirms or corrects it, one at a time or with bulk approve/reject over several transactions (decision 46).
     8. **Every decision shows its source:** a rule, the user, or the model (with model identity and confidence).
   - **Soft targets** (measured; thresholds set from the MVP's baseline): re-run agreement, user correction rate, question-to-query accuracy, and time to categorise a typical import on the 8 GB minimum machine.
 - **MVP model choice (decision 33): a small comparison during the MVP build** (about a week). It is the first version of the eval pipeline.
@@ -309,3 +309,4 @@ People own their financial data, and the app adds an intelligence layer on top o
 | 43 | 2026-10-17 | Deleting by account or date range: delete in-scope transactions; delete fully-in-scope files; partly-in-scope files deleted whole only by opt-in; kept files record their deleted rows so they never come back | Deletion stays real without silently removing transactions the user didn't ask to delete |
 | 44 | 2026-10-17 | A file overlapping a deleted period imports everything, with a warning; refining this is a TODO | Simple and transparent for the MVP |
 | 45 | 2026-10-17 | The AI categoriser chooses from categories + Income + uncategorised; never Transfer (rules, detection and the user only) | A wrong transfer hides real spending; income in review would otherwise always be wrong |
+| 46 | 2026-10-17 | A model decision counts as "seen" only when the user acts on it: confirms or corrects it; bulk approve/reject covers several transactions at once | Being shown a decision in a list isn't agreement; acting on it is, and bulk actions keep review fast |
