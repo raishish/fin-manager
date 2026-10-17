@@ -24,6 +24,7 @@ pub use db::{MIGRATIONS, Migration};
 pub use error::StorageError;
 pub use keyfile::{KdfParams, SlotKind};
 pub use repo::{DeletedCounts, Table, default_taxonomy};
+pub(crate) use repo::{DeletionPlan, DeletionScope};
 
 use keyfile::{DataKey, Keyfile};
 

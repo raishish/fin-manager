@@ -84,6 +84,7 @@
 		<section>
 			<h2>Backups</h2>
 			<p><a href="/backup">Backup folder and restore</a></p>
+			<p><a href="/data">Delete data</a></p>
 		</section>
 
 		<section>
