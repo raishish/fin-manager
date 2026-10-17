@@ -144,6 +144,8 @@ const COMMANDS: &[&str] = &[
     "csv_mapping_inspect",
     "csv_mapping_preview",
     "csv_mapping_save",
+    "finish_import",
+    "unfinished_import",
 ];
 
 /// The app's command handler, behind the unlock gate.
@@ -207,6 +209,8 @@ fn handler<R: Runtime>() -> impl Fn(Invoke<R>) -> bool + Send + Sync + 'static {
         csv_mapping::commands::csv_mapping_inspect,
         csv_mapping::commands::csv_mapping_preview,
         csv_mapping::commands::csv_mapping_save,
+        importing::commands::finish_import,
+        importing::commands::unfinished_import,
     ])
 }
 

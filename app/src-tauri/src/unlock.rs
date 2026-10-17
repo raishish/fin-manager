@@ -4,8 +4,8 @@
 //! an open ledger, and runs the auto-lock timer.
 
 use std::path::Path;
-use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::{Mutex, MutexGuard, PoisonError};
+use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
+use std::sync::{Mutex, MutexGuard, PoisonError, TryLockError};
 use std::thread;
 use std::time::Duration;
 
@@ -175,6 +175,25 @@ pub struct UnlockState<S: LedgerStore, K: TouchIdKeychain> {
     /// data (decision 28). Kept here, not taken from the page, so the page can only
     /// ever delete what the app offered (see `deletion.rs`).
     pub(crate) backup_offer: Mutex<Option<fm_core::deletion::BackupOffer>>,
+    /// Auto-lock's timing as of the last time the session was taken. Read by
+    /// [`Self::tick`] without the session, so auto-lock can interrupt long work holding
+    /// it instead of waiting for it (T3.6).
+    autolock: Mutex<AutolockClock>,
+    /// The latest activity not yet given to the session: [`Self::activity`] never waits
+    /// for the session, and whoever takes it next hands this on. [`Self::tick`] counts it,
+    /// so activity during long work keeps auto-lock away.
+    pending_activity: Mutex<Option<Now>>,
+    /// Changes whenever the ledger opens or closes, so a step of long work can tell the
+    /// session is still the one it started on.
+    generation: AtomicU64,
+}
+
+/// When auto-lock is due, and how long it waits after activity (`Now::mono`).
+#[derive(Debug, Default, Clone, Copy)]
+struct AutolockClock {
+    /// `None` while locked.
+    due: Option<Duration>,
+    idle: Option<Duration>,
 }
 
 impl<S: LedgerStore, K: TouchIdKeychain> UnlockState<S, K> {
@@ -185,6 +204,9 @@ impl<S: LedgerStore, K: TouchIdKeychain> UnlockState<S, K> {
             interrupt: AtomicBool::new(false),
             restored: AtomicBool::new(false),
             backup_offer: Mutex::new(None),
+            autolock: Mutex::new(AutolockClock::default()),
+            pending_activity: Mutex::new(None),
+            generation: AtomicU64::new(0),
         }
     }
 
@@ -202,7 +224,7 @@ impl<S: LedgerStore, K: TouchIdKeychain> UnlockState<S, K> {
     /// The session. If a thread panicked while holding it, the ledger is locked
     /// before anyone uses it again: a panic may have stopped halfway through a step.
     fn session(&self) -> MutexGuard<'_, Session<S, K>> {
-        match self.session.lock() {
+        let guard = match self.session.lock() {
             Ok(guard) => guard,
             Err(poisoned) => {
                 let mut guard = poisoned.into_inner();
@@ -211,7 +233,39 @@ impl<S: LedgerStore, K: TouchIdKeychain> UnlockState<S, K> {
                 self.session.clear_poison();
                 guard
             }
+        };
+        self.take_pending_activity(guard)
+    }
+
+    /// Gives the session the activity recorded while it was busy, and notes the new
+    /// auto-lock deadline.
+    fn take_pending_activity<'a>(
+        &self,
+        mut session: MutexGuard<'a, Session<S, K>>,
+    ) -> MutexGuard<'a, Session<S, K>> {
+        let pending = self
+            .pending_activity
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner)
+            .take();
+        if let Some(at) = pending {
+            session.activity(at);
+            self.note_autolock(&session);
         }
+        session
+    }
+
+    fn note_autolock(&self, session: &Session<S, K>) {
+        let now = Now::current();
+        *self.autolock.lock().unwrap_or_else(PoisonError::into_inner) = AutolockClock {
+            due: session.idle_remaining(now).map(|left| now.mono + left),
+            idle: Some(Duration::from_secs(session.autolock_minutes() * 60)),
+        };
+    }
+
+    /// Changes whenever the ledger opens or closes.
+    pub(crate) fn generation(&self) -> u64 {
+        self.generation.load(Ordering::SeqCst)
     }
 
     /// Runs a change on the session and tells the observer, all under one lock.
@@ -220,8 +274,32 @@ impl<S: LedgerStore, K: TouchIdKeychain> UnlockState<S, K> {
     }
 
     fn change_with<T>(&self, wrote: bool, f: impl FnOnce(&mut Session<S, K>) -> T) -> T {
-        let mut session = self.session();
+        self.change_on(self.session(), wrote, f)
+    }
+
+    /// [`Self::change`] if the session is free right now; `None` (nothing run) if long
+    /// work holds it.
+    fn try_change<T>(&self, f: impl FnOnce(&mut Session<S, K>) -> T) -> Option<T> {
+        match self.session.try_lock() {
+            Ok(session) => Some(self.change_on(self.take_pending_activity(session), false, f)),
+            Err(TryLockError::WouldBlock) => None,
+            // Poisoned: let `session()` lock the ledger and clear it.
+            Err(TryLockError::Poisoned(_)) => Some(self.change(f)),
+        }
+    }
+
+    fn change_on<T>(
+        &self,
+        mut session: MutexGuard<'_, Session<S, K>>,
+        wrote: bool,
+        f: impl FnOnce(&mut Session<S, K>) -> T,
+    ) -> T {
+        let was_open = session.ledger().is_some();
         let out = f(&mut session);
+        if session.ledger().is_some() != was_open {
+            self.generation.fetch_add(1, Ordering::SeqCst);
+        }
+        self.note_autolock(&session);
         (self.observer)(session.ledger(), wrote);
         out
     }
@@ -341,13 +419,43 @@ impl<S: LedgerStore, K: TouchIdKeychain> UnlockState<S, K> {
         });
     }
 
+    /// The user did something. Never waits for the session (long work may hold it):
+    /// recorded here, and given to the session now if it is free, or by whoever takes it
+    /// next. [`Self::tick`] counts it either way.
     pub fn activity(&self) {
-        self.session().activity(Now::current());
+        *self
+            .pending_activity
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner) = Some(Now::current());
+        if let Ok(session) = self.session.try_lock() {
+            drop(self.take_pending_activity(session));
+        }
     }
 
     /// The timer's step: true if the ledger just auto-locked.
+    /// Auto-lock's check, every [`TICK`]. When auto-lock is due, it raises the interrupt
+    /// flag as [`Self::lock`] does, so long work holding the session (an import, a
+    /// backup) stops instead of delaying the lock.
     pub fn tick(&self) -> bool {
-        self.change(|s| s.tick(Now::current()))
+        let now = Now::current().mono;
+        let clock = *self.autolock.lock().unwrap_or_else(PoisonError::into_inner);
+        let recent = self
+            .pending_activity
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner)
+            .map(|at| at.mono);
+        // Due by the last deadline, and not put off by activity the session hasn't
+        // been given yet.
+        let due = clock.due.is_some_and(|at| now >= at)
+            && recent.is_none_or(|at| clock.idle.is_some_and(|idle| now >= at + idle));
+        if due {
+            self.interrupting(|| self.change(|s| s.tick(Now::current())))
+        } else {
+            // Not due: never wait for long work holding the session. If it's busy this
+            // tick is skipped, and the next one (TICK later) looks again, and interrupts
+            // once the deadline has passed.
+            self.try_change(|s| s.tick(Now::current())).unwrap_or(false)
+        }
     }
 }
 
@@ -430,17 +538,29 @@ impl TermsCache {
     }
 }
 
-/// Names that could identify the user's finances: account names and institutions, the
-/// merchant names decisions and rules assign, and rule patterns. Read after the ledger
-/// opens and after every write through [`UnlockState::write_ledger`] (see
-/// [`TermsCache`]), so it follows imports and corrections. Any read error fails the
-/// whole refresh, so a partial list never replaces a complete one.
+/// Words that could identify the user's finances:
+/// - account names and institutions;
+/// - transaction descriptions, payees and memos (T3.6);
+/// - the merchant names decisions and rules assign, and rule patterns;
+/// - category names the user chose: a renamed built-in category or one of their own
+///   (T3.6). Built-in names ("Groceries") say nothing about the user.
+///
+/// Read after the ledger opens and after every write through
+/// [`UnlockState::write_ledger`] (see [`TermsCache`]), never on a timer tick, so it
+/// follows imports and corrections. Any read error fails the whole refresh, so a
+/// partial list never replaces a complete one. Very short terms are ignored by the
+/// scrubber itself.
 fn sensitive_terms(ledger: &Unlocked) -> std::result::Result<Vec<String>, StorageError> {
     use fm_core::model::Assignment;
     let mut terms = std::collections::BTreeSet::new();
     for account in ledger.accounts()? {
         terms.insert(account.name);
         terms.extend(account.institution);
+    }
+    for t in ledger.transactions()? {
+        terms.insert(t.description);
+        terms.extend(t.payee);
+        terms.extend(t.memo);
     }
     for decision in ledger.decisions()? {
         if let Assignment::Merchant(name) = decision.assignment {
@@ -450,6 +570,26 @@ fn sensitive_terms(ledger: &Unlocked) -> std::result::Result<Vec<String>, Storag
     for rule in ledger.rules()? {
         terms.insert(rule.matcher.description.pattern().to_string());
         terms.extend(rule.action.merchant);
+    }
+    let built_in = fm_core::storage::default_taxonomy();
+    let taxonomy = ledger.taxonomy()?;
+    let is_built_in = |key: &str, name: &str| {
+        built_in
+            .categories
+            .iter()
+            .map(|c| (&c.key, &c.name))
+            .chain(built_in.groups.iter().map(|g| (&g.key, &g.name)))
+            .any(|(k, n)| k == key && n == name)
+    };
+    for c in &taxonomy.categories {
+        if !is_built_in(&c.key, &c.name) {
+            terms.insert(c.name.clone());
+        }
+    }
+    for g in &taxonomy.groups {
+        if !is_built_in(&g.key, &g.name) {
+            terms.insert(g.name.clone());
+        }
     }
     Ok(terms.into_iter().collect())
 }
@@ -711,6 +851,233 @@ mod tests {
             };
             Ok(())
         }
+    }
+
+    /// T3.6: the scrubber also knows descriptions, payees, memos and the category names
+    /// the user chose, but not the built-in category names.
+    #[test]
+    fn scrub_terms_cover_descriptions_payees_and_custom_category_names() {
+        use fm_core::categories::{Edit, edit};
+        use fm_core::model::Ledger;
+
+        let dir = tempfile::tempdir().unwrap();
+        let mut u = Vault::at(&dir.path().join("ledger"))
+            .create(STRONG.as_bytes())
+            .unwrap();
+        let data = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../../testdata/synthetic/data/renter/ledger.json");
+        let ledger: Ledger = serde_json::from_slice(&std::fs::read(data).unwrap()).unwrap();
+        u.save_ledger(&ledger).unwrap();
+        let category = ledger.taxonomy.categories[0].clone();
+        let untouched = ledger.taxonomy.categories[1].clone();
+        edit(
+            &mut u,
+            &Edit::RenameCategory {
+                id: category.id,
+                name: "Zephyr Fund".into(),
+            },
+        )
+        .unwrap();
+
+        let terms = sensitive_terms(&u).unwrap();
+        let has = |t: &str| terms.iter().any(|x| x == t);
+        let t = ledger
+            .transactions
+            .iter()
+            .find(|t| t.payee.is_some())
+            .unwrap_or(&ledger.transactions[0]);
+        assert!(has(&t.description), "descriptions");
+        if let Some(p) = &t.payee {
+            assert!(has(p), "payees");
+        }
+        assert!(has("Zephyr Fund"), "a renamed category");
+        assert!(
+            !has(&untouched.name),
+            "built-in names say nothing about the user"
+        );
+        assert!(!has(&category.name) || category.name == "Zephyr Fund");
+        for a in &ledger.accounts {
+            assert!(has(&a.name));
+        }
+    }
+
+    /// T3.6: when auto-lock is due, its tick raises the interrupt flag, so long work
+    /// holding the session stops and the tick doesn't wait for it. When it isn't due,
+    /// the tick waits its turn and interrupts nothing.
+    #[test]
+    fn a_due_auto_lock_interrupts_long_work() {
+        use std::time::Instant;
+        use tauri::Manager;
+
+        let dir = tempfile::tempdir().unwrap();
+        let (app, w) = crate::tests::mock_app(&std::fs::canonicalize(dir.path()).unwrap());
+        crate::tests::create_confirmed(&w);
+        let unlock = app.state::<AppUnlock>();
+        // Long work that stops only when interrupted (or after 20 s).
+        let work = || {
+            unlock.write_ledger(|_| {
+                let started = Instant::now();
+                while !unlock.interrupt.load(Ordering::SeqCst)
+                    && started.elapsed() < Duration::from_secs(20)
+                {
+                    thread::sleep(Duration::from_millis(5));
+                }
+                started.elapsed()
+            })
+        };
+
+        // Due: the tick interrupts the work and gets the session at once.
+        let (worked, waited) = thread::scope(|s| {
+            let running = s.spawn(work);
+            thread::sleep(Duration::from_millis(200));
+            unlock
+                .autolock
+                .lock()
+                .unwrap_or_else(PoisonError::into_inner)
+                .due = Some(Duration::ZERO);
+            let started = Instant::now();
+            unlock.tick();
+            (running.join().unwrap().unwrap(), started.elapsed())
+        });
+        assert!(
+            waited < Duration::from_secs(2),
+            "the tick waited {waited:?}"
+        );
+        assert!(
+            worked < Duration::from_secs(5),
+            "the work stopped: {worked:?}"
+        );
+        assert!(!unlock.interrupt.load(Ordering::SeqCst));
+
+        // Not due (the deadline is far off): the tick doesn't interrupt anything.
+        unlock
+            .autolock
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner)
+            .due = Some(Duration::MAX);
+        let quick = || {
+            unlock.write_ledger(|_| {
+                thread::sleep(Duration::from_millis(300));
+                unlock.interrupt.load(Ordering::SeqCst)
+            })
+        };
+        let interrupted = thread::scope(|s| {
+            let running = s.spawn(quick);
+            thread::sleep(Duration::from_millis(100));
+            assert!(!unlock.tick(), "nothing to lock yet");
+            running.join().unwrap().unwrap()
+        });
+        assert!(!interrupted, "a tick that isn't due interrupts nothing");
+    }
+
+    /// Review T3.6 #1: steady activity during long work keeps auto-lock away, even when
+    /// the last noted deadline has passed, so the work is never interrupted and activity
+    /// never waits for the session.
+    #[test]
+    fn activity_during_long_work_keeps_auto_lock_away() {
+        use std::time::Instant;
+        use tauri::Manager;
+
+        let dir = tempfile::tempdir().unwrap();
+        let (app, w) = crate::tests::mock_app(&std::fs::canonicalize(dir.path()).unwrap());
+        crate::tests::create_confirmed(&w);
+        let unlock = app.state::<AppUnlock>();
+        let (interrupted, locked, slowest) = thread::scope(|s| {
+            let work = s.spawn(|| {
+                unlock.write_ledger(|_| {
+                    let started = Instant::now();
+                    let mut interrupted = false;
+                    while started.elapsed() < Duration::from_millis(1500) {
+                        interrupted |= unlock.interrupt.load(Ordering::SeqCst);
+                        thread::sleep(Duration::from_millis(5));
+                    }
+                    interrupted
+                })
+            });
+            thread::sleep(Duration::from_millis(100));
+            // The deadline noted before the work has passed…
+            unlock
+                .autolock
+                .lock()
+                .unwrap_or_else(PoisonError::into_inner)
+                .due = Some(Duration::ZERO);
+            // …but the user keeps working while auto-lock checks.
+            let mut slowest = Duration::ZERO;
+            unlock.activity();
+            let tick = s.spawn(|| unlock.tick());
+            for _ in 0..5 {
+                let started = Instant::now();
+                unlock.activity();
+                slowest = slowest.max(started.elapsed());
+                thread::sleep(Duration::from_millis(100));
+            }
+            let locked = tick.join().unwrap();
+            (work.join().unwrap().unwrap(), locked, slowest)
+        });
+        assert!(!interrupted, "the work wasn't interrupted");
+        assert!(!locked, "auto-lock didn't lock");
+        assert!(
+            slowest < Duration::from_millis(200),
+            "activity waited {slowest:?}"
+        );
+        assert!(unlock.is_unlocked());
+    }
+
+    /// Review T3.6 round 3: a tick that isn't due never waits for long work holding the
+    /// session, so the tick after the deadline still runs and interrupts the work.
+    #[test]
+    fn a_tick_that_isnt_due_never_waits_for_long_work() {
+        use std::time::Instant;
+        use tauri::Manager;
+
+        let dir = tempfile::tempdir().unwrap();
+        let (app, w) = crate::tests::mock_app(&std::fs::canonicalize(dir.path()).unwrap());
+        crate::tests::create_confirmed(&w);
+        let unlock = app.state::<AppUnlock>();
+        let set_due = |due| {
+            unlock
+                .autolock
+                .lock()
+                .unwrap_or_else(PoisonError::into_inner)
+                .due = Some(due);
+        };
+        let (worked, not_due_took, due_took) = thread::scope(|s| {
+            let work = s.spawn(|| {
+                unlock.write_ledger(|_| {
+                    let started = Instant::now();
+                    while !unlock.interrupt.load(Ordering::SeqCst)
+                        && started.elapsed() < Duration::from_secs(20)
+                    {
+                        thread::sleep(Duration::from_millis(5));
+                    }
+                    started.elapsed()
+                })
+            });
+            thread::sleep(Duration::from_millis(100));
+            // Long work started before the deadline; a tick arrives before it's due.
+            set_due(Duration::MAX);
+            let started = Instant::now();
+            assert!(!unlock.tick(), "skipped, not locked");
+            let not_due_took = started.elapsed();
+            // The deadline passes: the next tick interrupts the work.
+            set_due(Duration::ZERO);
+            let started = Instant::now();
+            unlock.tick();
+            let due_took = started.elapsed();
+            (work.join().unwrap().unwrap(), not_due_took, due_took)
+        });
+        assert!(
+            not_due_took < Duration::from_millis(200),
+            "the not-due tick waited {not_due_took:?}"
+        );
+        assert!(
+            due_took < Duration::from_secs(2),
+            "the due tick waited {due_took:?}"
+        );
+        assert!(
+            worked < Duration::from_secs(5),
+            "the work was interrupted: {worked:?}"
+        );
     }
 
     fn secret(s: &str) -> Zeroizing<String> {

@@ -790,6 +790,8 @@ fn imported(persona: &str, reverse: bool) -> (TempDir, Unlocked, HashMap<i64, Tr
                 csv_currency: Currency::USD,
                 csv_profiles: &profiles,
                 now: SystemTime::UNIX_EPOCH + Duration::from_secs(1_790_000_000),
+                backup: true,
+                cancel: &crate::pipeline::never,
             },
         )
         .unwrap();

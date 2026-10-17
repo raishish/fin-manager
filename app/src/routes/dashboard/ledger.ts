@@ -314,6 +314,12 @@ export type ImportReport = {
 	needsReview: number;
 	backup: { ok: boolean; message: string | null } | null;
 	overlapWarning: string | null;
+	/** The import was kept, but this step didn't finish; `finishImport` runs it. */
+	incomplete: string | null;
+	/** This completes an earlier import; no rows were read now. */
+	resumed: boolean;
+	/** Set when saved CSV layouts couldn't be read, so only built-in ones were tried. */
+	layoutsNotice: string | null;
 };
 
 export const accounts = () => invoke<Account[]>('accounts');
@@ -326,3 +332,11 @@ export const importFile = (
 	invoke<ImportReport>('import_file', bytes, {
 		headers: { 'fm-import': encodeURIComponent(JSON.stringify(details)) }
 	});
+
+/** Runs what an import left unfinished (transfers, rules, backup); harmless if nothing is. */
+export const finishImport = (importId: number | null) =>
+	invoke<ImportReport>('finish_import', { importId });
+
+/** The import left unfinished, if any (`importId` is null if the app stopped mid-read). */
+export const unfinishedImport = () =>
+	invoke<{ importId: number | null } | null>('unfinished_import');

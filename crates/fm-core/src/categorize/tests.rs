@@ -5,7 +5,9 @@
 use std::fs;
 use std::path::PathBuf;
 
-use super::correct::{Correction, Learn, correct, correct_ledger, learned_matcher, preview};
+use super::correct::{
+    Correction, Learn, correct, correct_all, correct_ledger, learned_matcher, preview,
+};
 use super::plan::{Held, LedgerView, Outcome, Scope, decide, needs_review_source, plan};
 use super::{CategorizeError, apply_to_ledger, run, run_on_ledger};
 use crate::contract;
@@ -966,6 +968,96 @@ mod actions {
                 "{result:?}"
             );
         }
+    }
+
+    /// T3.6: a bucket and a merchant name in one write. Both are stored (as two
+    /// corrections in turn would store them), or, when one is refused, neither.
+    #[test]
+    fn a_bucket_and_a_merchant_correction_are_one_write() {
+        let taxonomy = default_taxonomy();
+        let streaming = cat(&taxonomy, "entertainment.streaming");
+        let transactions = vec![
+            txn(1, 1, -1599, "NETFLIX.COM"),
+            txn(2, 1, -1599, "NETFLIX.COM 901"),
+        ];
+        let both = [
+            Correction::Bucket(streaming),
+            Correction::Merchant("Netflix Inc".into()),
+        ];
+        let (_dir, mut u) = stored(transactions.clone(), vec![]);
+        let reports = correct_all(&mut u, TransactionId(1), &both, Learn::Default, NOW).unwrap();
+        assert_eq!(reports.len(), 2);
+        assert!(
+            reports.iter().all(|r| r.rule.is_some()),
+            "each learns its rule"
+        );
+        let l = checked(&u);
+        assert_eq!(bucket(&l, 1), streaming);
+        assert_eq!(merchant(&l, 1), "Netflix Inc");
+        assert_eq!(applied(&l, 1, true).source, DecisionSource::User);
+        assert_eq!(applied(&l, 1, false).source, DecisionSource::User);
+        assert_eq!(bucket(&l, 2), streaming, "the learned rules re-applied");
+        assert_eq!(merchant(&l, 2), "Netflix Inc");
+
+        // The same as two corrections in turn.
+        let (_dir2, mut v) = stored(transactions, vec![]);
+        for c in &both {
+            correct(&mut v, TransactionId(1), c.clone(), Learn::Default, NOW).unwrap();
+        }
+        let m = checked(&v);
+        assert_eq!(l.decisions, m.decisions);
+        assert_eq!(l.rules, m.rules);
+
+        // The second is refused (income on money going out): nothing is stored.
+        let before = u.load_ledger().unwrap();
+        let err = correct_all(
+            &mut u,
+            TransactionId(2),
+            &[
+                Correction::Merchant("Someone else".into()),
+                Correction::Bucket(Bucket::Income),
+            ],
+            Learn::No,
+            LATER,
+        )
+        .unwrap_err();
+        assert!(matches!(err, CategorizeError::DoesNotFit), "{err:?}");
+        assert_eq!(u.load_ledger().unwrap(), before, "neither was stored");
+        assert!(u.connection().is_autocommit(), "the savepoint was closed");
+    }
+
+    /// Review T3.6 #4: merchant names and rule patterns from a correction are held to
+    /// the name limits in fm-core itself, whoever calls it; nothing is stored.
+    #[test]
+    fn corrections_refuse_names_outside_the_limits() {
+        let (_dir, mut u) = stored(vec![txn(1, 1, -1599, "NETFLIX.COM")], vec![]);
+        let before = u.load_ledger().unwrap();
+        for name in ["Net\u{202E}flix", "tag\u{E0041}", " ", &"x".repeat(81)] {
+            let err = correct(
+                &mut u,
+                TransactionId(1),
+                Correction::Merchant(name.into()),
+                Learn::No,
+                NOW,
+            )
+            .unwrap_err();
+            assert!(matches!(err, CategorizeError::InvalidName(_)), "{name:?}");
+        }
+        let hidden_pattern = Learn::Matcher(RuleMatcher {
+            description: TextMatch::Contains("NET\u{3164}FLIX".into()),
+            account_id: None,
+            amount: None,
+        });
+        let err = correct_all(
+            &mut u,
+            TransactionId(1),
+            &[Correction::Merchant("Netflix".into())],
+            hidden_pattern,
+            NOW,
+        )
+        .unwrap_err();
+        assert!(matches!(err, CategorizeError::InvalidName(_)));
+        assert_eq!(u.load_ledger().unwrap(), before, "nothing stored");
     }
 
     #[test]

@@ -12,9 +12,14 @@
 //!    settles the pending transaction it belongs to (through `Unlocked::post_pending`),
 //!    a pending record for something already posted is dropped, and the rest are
 //!    inserted, each with an applied Needs review decision (SPEC constraint 4).
-//! 5. **Backup.** After the import commits, `backup::after_import` runs (T5.2).
+//! 5. **Backup.** After the import commits, `backup::after_import` runs (T5.2), unless
+//!    the caller asks to take it itself (`backup: false`), after the work that follows an
+//!    import (transfers, categorisation), so the backup holds the finished result (T3.6).
 //!
-//! Steps 1–4 run in one savepoint: an import is stored completely or not at all.
+//! Steps 1–4 run in one savepoint: an import is stored completely or not at all. The
+//! caller's `cancel` is checked between statements and records; when it returns true
+//! (the app is locking), the savepoint rolls back and the import returns
+//! [`ImportError::Interrupted`], having stored nothing.
 //!
 //! [`import_statements`] runs the same steps for statements a bank connection has
 //! already parsed (SimpleFIN, T5.4), skipping step 2.
@@ -31,6 +36,7 @@ use std::time::SystemTime;
 use fm_import_types as imported;
 
 use crate::backup;
+use crate::categories::names::{self, NameKind};
 use crate::model::{
     Account, AccountId, AccountKind, Assignment, Bucket, BuiltinLogic, Currency, Date, Decision,
     DecisionId, DecisionSource, DecisionState, ImportId, ImportSource, Money, RawImport,
@@ -70,6 +76,17 @@ pub struct ImportRequest<'a> {
     pub csv_profiles: &'a fm_import_csv::ProfileSet,
     /// When the import happens (stored on the raw import and decisions).
     pub now: SystemTime,
+    /// Take the post-import backup here (step 5). `false`: the caller takes it, after
+    /// what it does next.
+    pub backup: bool,
+    /// Checked as the import goes; `true` stops it with [`ImportError::Interrupted`] and
+    /// nothing stored. [`never`] for an import that can't be stopped.
+    pub cancel: &'a dyn Fn() -> bool,
+}
+
+/// A `cancel` that never stops an import.
+pub fn never() -> bool {
+    false
 }
 
 /// Statements already parsed by the caller (a bank connection such as SimpleFIN, T5.4),
@@ -85,6 +102,10 @@ pub struct StatementsImport<'a> {
     pub account_names: Vec<Option<String>>,
     pub target: Target,
     pub now: SystemTime,
+    /// As [`ImportRequest::backup`].
+    pub backup: bool,
+    /// As [`ImportRequest::cancel`].
+    pub cancel: &'a dyn Fn() -> bool,
 }
 
 /// What happened to one record of the file.
@@ -148,7 +169,8 @@ impl StatementReport {
 pub struct ImportReport {
     pub import_id: ImportId,
     pub statements: Vec<StatementReport>,
-    /// The backup taken after the import: `None` if no backup folder is set.
+    /// The backup taken after the import: `None` if no backup folder is set, or the
+    /// caller takes it (`backup: false`).
     pub backup: Option<Result<backup::Made, backup::BackupError>>,
 }
 
@@ -179,6 +201,10 @@ pub enum ImportError {
     CurrencyNeeded,
     /// `account_names` has neither no entry nor one per statement.
     AccountNamesMismatch,
+    /// Stopped by the caller's `cancel` (the app is locking); nothing was stored.
+    Interrupted,
+    /// The name given for a new account is outside the limits (`categories::names`).
+    InvalidName(crate::categories::names::NameError),
     /// A record's currency or date doesn't fit the ledger's types.
     InvalidRecord {
         index: u32,
@@ -210,6 +236,8 @@ impl fmt::Display for ImportError {
             Self::AccountNamesMismatch => {
                 f.write_str("give one account name per statement, or none")
             }
+            Self::Interrupted => f.write_str("the import stopped because the app locked"),
+            Self::InvalidName(e) => write!(f, "{e}"),
             Self::InvalidRecord { index, reason } => write!(f, "record {index}: {reason}"),
             Self::Storage(e) => write!(f, "{e}"),
         }
@@ -289,6 +317,8 @@ pub fn import_file(
             target: &request.target,
             currency: Some(request.csv_currency),
             now: request.now,
+            backup: request.backup,
+            cancel: request.cancel,
         },
     )
 }
@@ -325,6 +355,8 @@ pub fn import_statements(
             target: &request.target,
             currency: None,
             now: request.now,
+            backup: request.backup,
+            cancel: request.cancel,
         },
     )
 }
@@ -345,6 +377,8 @@ struct Ingest<'a> {
     /// The currency of a new account when its statement doesn't say (a CSV file's).
     currency: Option<Currency>,
     now: SystemTime,
+    backup: bool,
+    cancel: &'a dyn Fn() -> bool,
 }
 
 /// Steps 1 and 3–5 of the module documentation, for parsed statements.
@@ -378,6 +412,9 @@ fn ingest(ledger: &mut Unlocked, request: &Ingest<'_>) -> Result<ImportReport, I
         // A named target is one account for the whole file: resolve (or create) it once.
         let mut named: Option<AccountId> = None;
         for (i, statement) in statements.iter().enumerate() {
+            if (request.cancel)() {
+                return Err(ImportError::Interrupted);
+            }
             let (account_id, created) = match (named, request.target) {
                 (Some(id), _) => {
                     let account = ledger.account(id)?.ok_or(ImportError::UnknownAccount(id))?;
@@ -405,6 +442,7 @@ fn ingest(ledger: &mut Unlocked, request: &Ingest<'_>) -> Result<ImportReport, I
                 request.profile,
                 request.profiles,
                 now,
+                request.cancel,
             )?;
             reports.push(StatementReport {
                 account_id,
@@ -412,15 +450,63 @@ fn ingest(ledger: &mut Unlocked, request: &Ingest<'_>) -> Result<ImportReport, I
                 records,
             });
         }
+        if (request.cancel)() {
+            return Err(ImportError::Interrupted);
+        }
         Ok::<_, ImportError>((import_id, reports))
     })()?;
     savepoint.release()?;
-    let backup = backup::after_import(ledger, request.now);
+    let backup = if request.backup {
+        backup::after_import(ledger, request.now)
+    } else {
+        None
+    };
     Ok(ImportReport {
         import_id,
         statements,
         backup,
     })
+}
+
+/// The ledger's mark for an import whose follow-up steps (pairing transfers, the rules,
+/// the backup) haven't all run yet (T3.6). A caller that passes `backup: false` and
+/// runs those steps itself sets it before the import and clears it after the last
+/// step, so a lock, an error or a crash in between leaves the work to finish later.
+/// The value is the caller's: the import's id, or a placeholder while it runs.
+const KEY_UNFINISHED: &str = "pipeline.unfinished";
+
+/// The unfinished-import mark, if set (see [`set_unfinished`]).
+pub fn unfinished(ledger: &Unlocked) -> Result<Option<String>, StorageError> {
+    Ok(ledger.connection().query_row(
+        "SELECT (SELECT value FROM meta WHERE key = ?1)",
+        [KEY_UNFINISHED],
+        |r| r.get(0),
+    )?)
+}
+
+/// Sets (`Some`) or clears (`None`) the mark for an import whose follow-up steps haven't
+/// all run. Kept in the encrypted ledger.
+pub fn set_unfinished(ledger: &Unlocked, value: Option<&str>) -> Result<(), StorageError> {
+    let conn = ledger.connection();
+    match value {
+        Some(v) => conn.execute(
+            "INSERT INTO meta (key, value) VALUES (?1, ?2) \
+             ON CONFLICT (key) DO UPDATE SET value = excluded.value",
+            [KEY_UNFINISHED, v],
+        ),
+        None => conn.execute("DELETE FROM meta WHERE key = ?1", [KEY_UNFINISHED]),
+    }?;
+    Ok(())
+}
+
+/// Clears the mark only if it is still `expected` (in one statement), so a run never
+/// clears the mark of another import. True if it cleared it.
+pub fn clear_unfinished_if(ledger: &Unlocked, expected: &str) -> Result<bool, StorageError> {
+    let changed = ledger.connection().execute(
+        "DELETE FROM meta WHERE key = ?1 AND value = ?2",
+        [KEY_UNFINISHED, expected],
+    )?;
+    Ok(changed > 0)
 }
 
 /// The import's savepoint. Rolled back unless released, including when the import
@@ -516,8 +602,11 @@ fn resolve_account(
         })?),
         None => None,
     };
-    let institution =
-        institution::name(&info.institution).or_else(|| profile.map(|p| p.institution.clone()));
+    // Names from the bank or a connection are made to fit the name limits rather than
+    // refused (T3.6); a name the user typed is checked instead.
+    let institution = institution::name(&info.institution)
+        .or_else(|| profile.map(|p| p.institution.clone()))
+        .and_then(|i| names::sanitize(NameKind::Account, &i));
     let from_number = if opaque {
         None
     } else {
@@ -548,7 +637,7 @@ fn resolve_account(
         } => {
             let account = Account {
                 id: AccountId(ledger.next_id(Table::Accounts)?),
-                name: name.clone(),
+                name: names::clean(NameKind::Account, name).map_err(ImportError::InvalidName)?,
                 kind: *kind,
                 currency: *currency,
                 institution,
@@ -603,12 +692,25 @@ fn resolve_account(
             let currency = statement_currency
                 .or(request.currency)
                 .ok_or(ImportError::CurrencyNeeded)?;
-            let name = name.unwrap_or_else(|| match (&institution, &masked) {
-                (Some(i), Some(m)) => format!("{i} …{m}"),
+            let fallback = || match (&institution, &masked) {
+                // A long bank name is shortened, never the "…1234" that tells two
+                // accounts at one bank apart.
+                (Some(i), Some(m)) => {
+                    let suffix = format!(" …{m}");
+                    let room = NameKind::Account
+                        .max_chars()
+                        .saturating_sub(suffix.chars().count());
+                    let short: String = i.chars().take(room).collect();
+                    format!("{}{suffix}", short.trim_end())
+                }
                 (Some(i), None) => i.clone(),
                 (None, Some(m)) => format!("Account …{m}"),
                 (None, None) => "Account".to_owned(),
-            });
+            };
+            let name = name
+                .and_then(|n| names::sanitize(NameKind::Account, &n))
+                .or_else(|| names::sanitize(NameKind::Account, &fallback()))
+                .unwrap_or_else(|| "Account".to_owned());
             let account = Account {
                 id: AccountId(ledger.next_id(Table::Accounts)?),
                 name,
@@ -712,6 +814,7 @@ fn import_statement(
     profile: Option<&fm_import_csv::Profile>,
     profiles: &fm_import_csv::ProfileSet,
     now: Timestamp,
+    cancel: &dyn Fn() -> bool,
 ) -> Result<Vec<(u32, RecordOutcome)>, ImportError> {
     let account = ledger
         .account(account_id)?
@@ -758,7 +861,13 @@ fn import_statement(
         .iter()
         .map(|t| Candidate::of(t, profile.map_or_else(|| ofx_dates(t), csv_dates)))
         .collect();
+    if cancel() {
+        return Err(ImportError::Interrupted);
+    }
     let classified = Matcher::new(existing, import_id).classify_all(&candidates);
+    if cancel() {
+        return Err(ImportError::Interrupted);
+    }
 
     // Inserts and updates first, so a pending row can point at the transaction its
     // posted version (later in the same statement) became.
@@ -772,6 +881,9 @@ fn import_statement(
         .map(|(t, o)| matches!(o, Outcome::SettlesRow(_)).then(|| t.clone()))
         .collect();
     for (record, outcome) in incoming.into_iter().zip(&classified) {
+        if cancel() {
+            return Err(ImportError::Interrupted);
+        }
         let outcome = match *outcome {
             Outcome::Duplicate(id) => Some(RecordOutcome::Duplicate(id)),
             Outcome::AlreadyPosted(id) => Some(RecordOutcome::PendingAlreadyPosted(id)),

@@ -89,12 +89,16 @@ impl Scrubber {
 
     fn redact_terms(&self, text: &str) -> String {
         let mut out = text.to_string();
+        // Lower-cased once, then edited in step with `out`: ASCII lower-casing keeps byte
+        // offsets, so a match in `lower` is the same range in `out`.
+        let mut lower = out.to_ascii_lowercase();
+        let redacted_lower = REDACTED.to_ascii_lowercase();
         for term in &self.terms {
-            // ASCII lower-casing keeps byte offsets, so matches map back onto `out`.
             let mut start = 0;
-            while let Some(found) = out.to_ascii_lowercase()[start..].find(term.as_str()) {
+            while let Some(found) = lower[start..].find(term.as_str()) {
                 let at = start + found;
                 out.replace_range(at..at + term.len(), REDACTED);
+                lower.replace_range(at..at + term.len(), &redacted_lower);
                 start = at + REDACTED.len();
             }
         }

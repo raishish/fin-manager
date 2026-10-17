@@ -225,9 +225,14 @@ impl AppUnlock {
         .ok_or_else(locked)?
     }
 
+    /// The rules, with a dry run of them over every transaction. Only reading the
+    /// ledger holds it; the dry run runs after it is released, so locking never waits
+    /// for it (T3.6).
     pub fn rules(&self) -> Result<RulesView> {
-        self.with_ledger(|open| Ok(rules_view(&open.ledger().load_ledger()?, Timestamp::now())))
-            .ok_or_else(locked)?
+        let ledger = self
+            .with_ledger(|open| open.ledger().load_ledger())
+            .ok_or_else(locked)??;
+        Ok(rules_view(&ledger, Timestamp::now()))
     }
 
     /// Enables or disables a rule; with `undo`, also undoes the decisions it made.
@@ -239,9 +244,10 @@ impl AppUnlock {
             if undo && !enabled {
                 categorize::undo_rule_decisions(unlocked, id, Timestamp::now())?;
             }
-            Ok(rules_view(&unlocked.load_ledger()?, Timestamp::now()))
+            Ok(unlocked.load_ledger()?)
         })
         .ok_or_else(locked)?
+        .map(|ledger| rules_view(&ledger, Timestamp::now()))
     }
 
     /// Deletes a rule; with `undo`, first undoes the decisions it made.
@@ -253,9 +259,10 @@ impl AppUnlock {
                 categorize::undo_rule_decisions(unlocked, id, Timestamp::now())?;
             }
             categorize::delete_rule(unlocked, id, Timestamp::now())?;
-            Ok(rules_view(&unlocked.load_ledger()?, Timestamp::now()))
+            Ok(unlocked.load_ledger()?)
         })
         .ok_or_else(locked)?
+        .map(|ledger| rules_view(&ledger, Timestamp::now()))
     }
 }
 

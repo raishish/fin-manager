@@ -86,5 +86,5 @@ pub use actions::{
     set_rule_enabled, undo_rule_decisions,
 };
 pub use apply::{CategorizeError, apply_to_ledger, run, run_on_ledger};
-pub use correct::{Correction, CorrectionReport, Learn, correct, correct_ledger};
+pub use correct::{Correction, CorrectionReport, Learn, correct, correct_all, correct_ledger};
 pub use plan::{LedgerView, Plan, RunReport, Scope};

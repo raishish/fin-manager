@@ -107,6 +107,8 @@ fn request<'a>(
         csv_currency: Currency::USD,
         csv_profiles: profiles,
         now: when(),
+        backup: true,
+        cancel: &never,
     }
 }
 
@@ -436,6 +438,113 @@ fn a_csv_needs_an_account_and_failures_leave_nothing_behind() {
     .unwrap();
     assert!(report.statements[0].account_created);
     assert_eq!(report.statements[0].inserted(), f.rows.len());
+}
+
+/// T3.6: an import stopped part-way (the app is locking) stores nothing, leaves no
+/// savepoint open, and runs normally later.
+#[test]
+fn a_cancelled_import_stores_nothing_and_can_run_again() {
+    let profiles = fm_import_csv::ProfileSet::with_builtin();
+    let (_dir, mut u) = ledger_with_accounts("renter");
+    let files = corpus("renter");
+    let f = files
+        .iter()
+        .find(|f| f.path == "chase/checking_2025.csv")
+        .unwrap();
+    assert!(f.rows.len() > 20);
+    let before = u.load_ledger().unwrap();
+    for stop_after in [0, 1, 2, 15] {
+        let checks = std::cell::Cell::new(0);
+        let cancel = || {
+            checks.set(checks.get() + 1);
+            checks.get() > stop_after
+        };
+        let err = import_file(
+            &mut u,
+            &ImportRequest {
+                cancel: &cancel,
+                ..request(&f.bytes, &f.path, Target::Account(f.account), &profiles)
+            },
+        )
+        .unwrap_err();
+        assert!(matches!(err, ImportError::Interrupted), "{err}");
+        assert!(!err.to_string().contains("chase"));
+        assert_eq!(
+            u.load_ledger().unwrap(),
+            before,
+            "stopped after {stop_after}"
+        );
+        assert!(u.connection().is_autocommit(), "the savepoint was closed");
+    }
+    let report = import_file(
+        &mut u,
+        &request(&f.bytes, &f.path, Target::Account(f.account), &profiles),
+    )
+    .unwrap();
+    assert_eq!(report.statements[0].inserted(), f.rows.len());
+}
+
+/// T3.6: with `backup: false` the pipeline leaves the post-import backup to the caller.
+#[test]
+fn the_caller_can_take_the_backup_itself() {
+    let profiles = fm_import_csv::ProfileSet::with_builtin();
+    let (dir, mut u) = ledger_with_accounts("renter");
+    let folder = dir.path().join("backups");
+    fs::create_dir(&folder).unwrap();
+    crate::backup::set_folder(&u, &folder).unwrap();
+    let files = corpus("renter");
+    let mut files = files.iter().filter(|f| f.path.ends_with(".csv"));
+    let first = files.next().unwrap();
+    let report = import_file(
+        &mut u,
+        &ImportRequest {
+            backup: false,
+            ..request(
+                &first.bytes,
+                &first.path,
+                Target::Account(first.account),
+                &profiles,
+            )
+        },
+    )
+    .unwrap();
+    assert!(report.backup.is_none());
+    assert_eq!(fs::read_dir(&folder).unwrap().count(), 0, "no backup taken");
+    let second = files.next().unwrap();
+    let report = import_file(
+        &mut u,
+        &request(
+            &second.bytes,
+            &second.path,
+            Target::Account(second.account),
+            &profiles,
+        ),
+    )
+    .unwrap();
+    assert!(matches!(report.backup, Some(Ok(_))));
+    assert_eq!(fs::read_dir(&folder).unwrap().count(), 1);
+}
+
+/// T3.6: the unfinished-import mark is kept in the ledger until cleared.
+#[test]
+fn the_unfinished_mark_is_kept_until_cleared() {
+    let (_dir, u) = ledger_with_accounts("renter");
+    assert_eq!(unfinished(&u).unwrap(), None);
+    set_unfinished(&u, Some("pending")).unwrap();
+    set_unfinished(&u, Some("7")).unwrap();
+    let vault = u.lock();
+    let u = vault.unlock(PASSWORD).unwrap();
+    assert_eq!(unfinished(&u).unwrap().as_deref(), Some("7"));
+    assert!(
+        !clear_unfinished_if(&u, "8").unwrap(),
+        "another import's mark stays"
+    );
+    assert_eq!(unfinished(&u).unwrap().as_deref(), Some("7"));
+    assert!(clear_unfinished_if(&u, "7").unwrap());
+    assert_eq!(unfinished(&u).unwrap(), None);
+    set_unfinished(&u, Some("7")).unwrap();
+    set_unfinished(&u, None).unwrap();
+    assert_eq!(unfinished(&u).unwrap(), None);
 }
 
 #[test]
@@ -937,6 +1046,8 @@ fn statements_request<'a>(
         account_names: Vec::new(),
         target,
         now: when(),
+        backup: true,
+        cancel: &never,
     }
 }
 
@@ -1133,6 +1244,83 @@ fn identical_bytes_are_refused_whichever_way_they_came() {
         ),
         Err(ImportError::AlreadyImported { .. })
     ));
+}
+
+/// Review T3.6 #4: a name the user typed for a new account is refused outside the
+/// limits; a name from a bank or a connection is made to fit them instead.
+#[test]
+fn account_names_are_checked_or_made_to_fit() {
+    let (_dir, mut u) = empty_ledger();
+    let statement = || vec![simplefin_statement("ACT-names-1", &[(1, -4_500, "COFFEE")])];
+    for typed in ["", "Checking\u{202E}", "tag\u{E0041}", &"x".repeat(61)] {
+        let request = statements_request(
+            b"typed",
+            None,
+            ImportSource::SimpleFin,
+            statement(),
+            Target::NewAccount {
+                name: typed.into(),
+                kind: AccountKind::Checking,
+                currency: Currency::USD,
+            },
+        );
+        let err = import_statements(&mut u, &request).unwrap_err();
+        assert!(
+            matches!(err, ImportError::InvalidName(_)),
+            "{typed:?}: {err}"
+        );
+    }
+    assert!(u.accounts().unwrap().is_empty(), "nothing stored");
+
+    let mut request = statements_request(
+        b"from the bank",
+        None,
+        ImportSource::SimpleFin,
+        statement(),
+        Target::Auto,
+    );
+    request.account_names = vec![Some(" Checking\u{202E}\u{E0041}\n ••1234 \u{3164}".into())];
+    let report = import_statements(&mut u, &request).unwrap();
+    let account = u.account(report.statements[0].account_id).unwrap().unwrap();
+    assert_eq!(account.name, "Checking ••1234");
+}
+
+/// Review T3.6 round 3: a long bank name is shortened in a new account's name, never
+/// the last four digits, so two accounts at one bank stay told apart.
+#[test]
+fn long_bank_names_keep_the_last_four_digits() {
+    let (_dir, mut u) = empty_ledger();
+    let bank = "The Very Long Name Of A Regional Federal Savings And Loan Association Of America";
+    let statement = |number: &str, index: u32| {
+        let mut s = simplefin_statement(number, &[(1, -4_500, "COFFEE")]);
+        s.info.institution.org = Some(bank.into());
+        s.records[0].source_index = index;
+        s
+    };
+    let request = statements_request(
+        b"two accounts, one long bank name",
+        None,
+        ImportSource::Ofx,
+        vec![
+            statement("1111222233334444", 0),
+            statement("5555666677778888", 1),
+        ],
+        Target::Auto,
+    );
+    let report = import_statements(&mut u, &request).unwrap();
+    let names: Vec<String> = report
+        .statements
+        .iter()
+        .map(|s| u.account(s.account_id).unwrap().unwrap().name)
+        .collect();
+    assert!(names[0].ends_with(" …4444"), "{}", names[0]);
+    assert!(names[1].ends_with(" …8888"), "{}", names[1]);
+    assert_ne!(names[0], names[1]);
+    for n in &names {
+        assert!(n.chars().count() <= NameKind::Account.max_chars());
+        assert!(n.starts_with("The Very Long Name"));
+        assert!(crate::categories::names::clean(NameKind::Account, n).is_ok());
+    }
 }
 
 #[test]

@@ -21,6 +21,8 @@
 //!
 //! [`TaxonomyVersion::revision`]: crate::model::TaxonomyVersion
 
+pub mod names;
+
 use std::collections::BTreeSet;
 use std::fmt;
 
@@ -33,7 +35,7 @@ use crate::model::{
 use crate::storage::{StorageError, Unlocked};
 
 /// Longest display name, in characters.
-pub const MAX_NAME_CHARS: usize = 60;
+pub const MAX_NAME_CHARS: usize = names::NameKind::Category.max_chars();
 
 /// One change to the category list.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -68,7 +70,8 @@ pub enum Edit {
 pub enum EditError {
     UnknownCategory(CategoryId),
     UnknownGroup(CategoryGroupId),
-    /// Empty after trimming, or longer than [`MAX_NAME_CHARS`].
+    /// Empty after trimming, longer than [`MAX_NAME_CHARS`], or containing a control or
+    /// invisible formatting character ([`names::clean`]).
     InvalidName,
     /// Another category in the same group (or another group) already has this name,
     /// ignoring case.
@@ -91,7 +94,8 @@ impl fmt::Display for EditError {
             Self::UnknownGroup(id) => write!(f, "no category group {}", id.0),
             Self::InvalidName => write!(
                 f,
-                "a name needs 1 to {MAX_NAME_CHARS} characters, not counting spaces at the ends"
+                "a name needs 1 to {MAX_NAME_CHARS} characters, not counting spaces at the \
+                 ends, and no control or invisible characters"
             ),
             Self::NameTaken => f.write_str("that name is already used"),
             Self::Merged(id) => write!(f, "category {} was merged into another", id.0),
@@ -223,12 +227,7 @@ pub fn transactions_in(ledger: &Ledger, category: CategoryId) -> Vec<Transaction
 }
 
 fn clean_name(name: &str) -> Result<String, EditError> {
-    let name = name.trim();
-    let chars = name.chars().count();
-    if chars == 0 || chars > MAX_NAME_CHARS || name.chars().any(char::is_control) {
-        return Err(EditError::InvalidName);
-    }
-    Ok(name.to_string())
+    names::clean(names::NameKind::Category, name).map_err(|_| EditError::InvalidName)
 }
 
 /// The category, if it exists and hasn't been merged away.

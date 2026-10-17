@@ -334,6 +334,26 @@ fn moving_into_place_never_replaces() {
     assert!(!from.exists());
 }
 
+/// T3.6: the post-import backup can be stopped too; it leaves nothing and records no
+/// failure, so the next one runs normally.
+#[test]
+fn a_cancelled_post_import_backup_leaves_nothing() {
+    let f = Fixture::new();
+    set_folder(&f.ledger, &f.folder).unwrap();
+    assert!(matches!(
+        after_import_cancellable(&f.ledger, at(T0), &|| true),
+        Some(Err(BackupError::Interrupted))
+    ));
+    assert!(names(&f.folder).is_empty(), "{:?}", names(&f.folder));
+    let settings = Settings::load(&f.ledger).unwrap();
+    assert_eq!(settings.last_error, None);
+    assert_eq!(settings.last_attempt, None, "not counted as an attempt");
+    after_import_cancellable(&f.ledger, at(T0 + 5), &|| false)
+        .unwrap()
+        .unwrap();
+    assert_eq!(names(&f.folder).len(), 1);
+}
+
 /// Review finding 5: a backup can be stopped (the app is locking) and leaves nothing.
 #[test]
 fn a_cancelled_backup_leaves_nothing() {

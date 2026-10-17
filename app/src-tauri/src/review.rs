@@ -9,6 +9,7 @@
 //! yet. Showing them marks nothing seen (decision 46): Approve (confirm), Reject and
 //! corrections do, over one transaction or several at once.
 
+use fm_core::categories::names::{self, NameKind};
 use fm_core::categorize::normalize::normalize;
 use fm_core::categorize::{self, Correction, Learn, LedgerView, correct::learned_matcher};
 use fm_core::model::{
@@ -172,8 +173,14 @@ pub fn picker(ledger: &Ledger) -> Vec<PickerGroup> {
     groups
 }
 
+/// A name the user typed, within its limits (length, no control or invisible
+/// characters).
+fn checked_name(kind: NameKind, text: &str) -> Result<String> {
+    names::clean(kind, text).map_err(|e| ui_error("InvalidName", e.to_string()))
+}
+
 fn matcher_for(pattern: &str) -> Result<RuleMatcher> {
-    let pattern = normalize(pattern);
+    let pattern = normalize(&checked_name(NameKind::RulePattern, pattern)?);
     if pattern.is_empty() {
         return Err(ui_error(
             "EmptyPattern",
@@ -253,14 +260,18 @@ impl AppUnlock {
             .ok_or_else(locked)?
     }
 
+    /// Reading the ledger holds it; counting the matches runs after it is released.
     pub fn preview_rule(&self, transaction: i64, pattern: Option<&str>) -> Result<RulePreview> {
-        self.with_ledger(|open| preview_rule(&open.ledger().load_ledger()?, transaction, pattern))
-            .ok_or_else(locked)?
+        let ledger = self
+            .with_ledger(|open| open.ledger().load_ledger())
+            .ok_or_else(locked)??;
+        preview_rule(&ledger, transaction, pattern)
     }
 
     /// Files a transaction and/or names its merchant. Each part is one correction; with
     /// `learn`, each also becomes a rule (`pattern`, or the default learned from the
-    /// description) and re-applies to the transactions it matches.
+    /// description) and re-applies to the transactions it matches. Both parts are
+    /// stored in one write: both or neither (`categorize::correct_all`).
     pub fn correct(
         &self,
         transaction: i64,
@@ -275,9 +286,10 @@ impl AppUnlock {
                 "choose a category or a merchant name",
             ));
         }
-        let merchant = merchant
-            .map(|m| m.trim().to_string())
-            .filter(|m| !m.is_empty());
+        let merchant = match merchant.as_deref().map(str::trim) {
+            None | Some("") => None,
+            Some(m) => Some(checked_name(NameKind::Merchant, m)?),
+        };
         self.write_ledger(|open| {
             let unlocked = open.ledger_mut();
             let ledger = unlocked.load_ledger()?;
@@ -303,14 +315,14 @@ impl AppUnlock {
                 rule_merchants: 0,
                 rule_did_not_fit: 0,
             };
-            for correction in corrections {
-                let report = categorize::correct(
-                    unlocked,
-                    TransactionId(transaction),
-                    correction,
-                    learn.clone(),
-                    Timestamp::now(),
-                )?;
+            let reports = categorize::correct_all(
+                unlocked,
+                TransactionId(transaction),
+                &corrections,
+                learn,
+                Timestamp::now(),
+            )?;
+            for report in reports {
                 view.rule_id = view.rule_id.or(report.rule.map(|r| r.0));
                 view.no_pattern |= report.no_pattern;
                 view.unpaired.extend(report.unpaired.iter().map(|t| t.0));
@@ -655,5 +667,91 @@ mod tests {
 
     fn needs_review_source() -> DecisionSource {
         fm_core::categorize::plan::needs_review_source()
+    }
+
+    /// T3.6: a correction with a category and a merchant name is one write, and the
+    /// merchant name and the rule pattern are held to their limits.
+    #[test]
+    fn a_category_and_merchant_correction_is_one_write_within_limits() {
+        use tauri::Manager;
+
+        let dir = tempfile::tempdir().unwrap();
+        let (app, w) = crate::tests::mock_app(&std::fs::canonicalize(dir.path()).unwrap());
+        crate::tests::create_confirmed(&w);
+        let unlock = app.state::<AppUnlock>();
+        let file = std::fs::read(
+            std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+                .join("../../testdata/bank-exports/data/chase/checking_2025.csv"),
+        )
+        .unwrap();
+        unlock
+            .import_file(
+                &file,
+                crate::importing::ImportArgs {
+                    file_name: None,
+                    target: crate::importing::TargetArg::NewAccount {
+                        name: "Checking".into(),
+                        account_kind: AccountKind::Checking,
+                        currency: "USD".into(),
+                    },
+                    csv_currency: None,
+                },
+            )
+            .unwrap();
+        let ledger = || {
+            unlock
+                .with_ledger(|o| o.ledger().load_ledger().unwrap())
+                .unwrap()
+        };
+        let l = ledger();
+        let t = l
+            .transactions
+            .iter()
+            .find(|t| t.amount.is_negative())
+            .unwrap()
+            .id;
+        let category = l.taxonomy.categories.iter().find(|c| !c.hidden).unwrap().id;
+        let bucket = || {
+            Some(BucketArg::Category {
+                category_id: category.0,
+            })
+        };
+
+        // Refused names change nothing.
+        let before = ledger();
+        for (merchant, pattern) in [
+            (Some("Corner\u{202E}Café".to_string()), None),
+            (Some("x".repeat(81)), None),
+            (
+                Some("Corner Café".to_string()),
+                Some("NETFLIX\nCOM".to_string()),
+            ),
+            (Some("Corner Café".to_string()), Some("y".repeat(101))),
+        ] {
+            let err = unlock
+                .correct(t.0, bucket(), merchant, pattern.is_some(), pattern)
+                .unwrap_err();
+            assert_eq!(err.code, "InvalidName", "{}", err.message);
+        }
+        assert_eq!(ledger(), before, "nothing written");
+
+        // Both parts, one write: both are in effect.
+        unlock
+            .correct(t.0, bucket(), Some("  Corner Café ".into()), false, None)
+            .unwrap();
+        let l = ledger();
+        let current = crate::ledger_view::current_by_transaction(&l);
+        let c = &current[&t];
+        assert_eq!(
+            c.bucket(),
+            Some(&Bucket::Category {
+                category_id: category
+            })
+        );
+        assert_eq!(
+            c.merchants.last().map(|d| &d.assignment),
+            Some(&Assignment::Merchant("Corner Café".into()))
+        );
+        assert!(c.merchants.iter().all(|d| d.source == DecisionSource::User));
     }
 }

@@ -580,6 +580,8 @@ impl SyncRun {
             account_names: parsed.account_names,
             target: Target::Auto,
             now: self.now,
+            backup: true,
+            cancel: &pipeline::never,
         };
         match pipeline::import_statements(ledger, &request) {
             Ok(imported) => self.report.imports.push(imported),

@@ -610,9 +610,20 @@ pub fn daily(
 
 /// The backup after an import (T1.3 calls this): always, if a folder is set.
 pub fn after_import(ledger: &Unlocked, now: SystemTime) -> Option<Result<Made, BackupError>> {
+    after_import_cancellable(ledger, now, &never)
+}
+
+/// [`after_import`] that stops when `cancel` returns true (T3.6: the app passes its
+/// lock's interrupt flag, so locking never waits for a post-import backup). A stopped
+/// backup is [`BackupError::Interrupted`] and isn't recorded as a failure.
+pub fn after_import_cancellable(
+    ledger: &Unlocked,
+    now: SystemTime,
+    cancel: &dyn Fn() -> bool,
+) -> Option<Result<Made, BackupError>> {
     let settings = Settings::load(ledger).ok()?;
     settings.folder.as_ref()?;
-    Some(back_up_and_record(ledger, &settings, now, &never))
+    Some(back_up_and_record(ledger, &settings, now, cancel))
 }
 
 /// "Back up now" from the settings screen.

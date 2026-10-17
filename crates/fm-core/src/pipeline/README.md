@@ -6,6 +6,8 @@ A downloaded bank file goes in; the ledger's accounts and transactions come out.
 let report = pipeline::import_file(&mut unlocked, &ImportRequest {
     bytes, file_name: Some("chase.csv"), target: Target::Account(id),
     csv_currency: Currency::USD, csv_profiles: &profiles, now: SystemTime::now(),
+    backup: true,                // false: the caller takes the backup itself (see step 5)
+    cancel: &pipeline::never,    // or the app's "a lock is waiting" flag
 })?;
 ```
 
@@ -20,6 +22,8 @@ let report = pipeline::import_statements(&mut unlocked, &StatementsImport {
     account_names,               // empty, or one Option<String> per statement
     target: Target::Auto,
     now: SystemTime::now(),
+    backup: true,
+    cancel: &pipeline::never,
 })?;
 ```
 
@@ -29,6 +33,7 @@ let report = pipeline::import_statements(&mut unlocked, &StatementsImport {
   - no last four digits are taken from it (`masked_number` stays empty unless the statement gives `card_last4`).
 - **Account names.** A name in `account_names` (e.g. "Checking ••1234") is used only when `Target::Auto` creates the account. An existing account is never renamed, and `Target::NewAccount` carries its own name.
 - **Currency.** A statement without a currency can't create an account (`CurrencyNeeded`).
+- **Stopping (T3.6).** `cancel` is checked before each statement, around the matching, before each record is written and before the commit. When it returns true, the savepoint rolls back and the call returns `Interrupted`: nothing is stored, and the same file can be imported again later. The app passes the flag its lock raises, so locking, auto-lock and quitting never wait for a long import.
 - **Dates.** Rows from SimpleFIN are dated like OFX rows (a posted date, and a purchase date when given). Existing CSV rows are judged by the built-in layouts.
 
 ## Steps
@@ -50,7 +55,9 @@ Steps 1–4 run in one `SAVEPOINT`: an import is stored completely or not at all
 4. **Transactions.** Each record is matched against the account's existing transactions (`matcher.rs`, below). Duplicates are skipped and pending → posted pairs are settled. Everything new is inserted with an **applied Needs review decision** (source `builtin/import_pipeline v1`), so every transaction is in a bucket (constraint 4).
    - The record's description, payee, memo, both dates, amount, original amount, status, external id, `trn_type` and `check_number` are kept.
    - Balance and bank category aren't stored per transaction. The raw bytes keep them.
-5. **Backup.** After the commit, `backup::after_import` runs (T5.2) and its result goes in the report.
+5. **Backup.** After the commit, `backup::after_import` runs (T5.2) and its result goes in the report, when `backup` is true.
+   - With `backup: false` the report's `backup` is `None`, and the caller takes the backup after what it does next (the app: after transfers and categorisation, with `backup::after_import_cancellable`), so the backup holds the finished result (T3.6).
+   - SimpleFIN keeps `backup: true`: each window's import is backed up as it commits.
 
 The `ImportReport` gives each record's outcome by position (`Inserted`, `Duplicate`, `PostedPending` or `PendingAlreadyPosted`, each with a transaction id), plus totals.
 

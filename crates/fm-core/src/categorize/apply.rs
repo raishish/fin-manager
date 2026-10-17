@@ -44,12 +44,16 @@ pub enum CategorizeError {
     NotRejectable(crate::model::DecisionId),
     /// The Needs-review placeholder decides nothing, so there is nothing to confirm.
     NotConfirmable(crate::model::DecisionId),
+    /// A merchant name or rule pattern the user gave is outside the limits
+    /// (`categories::names`): empty, too long, or with control or invisible characters.
+    InvalidName(crate::categories::names::NameError),
 }
 
 impl fmt::Display for CategorizeError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Storage(e) => write!(f, "{e}"),
+            Self::InvalidName(e) => write!(f, "{e}"),
             Self::TransactionOpen => f.write_str("another database transaction is open"),
             Self::UnknownTransaction => f.write_str("the transaction isn't in the ledger"),
             Self::InvalidPair => f.write_str("those two transactions can't be a transfer pair"),

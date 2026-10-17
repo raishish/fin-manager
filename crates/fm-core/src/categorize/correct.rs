@@ -3,11 +3,12 @@
 
 use std::collections::HashMap;
 
-use super::apply::{CategorizeError, Loaded, apply_to_ledger, write};
+use super::apply::{CategorizeError, Loaded, apply_to_ledger, in_savepoint, write, write_plan};
 use super::merchant;
 use super::normalize::normalize;
 use super::plan::{Kind, LedgerView, Plan, Planner, RunReport, needs_review_source};
 use super::rules::matcher_matches;
+use crate::categories::names::{self, NameKind};
 use crate::model::{
     Assignment, Bucket, Decision, DecisionId, DecisionSource, DecisionState, Ledger, Rule,
     RuleAction, RuleId, RuleMatcher, RuleOrigin, TextMatch, Timestamp, TransactionId,
@@ -105,6 +106,30 @@ pub fn correct(
     Ok(planned.report)
 }
 
+/// Several corrections of one transaction (its bucket and its merchant name, say) in one
+/// savepoint: all of them are stored or none (T3.6). Each is planned on the ledger as
+/// the ones before it left it, exactly as if [`correct`] ran for each in turn, and with
+/// `learn` each learns its own rule. One report per correction, in order.
+pub fn correct_all(
+    unlocked: &mut Unlocked,
+    transaction: TransactionId,
+    corrections: &[Correction],
+    learn: Learn,
+    now: Timestamp,
+) -> Result<Vec<CorrectionReport>, CategorizeError> {
+    in_savepoint(unlocked, |u| {
+        let mut reports = Vec::with_capacity(corrections.len());
+        for correction in corrections {
+            // Read inside the savepoint: sees what the corrections before wrote.
+            let data = Loaded::from(u)?;
+            let planned = plan_correction(data.view(), transaction, correction, &learn, now)?;
+            write_plan(u, &planned.plan, &planned.rules)?;
+            reports.push(planned.report);
+        }
+        Ok(reports)
+    })
+}
+
 /// [`correct`] on an in-memory ledger.
 pub fn correct_ledger(
     ledger: &mut Ledger,
@@ -161,7 +186,10 @@ pub fn plan_correction(
             check_bucket(view, &by_id, t, bucket)?;
             Assignment::Bucket(*bucket)
         }
-        Correction::Merchant(name) => Assignment::Merchant(name.trim().to_string()),
+        // The user's text: refused, not repaired, when outside the limits (T3.6).
+        Correction::Merchant(name) => Assignment::Merchant(
+            names::clean(NameKind::Merchant, name).map_err(CategorizeError::InvalidName)?,
+        ),
     };
 
     let mut planner = Planner::new(view, now);
@@ -210,7 +238,11 @@ pub fn plan_correction(
         Learn::No => None,
         _ if !learnable => None,
         Learn::Default => learned_matcher(&t.description),
-        Learn::Matcher(m) => Some(m.clone()),
+        Learn::Matcher(m) => {
+            names::clean(NameKind::RulePattern, m.description.pattern())
+                .map_err(CategorizeError::InvalidName)?;
+            Some(m.clone())
+        }
     };
     let no_pattern = matches!(learn, Learn::Default) && learnable && matcher.is_none();
     let rule = matcher

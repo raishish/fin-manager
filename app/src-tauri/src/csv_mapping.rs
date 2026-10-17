@@ -43,15 +43,10 @@ const MAX_BANK_NAME: usize = 60;
 /// The date formats the CSV reader knows (`fm_import_csv`'s `DATE_FORMATS`).
 const DATE_FORMATS: [&str; 4] = ["MM/DD/YYYY", "M/D/YYYY", "MM/DD/YY", "YYYY-MM-DD"];
 
-/// The layouts to read CSV files with: the built-in ones, then the user's saved ones.
-/// T3.6's `import_file` reads with these, so a file mapped once is recognised after.
-#[allow(dead_code, reason = "import_file reads with it from T3.6")]
-pub(crate) fn user_profiles(ledger: &Unlocked) -> ProfileSet {
-    load_user_profiles(ledger).0
-}
-
-/// [`user_profiles`], and the notice to show if the saved ones couldn't be loaded (they
-/// are then left out, and the built-in layouts still work).
+/// The layouts to read CSV files with: the built-in ones, then the user's saved ones,
+/// and the notice to show if the saved ones couldn't be loaded (they are then left out,
+/// and the built-in layouts still work). `import_file` reads with these (T3.6), so a
+/// file mapped once is recognised after.
 pub(crate) fn load_user_profiles(ledger: &Unlocked) -> (ProfileSet, Option<&'static str>) {
     profiles_from(ledger.csv_profiles().ok().ok_or(()))
 }
@@ -840,7 +835,7 @@ mod tests {
             .write_ledger(|open| {
                 let ledger = open.ledger_mut();
                 let builtin = ProfileSet::with_builtin();
-                let profiles = user_profiles(ledger);
+                let (profiles, _) = load_user_profiles(ledger);
                 let target = Target::NewAccount {
                     name: "Example card".into(),
                     kind: AccountKind::CreditCard,
@@ -891,7 +886,101 @@ mod tests {
             csv_currency: Currency::USD,
             csv_profiles: set,
             now: std::time::SystemTime::UNIX_EPOCH + std::time::Duration::from_secs(1_790_000_000),
+            backup: true,
+            cancel: &pipeline::never,
         }
+    }
+
+    /// `import_file` through the real IPC path: the file's bytes as the body, its
+    /// details as the percent-encoded `fm-import` header.
+    fn import_through_ipc(
+        w: &Webview,
+        bytes: &[u8],
+        details: Value,
+    ) -> std::result::Result<Value, Value> {
+        let mut headers = tauri::http::HeaderMap::new();
+        headers.insert(
+            crate::importing::ARGS_HEADER,
+            encode(&details.to_string()).parse().unwrap(),
+        );
+        let request = InvokeRequest {
+            cmd: "import_file".into(),
+            callback: CallbackFn(0),
+            error: CallbackFn(1),
+            url: "tauri://localhost".parse().unwrap(),
+            body: InvokeBody::Raw(bytes.to_vec()),
+            headers,
+            invoke_key: INVOKE_KEY.to_string(),
+        };
+        get_ipc_response(w, request).map(|body| body.deserialize().unwrap())
+    }
+
+    /// T3.5 + T3.6 end to end over IPC: a reordered layout is refused until mapped, is
+    /// mapped once on the mapping screen, and then two files of it import through
+    /// `import_file`, the second with no mapping at all.
+    #[test]
+    fn a_layout_mapped_once_imports_twice_through_the_app() {
+        let dir = tempfile::tempdir().unwrap();
+        let (_app, w) = mock_app(&std::fs::canonicalize(dir.path()).unwrap());
+        create_confirmed(&w);
+        let first = unknown_layout("chase/freedom_2025_h1.csv");
+        let second = unknown_layout("chase/freedom_2025_q2_q3.csv");
+        let new_card = json!({
+            "fileName": "card_h1.csv",
+            "target": { "kind": "newAccount", "name": "Example card",
+                        "accountKind": "credit_card", "currency": "USD" },
+            "csvCurrency": null,
+        });
+
+        // Unknown until mapped: the import screen offers to map its columns.
+        let err = import_through_ipc(&w, &first, new_card.clone()).unwrap_err();
+        assert_eq!(err["code"], "NoLayout");
+        assert_eq!(
+            invoke(&w, "accounts").unwrap(),
+            json!([]),
+            "nothing imported"
+        );
+
+        let shown = call(&w, "csv_mapping_inspect", &first, json!({})).unwrap();
+        call(
+            &w,
+            "csv_mapping_save",
+            &first,
+            json!({ "mapping": shown["suggestion"], "bankName": "Example Card Co",
+                    "accountKinds": ["credit_card"] }),
+        )
+        .unwrap();
+
+        let rows = |file: &str| expected(file)["transactions"].as_array().unwrap().len();
+        let report = import_through_ipc(&w, &first, new_card).unwrap();
+        assert_eq!(report["incomplete"], Value::Null);
+        assert_eq!(report["layoutsNotice"], Value::Null);
+        assert_eq!(
+            report["inserted"].as_u64().unwrap() as usize,
+            rows("chase/freedom_2025_h1.csv")
+        );
+        let account = report["statements"][0]["accountId"].clone();
+
+        // The second file: recognised with no mapping step.
+        let report = import_through_ipc(
+            &w,
+            &second,
+            json!({ "fileName": "card_q2_q3.csv",
+                    "target": { "kind": "account", "id": account },
+                    "csvCurrency": null }),
+        )
+        .unwrap();
+        assert_eq!(report["incomplete"], Value::Null);
+        let s = &report["statements"][0];
+        let read = s["inserted"].as_u64().unwrap()
+            + s["duplicates"].as_u64().unwrap()
+            + s["postedFromPending"].as_u64().unwrap()
+            + s["pendingAlreadyPosted"].as_u64().unwrap();
+        assert_eq!(read as usize, rows("chase/freedom_2025_q2_q3.csv"));
+        assert!(
+            s["duplicates"].as_u64().unwrap() > 0,
+            "the two exports overlap"
+        );
     }
 
     #[test]

@@ -9,7 +9,9 @@
 		accounts,
 		errorCode,
 		errorText,
+		finishImport,
 		importFile,
+		unfinishedImport,
 		type Account,
 		type AccountKind,
 		type ImportReport,
@@ -40,13 +42,33 @@
 	let report = $state<ImportReport | null>(null);
 	let showMatched = $state(false);
 	let error = $state('');
+	let noLayout = $state(false);
 	let busy = $state(false);
+	/** An import left unfinished earlier (the app locked or quit), offered on arrival. */
+	let leftOver = $state<{ importId: number | null } | null>(null);
 
 	$effect(() => {
 		accounts()
 			.then((a) => (known = a))
 			.catch((e) => (error = errorText(e)));
+		unfinishedImport()
+			.then((u) => (leftOver = u))
+			.catch(() => {});
 	});
+
+	async function finish(importId: number | null) {
+		busy = true;
+		error = '';
+		try {
+			report = await finishImport(importId);
+			leftOver = null;
+			onimported?.(report);
+		} catch (e) {
+			error = errorText(e);
+		} finally {
+			busy = false;
+		}
+	}
 
 	function target(): ImportTarget {
 		if (choice === 'account' && accountId !== null) return { kind: 'account', id: accountId };
@@ -67,6 +89,7 @@
 		}
 		busy = true;
 		error = '';
+		noLayout = false;
 		report = null;
 		showMatched = false;
 		try {
@@ -76,11 +99,16 @@
 			known = await accounts();
 			onimported?.(report);
 		} catch (e) {
-			if (errorCode(e) === 'AccountNeeded') {
+			const code = errorCode(e);
+			if (code === 'AccountNeeded') {
 				needsAccount = true;
 				choice = known.length ? 'account' : 'new';
 			}
-			error = errorText(e);
+			noLayout = code === 'NoLayout';
+			error =
+				code === 'Interrupted'
+					? 'Nothing was imported; the app was locked or closed during the import. Import the file again.'
+					: errorText(e);
 		} finally {
 			busy = false;
 		}
@@ -142,11 +170,34 @@
 	</button>
 </form>
 
-{#if error}<p role="alert">{error}</p>{/if}
+{#if leftOver && !report}
+	<p class="warn" role="status">
+		An earlier import didn't finish (the app was locked or closed).
+		<button type="button" disabled={busy} onclick={() => finish(leftOver?.importId ?? null)}>
+			Finish import
+		</button>
+	</p>
+{/if}
+
+{#if error}
+	<p role="alert">
+		{error}
+		{#if noLayout}<a href="/import/mapping">Map columns</a>{/if}
+	</p>
+{/if}
 
 {#if report}
 	<section class="report" role="status">
-		<h3>Imported</h3>
+		<h3>{report.resumed ? 'Import finished' : 'Imported'}</h3>
+		{#if report.layoutsNotice}<p class="warn">{report.layoutsNotice}</p>{/if}
+		{#if report.incomplete}
+			<p class="warn">
+				Imported, but {report.incomplete} didn't finish.
+				<button type="button" disabled={busy} onclick={() => finish(report?.importId ?? null)}>
+					Finish import
+				</button>
+			</p>
+		{/if}
 		{#if report.overlapWarning}
 			<p class="warn">{report.overlapWarning}. Everything in the file was imported.</p>
 		{/if}
@@ -158,7 +209,7 @@
 					{#if s.postedFromPending > 0}, {s.postedFromPending} pending ones settled{/if}
 				</li>
 			{/each}
-			<li>
+			{#if !report.resumed}<li>
 				{report.matched.length}
 				{report.matched.length === 1 ? 'row' : 'rows'} matched existing transactions
 				{#if report.matched.length > 0}
@@ -166,7 +217,7 @@
 						{showMatched ? 'hide' : 'check them'}
 					</button>
 				{/if}
-			</li>
+			</li>{/if}
 			<li>{report.transfersPaired} transfers between your accounts paired{report.transfersSuggested > 0 ? `, ${report.transfersSuggested} suggested` : ''}</li>
 			<li>
 				Your rules filed {report.ruleBuckets}; {report.cleanedMerchants} merchant names cleaned up;
