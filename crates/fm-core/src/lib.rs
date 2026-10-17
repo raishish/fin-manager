@@ -11,6 +11,7 @@ pub mod recurring;
 pub mod storage;
 pub mod transfers;
 pub mod unlock;
+pub mod views;
 
 /// Crate name, used by the workspace smoke test.
 pub const NAME: &str = env!("CARGO_PKG_NAME");
