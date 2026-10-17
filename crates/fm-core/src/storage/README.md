@@ -74,6 +74,7 @@ Every connection also turns on `foreign_keys` and `secure_delete`, so deleted ro
   - It adds `trn_type` and `check_number` to `transactions`.
   - It lets `decisions.builtin_logic` be `import_pipeline`. SQLite can't change a `CHECK` in place, so the decisions table is rebuilt with [SQLite's procedure](https://sqlite.org/lang_altertable.html): create, copy, drop, rename, then recreate the indexes and triggers.
 - Version 4 (`schema/v4_deleted_rows.sql`) adds `deleted_rows`: the rows deleted out of an import that was kept (SPEC decision 43, see below).
+- Version 5 (`schema/v5_reject_state.sql`) recreates the decisions trigger so that a decision the user has seen may move applied → dismissed (SPEC decision 46).
 - A migration that rebuilds a table runs with `foreign_keys_off`. The runner switches foreign keys off around its transaction, so the `DROP TABLE` can't cascade into rules, and requires `foreign_key_check` to come back empty before it commits.
 
 ## Ledger tables and the repository
@@ -93,7 +94,7 @@ The tables mirror the T0.5 model (`crates/fm-core/src/model/README.md`). All of 
 
 | Rows | Rule |
 |---|---|
-| Decisions | Append-only. An `UPDATE` may only move `state` (applied → superseded, or suggested → applied, dismissed or superseded) and set `seen_at` once, from `NULL`. An update that changes nothing is refused too. A `DELETE` happens only through the deletion API |
+| Decisions | Append-only. An `UPDATE` may only move `state` (applied → superseded; applied → dismissed once `seen_at` is set, a user's rejection, SPEC decision 46; suggested → applied, dismissed or superseded) and set `seen_at` once, from `NULL`. An update that changes nothing is refused too. A `DELETE` happens only through the deletion API |
 | Transactions | Immutable, with one exception: `post_pending` turns a pending transaction into the posted one. That may change everything except the id and the account, including the import it points to. A `DELETE` happens only through the deletion API |
 | Raw imports | The id, `sha256` and `bytes` never change; metadata such as the file name can. A `DELETE` happens only through the deletion API |
 | Deleted rows | Inserted only by the deletion API, never updated, and removed only with their import |

@@ -965,10 +965,18 @@ impl Unlocked {
         query_all(self.connection(), &sql, [transaction.0], decision_from_row)
     }
 
-    /// Moves a decision along its lifecycle: applied → superseded, or suggested →
-    /// applied, dismissed or superseded. Anything else, including "moving" to the state
-    /// it is already in, is [`StorageError::ForbiddenChange`] (the database refuses it
-    /// too).
+    /// Moves a decision along its lifecycle:
+    /// - applied → superseded (another decision replaced it);
+    /// - applied → dismissed, only once the user has seen it ([`mark_decision_seen`]):
+    ///   the user rejected it (SPEC decision 46). The caller records what replaces it,
+    ///   so the transaction keeps one applied bucket (constraint 4);
+    /// - suggested → applied, dismissed or superseded.
+    ///
+    /// Anything else, including "moving" to the state it is already in or dismissing an
+    /// applied decision nobody has seen, is [`StorageError::ForbiddenChange`]. The
+    /// database refuses it too.
+    ///
+    /// [`mark_decision_seen`]: Self::mark_decision_seen
     pub fn set_decision_state(
         &self,
         id: DecisionId,

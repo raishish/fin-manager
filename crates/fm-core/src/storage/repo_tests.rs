@@ -197,6 +197,79 @@ fn taxonomy_edits_are_saved_and_referenced_categories_are_kept() {
     assert_eq!(u.taxonomy().unwrap(), fewer);
 }
 
+/// T0.13 (SPEC decision 46): a user may reject an applied decision they have acted on
+/// (seen), which dismisses it. An unseen one can't be dismissed, and the database
+/// itself refuses it, whatever SQL asks.
+#[test]
+fn a_seen_applied_decision_can_be_dismissed_and_only_that() {
+    let (_dir, u) = with_sample();
+    let decision = |id| u.decision(DecisionId(id)).unwrap().unwrap();
+    let seen = Timestamp::from_unix_seconds(1_800_000_000);
+    // Decisions 1 and 3 are applied and unseen.
+    assert_eq!(decision(1).state, DecisionState::Applied);
+    assert_eq!(decision(1).seen_at, None);
+
+    // Unseen: refused through the API and through any SQL, including setting seen_at
+    // in the same statement.
+    assert!(matches!(
+        u.set_decision_state(DecisionId(1), DecisionState::Dismissed),
+        Err(StorageError::ForbiddenChange(_))
+    ));
+    assert!(sql_fails(
+        &u,
+        "UPDATE decisions SET state = 'dismissed' WHERE id = 1"
+    ));
+    assert!(sql_fails(
+        &u,
+        "UPDATE decisions SET state = 'dismissed', seen_at = 1800000000 WHERE id = 1"
+    ));
+    assert_eq!(decision(1).state, DecisionState::Applied);
+
+    // Seen: allowed, and seen_at stays as it was.
+    u.mark_decision_seen(DecisionId(1), seen).unwrap();
+    u.set_decision_state(DecisionId(1), DecisionState::Dismissed)
+        .unwrap();
+    let dismissed = decision(1);
+    assert_eq!(dismissed.state, DecisionState::Dismissed);
+    assert_eq!(dismissed.seen_at, Some(seen));
+
+    // A dismissed decision goes nowhere, and dismissing can't touch seen_at.
+    for to in [
+        DecisionState::Applied,
+        DecisionState::Suggested,
+        DecisionState::Superseded,
+        DecisionState::Dismissed,
+    ] {
+        assert!(matches!(
+            u.set_decision_state(DecisionId(1), to),
+            Err(StorageError::ForbiddenChange(_))
+        ));
+    }
+    u.mark_decision_seen(DecisionId(3), seen).unwrap();
+    assert!(sql_fails(
+        &u,
+        "UPDATE decisions SET state = 'dismissed', seen_at = 1800000001 WHERE id = 3"
+    ));
+    assert!(sql_fails(
+        &u,
+        "UPDATE decisions SET state = 'dismissed', seen_at = NULL WHERE id = 3"
+    ));
+    // Nor can it change anything else on the way.
+    assert!(sql_fails(
+        &u,
+        "UPDATE decisions SET state = 'dismissed', decided_at = 1 WHERE id = 3"
+    ));
+    assert_eq!(decision(3).state, DecisionState::Applied);
+    u.connection()
+        .execute_batch("UPDATE decisions SET state = 'dismissed' WHERE id = 3")
+        .unwrap();
+    assert_eq!(decision(3).state, DecisionState::Dismissed);
+
+    // The other moves are unchanged: applied → superseded still works, seen or not.
+    u.set_decision_state(DecisionId(4), DecisionState::Superseded)
+        .unwrap();
+}
+
 #[test]
 fn decisions_move_only_along_their_lifecycle() {
     let (_dir, u) = with_sample();
@@ -219,7 +292,7 @@ fn decisions_move_only_along_their_lifecycle() {
     for (id, to) in [
         (1, DecisionState::Applied),    // superseded → applied
         (10, DecisionState::Suggested), // applied → suggested
-        (10, DecisionState::Dismissed), // applied → dismissed
+        (10, DecisionState::Dismissed), // applied → dismissed, never seen
         (11, DecisionState::Applied),   // dismissed → applied
         (11, DecisionState::Suggested), // dismissed → suggested
         (2, DecisionState::Applied),    // superseded → applied
