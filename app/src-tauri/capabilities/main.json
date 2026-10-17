@@ -1,0 +1,7 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "main",
+  "description": "The main window. Only the event permissions the unlock guard needs to hear the core's auto-lock (unlock://locked); every other plugin command stays denied. App commands are gated in Rust (unlock::gated).",
+  "windows": ["main"],
+  "permissions": ["core:event:allow-listen", "core:event:allow-unlisten"]
+}

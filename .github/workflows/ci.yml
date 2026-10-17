@@ -65,6 +65,8 @@ jobs:
           node-version-file: app/.node-version
       - run: npm ci
       - run: npm run check
+      # Unit tests of the UI's pure logic (node --test, no extra packages).
+      - run: npm test
 
   synthetic-data:
     # The committed test ledgers must stay exactly what the generator produces, and the
