@@ -60,7 +60,15 @@
 //! - [`correct::correct`]: a correction, its rule and the re-run, in one savepoint.
 //! - [`plan::plan`], [`run_on_ledger`], [`correct::correct_ledger`]: the same over an
 //!   in-memory [`Ledger`](crate::model::Ledger), for fixtures and evals.
+//! - [`actions`]: turning a rule on or off, deleting it, undoing what it decided, and
+//!   accepting or dismissing a suggestion (both sides of a transfer pair together).
+//!   A dismissal sticks: fixed logic and the model never bring the same assignment
+//!   back for that transaction.
+//! - [`actions::confirm_decisions`] and [`actions::reject_decisions`]: the review
+//!   queue's bulk approve and reject (SPEC decision 46: a decision counts as seen only
+//!   once the user acts on it). A rejection sticks like a dismissal.
 
+pub mod actions;
 pub mod apply;
 pub mod correct;
 pub mod merchant;
@@ -73,6 +81,10 @@ mod td1_eval;
 #[cfg(test)]
 mod tests;
 
+pub use actions::{
+    accept_suggestion, confirm_decisions, delete_rule, dismiss_suggestion, reject_decisions,
+    set_rule_enabled, undo_rule_decisions,
+};
 pub use apply::{CategorizeError, apply_to_ledger, run, run_on_ledger};
 pub use correct::{Correction, CorrectionReport, Learn, correct, correct_ledger};
 pub use plan::{LedgerView, Plan, RunReport, Scope};

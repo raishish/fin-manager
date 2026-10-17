@@ -75,6 +75,9 @@ pub struct RunReport {
     pub kept_user_decision: usize,
     /// A rule matched but a transfer pair stands: rules never break a pair.
     pub kept_transfer_pair: usize,
+    /// Fixed logic would have suggested or applied what the user dismissed for that
+    /// transaction, so it didn't.
+    pub kept_dismissed: usize,
 }
 
 impl RunReport {
@@ -88,6 +91,7 @@ impl RunReport {
         self.rule_did_not_fit += other.rule_did_not_fit;
         self.kept_user_decision += other.kept_user_decision;
         self.kept_transfer_pair += other.kept_transfer_pair;
+        self.kept_dismissed += other.kept_dismissed;
     }
 }
 
@@ -247,6 +251,9 @@ pub(crate) fn kind(assignment: &Assignment) -> Kind {
 pub(crate) struct Current {
     applied: HashMap<(TransactionId, Kind), Decision>,
     suggested: HashMap<(TransactionId, Kind), Vec<Decision>>,
+    /// Assignments the user dismissed (a suggestion) or rejected (a decision), per
+    /// transaction and kind: both end `dismissed`.
+    dismissed: HashMap<(TransactionId, Kind), Vec<Assignment>>,
 }
 
 impl Current {
@@ -266,7 +273,12 @@ impl Current {
                 DecisionState::Suggested => {
                     current.suggested.entry(key).or_default().push(d.clone())
                 }
-                DecisionState::Dismissed | DecisionState::Superseded => {}
+                DecisionState::Dismissed => current
+                    .dismissed
+                    .entry(key)
+                    .or_default()
+                    .push(d.assignment.clone()),
+                DecisionState::Superseded => {}
             }
         }
         current
@@ -311,7 +323,16 @@ impl<'a> Planner<'a> {
             .collect();
         all.extend(prior.new_decisions.iter().cloned());
         let mut planner = Planner::new(view, now);
-        planner.next_id = all.iter().map(|d| d.id.0).max().unwrap_or(0) + 1;
+        // Ids are counted over every stored decision, superseded ones included: they
+        // keep their rows.
+        planner.next_id = view
+            .decisions
+            .iter()
+            .chain(&prior.new_decisions)
+            .map(|d| d.id.0)
+            .max()
+            .unwrap_or(0)
+            + 1;
         planner.current = Current::of(&all);
         planner
     }
@@ -387,6 +408,21 @@ impl<'a> Planner<'a> {
         let key = (transaction, k);
         let current = self.current.applied.get(&key).cloned();
         let outcome = decide(current.as_ref(), &source, &assignment);
+        // A dismissal sticks: fixed logic and the model never bring the same assignment
+        // back. The user's own rules still can, and the Needs-review placeholder is
+        // always allowed (every transaction needs a bucket).
+        if !matches!(outcome, Outcome::Keep(_))
+            && !source.is_user_input()
+            && assignment != Assignment::Bucket(Bucket::NeedsReview)
+            && self
+                .current
+                .dismissed
+                .get(&key)
+                .is_some_and(|d| d.contains(&assignment))
+        {
+            self.plan.report.kept_dismissed += 1;
+            return false;
+        }
         let state = match outcome {
             Outcome::Keep(held) => {
                 match held {
@@ -469,8 +505,31 @@ impl<'a> Planner<'a> {
         // A new suggestion replaces older open ones; an applied change replaces the
         // current decision and makes every open suggestion stale.
         for stale in self.current.suggested.remove(&key).unwrap_or_default() {
-            if self.take_planned(stale.id).is_none() {
-                self.supersede(stale.id);
+            self.close_stale(&stale);
+            // The other half of a pair suggestion goes too: half a pair can't be
+            // accepted.
+            if let Assignment::Bucket(Bucket::Transfer {
+                counterpart: Some(other),
+            }) = stale.assignment
+            {
+                let back = Assignment::Bucket(Bucket::Transfer {
+                    counterpart: Some(stale.transaction_id),
+                });
+                let other_key = (other, Kind::Bucket);
+                let halves = self
+                    .current
+                    .suggested
+                    .remove(&other_key)
+                    .unwrap_or_default();
+                let (partners, rest): (Vec<_>, Vec<_>) = halves
+                    .into_iter()
+                    .partition(|d| d.assignment == back && d.source == stale.source);
+                for partner in &partners {
+                    self.close_stale(partner);
+                }
+                if !rest.is_empty() {
+                    self.current.suggested.insert(other_key, rest);
+                }
             }
         }
         if state == DecisionState::Applied {
@@ -489,6 +548,13 @@ impl<'a> Planner<'a> {
             self.plan.report.suggestions += 1;
         }
         self.plan.new_decisions.push(decision);
+    }
+
+    /// A suggestion no longer current: dropped if this plan created it, else superseded.
+    fn close_stale(&mut self, stale: &Decision) {
+        if self.take_planned(stale.id).is_none() {
+            self.supersede(stale.id);
+        }
     }
 
     /// Removes a decision this plan created, if `id` is one.

@@ -318,15 +318,19 @@ fn general(bucket: Bucket) -> Bucket {
     }
 }
 
-/// Rejects a bucket that would break the ledger: an unknown category, or a pair that
-/// can't be one.
+/// Rejects a bucket that would break the ledger: income or a refund for money going
+/// out, an unknown category, or a pair that can't be one.
 fn check_bucket(
     view: LedgerView<'_>,
     by_id: &HashMap<TransactionId, &crate::model::Transaction>,
     t: &crate::model::Transaction,
     bucket: &Bucket,
 ) -> Result<(), CategorizeError> {
+    let money_out = t.amount.minor() < 0;
     match *bucket {
+        Bucket::Income | Bucket::Refund { .. } if money_out => {
+            return Err(CategorizeError::DoesNotFit);
+        }
         Bucket::Category { category_id } | Bucket::Refund { category_id, .. } => {
             if view.taxonomy.category(category_id).is_none() {
                 return Err(CategorizeError::UnknownCategory);

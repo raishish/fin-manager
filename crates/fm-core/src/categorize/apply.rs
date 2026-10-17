@@ -23,6 +23,27 @@ pub enum CategorizeError {
     InvalidPair,
     /// The correction's category isn't in the category list.
     UnknownCategory,
+    /// Income or a refund for money going out: money out is spending, a transfer or
+    /// Needs review (SPEC constraint 4).
+    DoesNotFit,
+    /// No rule with this id.
+    UnknownRule(crate::model::RuleId),
+    /// No decision with this id.
+    UnknownDecision(crate::model::DecisionId),
+    /// The decision isn't an open suggestion.
+    NotASuggestion(crate::model::DecisionId),
+    /// The suggestion no longer replaces the decision in effect: something else was
+    /// decided since. Re-run to get a current suggestion.
+    StaleSuggestion(crate::model::DecisionId),
+    /// The decision isn't in effect, so it can't be confirmed or rejected.
+    NotApplied(crate::model::DecisionId),
+    /// Only a bucket from the model or fixed logic can be rejected: a user's or a
+    /// rule's decision is changed by a correction or by undoing the rule, and the
+    /// Needs-review placeholder decides nothing. Also for a pair whose other side isn't
+    /// a matching model or fixed-logic decision.
+    NotRejectable(crate::model::DecisionId),
+    /// The Needs-review placeholder decides nothing, so there is nothing to confirm.
+    NotConfirmable(crate::model::DecisionId),
 }
 
 impl fmt::Display for CategorizeError {
@@ -33,6 +54,38 @@ impl fmt::Display for CategorizeError {
             Self::UnknownTransaction => f.write_str("the transaction isn't in the ledger"),
             Self::InvalidPair => f.write_str("those two transactions can't be a transfer pair"),
             Self::UnknownCategory => f.write_str("the category isn't in the category list"),
+            Self::DoesNotFit => {
+                f.write_str("money going out can't be income or a refund [does_not_fit]")
+            }
+            Self::UnknownRule(id) => write!(f, "rule {} doesn't exist [unknown_rule]", id.0),
+            Self::UnknownDecision(id) => {
+                write!(f, "decision {} doesn't exist [unknown_decision]", id.0)
+            }
+            Self::NotASuggestion(id) => {
+                write!(
+                    f,
+                    "decision {} isn't an open suggestion [not_a_suggestion]",
+                    id.0
+                )
+            }
+            Self::NotApplied(id) => {
+                write!(f, "decision {} isn't in effect [not_applied]", id.0)
+            }
+            Self::NotRejectable(id) => write!(
+                f,
+                "decision {} can't be rejected: only a model or fixed-logic bucket can [not_rejectable]",
+                id.0
+            ),
+            Self::NotConfirmable(id) => write!(
+                f,
+                "decision {} is the Needs-review placeholder: nothing to confirm [not_confirmable]",
+                id.0
+            ),
+            Self::StaleSuggestion(id) => write!(
+                f,
+                "suggestion {} no longer replaces the decision in effect [stale_suggestion]",
+                id.0
+            ),
         }
     }
 }
@@ -125,7 +178,27 @@ pub(crate) fn write(
     plan: &Plan,
     rules: &[Rule],
 ) -> Result<(), CategorizeError> {
+    in_savepoint(unlocked, |u| write_plan(u, plan, rules))
+}
+
+/// Runs `f` in categorisation's savepoint: all of it is stored or none.
+pub(crate) fn in_savepoint<T>(
+    unlocked: &mut Unlocked,
+    f: impl FnOnce(&Unlocked) -> Result<T, CategorizeError>,
+) -> Result<T, CategorizeError> {
+    let unlocked: &Unlocked = unlocked;
     let savepoint = Savepoint::begin(unlocked.connection())?;
+    let value = f(unlocked)?;
+    savepoint.release()?;
+    Ok(value)
+}
+
+/// [`write`] inside a savepoint the caller holds.
+pub(crate) fn write_plan(
+    unlocked: &Unlocked,
+    plan: &Plan,
+    rules: &[Rule],
+) -> Result<(), CategorizeError> {
     for id in &plan.superseded {
         unlocked.set_decision_state(*id, DecisionState::Superseded)?;
     }
@@ -151,7 +224,6 @@ pub(crate) fn write(
     for d in &decisions[split..] {
         unlocked.insert_decision(d)?;
     }
-    savepoint.release()?;
     Ok(())
 }
 

@@ -938,6 +938,42 @@ impl Unlocked {
         query_all(self.connection(), &sql, [], rule_from_row)
     }
 
+    /// Turns a rule on or off. Allowed even once the rule has made decisions: only what
+    /// it matches and does is frozen. What it decided stays; see
+    /// `categorize::undo_rule_decisions`.
+    pub fn set_rule_enabled(&self, id: RuleId, enabled: bool) -> Result<(), StorageError> {
+        let changed = self
+            .connection()
+            .execute(
+                "UPDATE rules SET enabled = ?2 WHERE id = ?1",
+                params![id.0, i64::from(enabled)],
+            )
+            .map_err(map_write_error)?;
+        if changed == 0 {
+            return Err(StorageError::NotFound);
+        }
+        Ok(())
+    }
+
+    /// Deletes a rule and, by the cascade, every decision it made (any state). A
+    /// decision that `replaces` one of them keeps standing with `replaces` cleared.
+    /// Returns how many decisions went. Transactions whose bucket came from the rule are
+    /// left without one: re-plan them in the same transaction (`categorize::delete_rule`
+    /// does).
+    pub fn delete_rule(&self, id: RuleId) -> Result<u64, StorageError> {
+        let conn = self.connection();
+        let before = count(conn, "decisions")?;
+        let deleted = {
+            let _delete = self.permits.grant(Permit::Delete);
+            conn.execute("DELETE FROM rules WHERE id = ?1", [id.0])
+                .map_err(map_write_error)?
+        };
+        if deleted == 0 {
+            return Err(StorageError::NotFound);
+        }
+        Ok(before - count(conn, "decisions")?)
+    }
+
     /// Records a decision. Decisions are append-only: once stored, only
     /// [`Unlocked::set_decision_state`] and [`Unlocked::mark_decision_seen`] change them.
     pub fn insert_decision(&self, decision: &Decision) -> Result<(), StorageError> {

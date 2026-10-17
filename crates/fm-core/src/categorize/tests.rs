@@ -898,3 +898,785 @@ fn the_database_run_refuses_an_open_transaction() {
     u.connection().execute_batch("ROLLBACK").unwrap();
     assert!(run(&mut u, Scope::All, NOW).is_ok());
 }
+
+// ---- T2.6: actions on rules and suggestions, through the encrypted database.
+
+mod actions {
+    use super::*;
+    use crate::categorize::plan::Planner;
+    use crate::categorize::{
+        accept_suggestion, confirm_decisions, delete_rule, dismiss_suggestion, reject_decisions,
+        set_rule_enabled, undo_rule_decisions,
+    };
+
+    const LATER: Timestamp = Timestamp::from_unix_seconds(1_770_000_500);
+
+    /// A stored mini ledger, after a first run.
+    fn stored(transactions: Vec<Transaction>, rules: Vec<Rule>) -> (tempfile::TempDir, Unlocked) {
+        let (dir, mut u) = new_database();
+        let mut l = mini(transactions);
+        l.rules = rules;
+        u.save_ledger(&l).unwrap();
+        run(&mut u, Scope::All, NOW).unwrap();
+        (dir, u)
+    }
+
+    fn checked(u: &Unlocked) -> Ledger {
+        let l = u.load_ledger().unwrap();
+        assert_contract(&l);
+        l
+    }
+
+    fn rule_source(id: i64) -> DecisionSource {
+        DecisionSource::Rule {
+            rule_id: RuleId(id),
+        }
+    }
+
+    #[test]
+    fn rules_turn_off_and_on_and_unknown_ones_are_refused() {
+        let streaming = cat(&default_taxonomy(), "entertainment.streaming");
+        let (_dir, mut u) = stored(
+            vec![txn(1, 1, -1599, "NETFLIX.COM")],
+            vec![user_rule(1, "NETFLIX", Some(streaming), None)],
+        );
+        set_rule_enabled(&mut u, RuleId(1), false).unwrap();
+        let l = checked(&u);
+        assert!(!l.rules[0].enabled);
+        // What it decided stays.
+        assert_eq!(applied(&l, 1, true).source, rule_source(1));
+
+        // A new transaction isn't decided by the disabled rule.
+        u.insert_transaction(&txn(2, 1, -1599, "NETFLIX.COM"))
+            .unwrap();
+        run(&mut u, Scope::All, NOW).unwrap();
+        assert_eq!(bucket(&checked(&u), 2), Bucket::NeedsReview);
+
+        set_rule_enabled(&mut u, RuleId(1), true).unwrap();
+        run(&mut u, Scope::All, NOW).unwrap();
+        assert_eq!(bucket(&checked(&u), 2), streaming);
+
+        for result in [
+            set_rule_enabled(&mut u, RuleId(9), true),
+            delete_rule(&mut u, RuleId(9), LATER),
+            undo_rule_decisions(&mut u, RuleId(9), LATER).map(|_| ()),
+        ] {
+            assert!(
+                matches!(result, Err(CategorizeError::UnknownRule(RuleId(9)))),
+                "{result:?}"
+            );
+        }
+    }
+
+    #[test]
+    fn deleting_a_rule_takes_its_decisions_and_replans_without_it() {
+        let taxonomy = default_taxonomy();
+        let streaming = cat(&taxonomy, "entertainment.streaming");
+        let software = cat(&taxonomy, "services.software");
+        let (_dir, mut u) = stored(
+            vec![
+                txn(1, 1, -1599, "NETFLIX.COM"),
+                txn(2, 1, -1599, "NETFLIX.COM 901"),
+                txn(3, 1, -999, "APPLE.COM/BILL"),
+            ],
+            vec![
+                user_rule(1, "NETFLIX", Some(streaming), Some("Netflix Inc")),
+                user_rule(2, "APPLE COM BILL", Some(software), None),
+            ],
+        );
+        // The user corrected transaction 2 by hand: never touched.
+        correct(
+            &mut u,
+            TransactionId(2),
+            Correction::Bucket(software),
+            Learn::No,
+            NOW,
+        )
+        .unwrap();
+
+        delete_rule(&mut u, RuleId(1), LATER).unwrap();
+        let l = checked(&u);
+        assert!(l.rules.iter().all(|r| r.id != RuleId(1)));
+        assert!(l.decisions.iter().all(|d| d.source != rule_source(1)));
+        assert_eq!(bucket(&l, 1), Bucket::NeedsReview);
+        assert_eq!(applied(&l, 1, true).source, needs_review_source());
+        assert_eq!(merchant(&l, 1), "Netflix", "the clean-up names it again");
+        assert_eq!(applied(&l, 2, true).source, DecisionSource::User);
+        assert_eq!(bucket(&l, 3), software, "other rules are untouched");
+    }
+
+    #[test]
+    fn undoing_a_rule_replans_with_the_next_best_and_never_touches_the_user() {
+        let taxonomy = default_taxonomy();
+        let streaming = cat(&taxonomy, "entertainment.streaming");
+        let software = cat(&taxonomy, "services.software");
+        let mut broad = user_rule(1, "COM", Some(software), None);
+        broad.priority = -1;
+        let mut seen_rule = user_rule(2, "NETFLIX", Some(streaming), None);
+        seen_rule.priority = 5;
+        let (_dir, mut u) = stored(
+            vec![
+                txn(1, 1, -1599, "NETFLIX.COM"),
+                txn(2, 1, -1599, "NETFLIX.COM"),
+                txn(3, 1, -1599, "NETFLIX"),
+            ],
+            vec![broad, seen_rule],
+        );
+        let l = checked(&u);
+        // The user has seen transaction 1's decision, and corrected transaction 2.
+        u.mark_decision_seen(applied(&l, 1, true).id, NOW).unwrap();
+        let fees = cat(&taxonomy, "financial.bank_fees");
+        correct(
+            &mut u,
+            TransactionId(2),
+            Correction::Bucket(fees),
+            Learn::No,
+            NOW,
+        )
+        .unwrap();
+        assert!(matches!(
+            correct(
+                &mut u,
+                TransactionId(2),
+                Correction::Bucket(Bucket::Income),
+                Learn::No,
+                NOW
+            ),
+            Err(CategorizeError::DoesNotFit)
+        ));
+
+        set_rule_enabled(&mut u, RuleId(2), false).unwrap();
+        let report = undo_rule_decisions(&mut u, RuleId(2), LATER).unwrap();
+        let l = checked(&u);
+        // 1 matches the broad rule; 3 doesn't (no "COM"), so it goes back to review.
+        assert_eq!(applied(&l, 1, true).source, rule_source(1));
+        assert_eq!(bucket(&l, 1), software);
+        assert_eq!(bucket(&l, 3), Bucket::NeedsReview);
+        assert_eq!(applied(&l, 2, true).source, DecisionSource::User);
+        assert_eq!(report.rule_buckets, 1);
+        assert_eq!(report.needs_review_added, 1);
+        assert!(
+            l.decisions
+                .iter()
+                .filter(|d| d.source == rule_source(2))
+                .all(|d| d.state == DecisionState::Superseded)
+        );
+        // The rule is off, so a later run doesn't bring it back.
+        run(&mut u, Scope::All, LATER).unwrap();
+        assert_eq!(bucket(&checked(&u), 3), Bucket::NeedsReview);
+    }
+
+    /// Two own accounts, a transfer between them, the first run done, and one side's
+    /// placeholder seen: transfer detection can only suggest the pair.
+    fn suggested_pair() -> (tempfile::TempDir, Unlocked, Vec<DecisionId>) {
+        let (dir, mut u) = stored(
+            vec![
+                txn(1, 1, -50_000, "ONLINE TRANSFER TO SAV"),
+                txn(2, 2, 50_000, "ONLINE TRANSFER FROM CHK"),
+            ],
+            vec![],
+        );
+        let l = checked(&u);
+        u.mark_decision_seen(applied(&l, 1, true).id, NOW).unwrap();
+        let report = crate::transfers::detect(&mut u, NOW).unwrap();
+        assert_eq!((report.applied.len(), report.suggested.len()), (0, 1));
+        let suggestions: Vec<DecisionId> = u
+            .decisions()
+            .unwrap()
+            .into_iter()
+            .filter(|d| d.state == DecisionState::Suggested)
+            .map(|d| d.id)
+            .collect();
+        assert_eq!(suggestions.len(), 2);
+        (dir, u, suggestions)
+    }
+
+    #[test]
+    fn accepting_one_side_of_a_suggested_pair_accepts_both() {
+        let (_dir, mut u, suggestions) = suggested_pair();
+        let accepted = accept_suggestion(&mut u, suggestions[1], LATER).unwrap();
+        assert_eq!(accepted.len(), 2);
+        let l = checked(&u);
+        assert_eq!(
+            bucket(&l, 1),
+            Bucket::Transfer {
+                counterpart: Some(TransactionId(2))
+            }
+        );
+        assert_eq!(
+            bucket(&l, 2),
+            Bucket::Transfer {
+                counterpart: Some(TransactionId(1))
+            }
+        );
+        for id in &accepted {
+            let d = l.decisions.iter().find(|d| d.id == *id).unwrap();
+            assert_eq!(d.state, DecisionState::Applied);
+            assert!(d.seen_at.is_some(), "accepting means the user saw it");
+            let old = l
+                .decisions
+                .iter()
+                .find(|o| Some(o.id) == d.replaces)
+                .unwrap();
+            assert_eq!(old.state, DecisionState::Superseded);
+        }
+        // Not a suggestion any more.
+        assert!(matches!(
+            accept_suggestion(&mut u, suggestions[0], LATER),
+            Err(CategorizeError::NotASuggestion(_))
+        ));
+        assert!(matches!(
+            dismiss_suggestion(&mut u, DecisionId(999), LATER),
+            Err(CategorizeError::UnknownDecision(DecisionId(999)))
+        ));
+    }
+
+    #[test]
+    fn dismissing_a_suggested_pair_dismisses_both_and_it_sticks() {
+        let (_dir, mut u, suggestions) = suggested_pair();
+        let dismissed = dismiss_suggestion(&mut u, suggestions[0], LATER).unwrap();
+        assert_eq!(dismissed.len(), 2);
+        let l = checked(&u);
+        assert_eq!(bucket(&l, 1), Bucket::NeedsReview);
+        assert_eq!(bucket(&l, 2), Bucket::NeedsReview);
+        assert!(dismissed.iter().all(|id| {
+            l.decisions
+                .iter()
+                .any(|d| d.id == *id && d.state == DecisionState::Dismissed)
+        }));
+        // Neither transfer detection nor the rules engine brings it back.
+        let again = crate::transfers::detect(&mut u, LATER).unwrap();
+        assert!(again.applied.is_empty() && again.suggested.is_empty());
+        run(&mut u, Scope::All, LATER).unwrap();
+        let after = checked(&u);
+        assert_eq!(after.decisions.len(), l.decisions.len());
+    }
+
+    #[test]
+    fn a_dismissed_clean_up_suggestion_is_never_suggested_again() {
+        let (_dir, mut u) = new_database();
+        let mut l = mini(vec![txn(
+            1,
+            1,
+            -450,
+            "SQ *SAKURA RAMEN     SAN FRANCISCO       CA",
+        )]);
+        // An older clean-up named it, and the user saw that name.
+        let mut seen = decision(
+            1,
+            1,
+            Assignment::Merchant("Sq Sakura".into()),
+            DecisionSource::Builtin {
+                logic: BuiltinLogic::MerchantCleaner,
+                version: 0,
+            },
+        );
+        seen.seen_at = Some(NOW);
+        l.decisions = vec![
+            seen,
+            decision(
+                2,
+                1,
+                Assignment::Bucket(Bucket::NeedsReview),
+                needs_review_source(),
+            ),
+        ];
+        u.save_ledger(&l).unwrap();
+        let first = run(&mut u, Scope::All, NOW).unwrap();
+        assert_eq!(first.suggestions, 1);
+        let suggestion = u
+            .decisions()
+            .unwrap()
+            .into_iter()
+            .find(|d| d.state == DecisionState::Suggested)
+            .unwrap();
+        dismiss_suggestion(&mut u, suggestion.id, LATER).unwrap();
+
+        let again = run(&mut u, Scope::All, LATER).unwrap();
+        assert_eq!(again.suggestions, 0);
+        assert_eq!(again.kept_dismissed, 1);
+        let l = checked(&u);
+        assert_eq!(merchant(&l, 1), "Sq Sakura");
+
+        // The user's own rule still applies that name.
+        let mut rule = user_rule(1, "SAKURA RAMEN", None, Some("Sakura Ramen"));
+        rule.created_at = LATER;
+        u.insert_rule(&rule).unwrap();
+        run(&mut u, Scope::All, LATER).unwrap();
+        assert_eq!(merchant(&checked(&u), 1), "Sakura Ramen");
+    }
+
+    #[test]
+    fn a_stale_suggestion_is_refused() {
+        let (_dir, mut u, suggestions) = suggested_pair();
+        // The user decides transaction 2 meanwhile: its suggestion no longer replaces
+        // what is in effect.
+        let l = u.load_ledger().unwrap();
+        let current = applied(&l, 2, true).clone();
+        u.set_decision_state(current.id, DecisionState::Superseded)
+            .unwrap();
+        let mut by_user = current.clone();
+        by_user.id = DecisionId(100);
+        by_user.source = DecisionSource::User;
+        by_user.assignment = Assignment::Bucket(Bucket::Income);
+        by_user.replaces = Some(current.id);
+        u.insert_decision(&by_user).unwrap();
+
+        let err = accept_suggestion(&mut u, suggestions[0], LATER).unwrap_err();
+        assert!(matches!(err, CategorizeError::StaleSuggestion(_)), "{err}");
+        // Nothing changed.
+        let after = u.load_ledger().unwrap();
+        assert!(suggestions.iter().all(|id| {
+            after
+                .decisions
+                .iter()
+                .any(|d| d.id == *id && d.state == DecisionState::Suggested)
+        }));
+    }
+
+    /// Puts a model decision in effect on each transaction, replacing its placeholder.
+    fn with_model_buckets(u: &Unlocked, buckets: &[(i64, Bucket)]) -> Vec<DecisionId> {
+        let mut ids = Vec::new();
+        for (t, b) in buckets {
+            let current = u
+                .decisions_for_transaction(TransactionId(*t))
+                .unwrap()
+                .into_iter()
+                .find(|d| {
+                    d.state == DecisionState::Applied
+                        && matches!(d.assignment, Assignment::Bucket(_))
+                })
+                .unwrap();
+            u.set_decision_state(current.id, DecisionState::Superseded)
+                .unwrap();
+            let id = DecisionId(u.next_id(crate::storage::Table::Decisions).unwrap());
+            let mut d = decision(id.0, *t, Assignment::Bucket(*b), model_source());
+            d.replaces = Some(current.id);
+            u.insert_decision(&d).unwrap();
+            ids.push(id);
+        }
+        ids
+    }
+
+    fn three_model_decisions() -> (tempfile::TempDir, Unlocked, Vec<DecisionId>) {
+        let taxonomy = default_taxonomy();
+        let (dir, u) = stored(
+            vec![
+                txn(1, 1, -450, "SQ *SAKURA RAMEN     SAN FRANCISCO       CA"),
+                txn(2, 1, -1599, "NETFLIX.COM"),
+                txn(3, 1, -8000, "KROGER #655 DUBLINOH"),
+            ],
+            vec![],
+        );
+        let ids = with_model_buckets(
+            &u,
+            &[
+                (1, cat(&taxonomy, "food.restaurants")),
+                (2, cat(&taxonomy, "entertainment.streaming")),
+                (3, cat(&taxonomy, "food.groceries")),
+            ],
+        );
+        checked(&u);
+        (dir, u, ids)
+    }
+
+    #[test]
+    fn confirming_marks_a_batch_seen_and_skips_what_was_seen() {
+        let (_dir, mut u, ids) = three_model_decisions();
+        assert_eq!(confirm_decisions(&mut u, &ids, LATER).unwrap(), 3);
+        let l = checked(&u);
+        for id in &ids {
+            let d = l.decisions.iter().find(|d| d.id == *id).unwrap();
+            assert_eq!((d.state, d.seen_at), (DecisionState::Applied, Some(LATER)));
+        }
+        // Again: nothing to mark, and no error.
+        assert_eq!(confirm_decisions(&mut u, &ids, LATER).unwrap(), 0);
+
+        // All or none: one bad id refuses the whole batch.
+        let (_dir2, mut v, ids2) = three_model_decisions();
+        let before = v.load_ledger().unwrap();
+        let err = confirm_decisions(&mut v, &[ids2[0], DecisionId(999)], LATER).unwrap_err();
+        assert!(
+            matches!(err, CategorizeError::UnknownDecision(DecisionId(999))),
+            "{err}"
+        );
+        let superseded = before
+            .decisions
+            .iter()
+            .find(|d| d.state == DecisionState::Superseded)
+            .unwrap()
+            .id;
+        let err = confirm_decisions(&mut v, &[ids2[0], superseded], LATER).unwrap_err();
+        assert!(matches!(err, CategorizeError::NotApplied(_)), "{err}");
+        assert_eq!(v.load_ledger().unwrap(), before);
+    }
+
+    #[test]
+    fn after_confirming_a_rerun_suggests_instead_of_changing() {
+        let start = |u: &mut Unlocked| {
+            let mut l = mini(vec![txn(
+                1,
+                1,
+                -450,
+                "SQ *SAKURA RAMEN     SAN FRANCISCO       CA",
+            )]);
+            l.decisions = vec![
+                decision(
+                    1,
+                    1,
+                    Assignment::Merchant("Sq Sakura".into()),
+                    DecisionSource::Builtin {
+                        logic: BuiltinLogic::MerchantCleaner,
+                        version: 0,
+                    },
+                ),
+                decision(
+                    2,
+                    1,
+                    Assignment::Bucket(Bucket::NeedsReview),
+                    needs_review_source(),
+                ),
+            ];
+            u.save_ledger(&l).unwrap();
+        };
+        // Confirmed: the newer clean-up's different name is only a suggestion.
+        let (_dir, mut u) = new_database();
+        start(&mut u);
+        confirm_decisions(&mut u, &[DecisionId(1)], NOW).unwrap();
+        let report = run(&mut u, Scope::All, LATER).unwrap();
+        assert_eq!((report.suggestions, report.cleaned_merchants), (1, 1));
+        assert_eq!(merchant(&checked(&u), 1), "Sq Sakura");
+        // Not confirmed: the same run changes it.
+        let (_dir2, mut v) = new_database();
+        start(&mut v);
+        let report = run(&mut v, Scope::All, LATER).unwrap();
+        assert_eq!(report.suggestions, 0);
+        assert_eq!(merchant(&checked(&v), 1), "Sakura Ramen");
+    }
+
+    #[test]
+    fn rejecting_sends_a_batch_back_to_review_and_it_sticks() {
+        let (_dir, mut u, ids) = three_model_decisions();
+        assert_eq!(reject_decisions(&mut u, &ids, LATER).unwrap(), 3);
+        let l = checked(&u);
+        for (t, id) in (1..=3).zip(&ids) {
+            assert_eq!(bucket(&l, t), Bucket::NeedsReview);
+            assert_eq!(applied(&l, t, true).source, needs_review_source());
+            let rejected = l.decisions.iter().find(|d| d.id == *id).unwrap();
+            assert_eq!(
+                (rejected.state, rejected.seen_at),
+                (DecisionState::Dismissed, Some(LATER))
+            );
+        }
+        // The model can't bring a rejected answer back; a different answer it may.
+        let rejected = l
+            .decisions
+            .iter()
+            .find(|d| d.id == ids[1])
+            .unwrap()
+            .assignment
+            .clone();
+        let mut planner = Planner::new(LedgerView::from(&l), LATER);
+        assert!(!planner.propose(TransactionId(2), model_source(), rejected));
+        let other = Assignment::Bucket(cat(&l.taxonomy, "entertainment.music"));
+        assert!(planner.propose(TransactionId(2), model_source(), other));
+        assert_eq!(planner.finish().report.kept_dismissed, 1);
+
+        // A run changes nothing: the placeholders are what's in effect.
+        let report = run(&mut u, Scope::All, LATER).unwrap();
+        assert_eq!(report.needs_review_added, 0);
+        assert_eq!(checked(&u).decisions.len(), l.decisions.len());
+    }
+
+    #[test]
+    fn rejecting_one_side_of_a_pair_rejects_both() {
+        let (_dir, mut u) = stored(
+            vec![
+                txn(1, 1, -50_000, "ONLINE TRANSFER TO SAV"),
+                txn(2, 2, 50_000, "ONLINE TRANSFER FROM CHK"),
+            ],
+            vec![],
+        );
+        let report = crate::transfers::detect(&mut u, NOW).unwrap();
+        assert_eq!(report.applied.len(), 1);
+        let pair = applied(&u.load_ledger().unwrap(), 2, true).id;
+        assert_eq!(reject_decisions(&mut u, &[pair], LATER).unwrap(), 2);
+        let l = checked(&u);
+        assert_eq!(bucket(&l, 1), Bucket::NeedsReview);
+        assert_eq!(bucket(&l, 2), Bucket::NeedsReview);
+        // Transfer detection doesn't pair them again.
+        let again = crate::transfers::detect(&mut u, LATER).unwrap();
+        assert!(again.applied.is_empty() && again.suggested.is_empty());
+    }
+
+    #[test]
+    fn only_model_or_fixed_logic_buckets_can_be_rejected() {
+        let streaming = cat(&default_taxonomy(), "entertainment.streaming");
+        let (_dir, mut u) = stored(
+            vec![txn(1, 1, -1599, "NETFLIX.COM"), txn(2, 1, -1599, "HULU")],
+            vec![user_rule(1, "NETFLIX", Some(streaming), None)],
+        );
+        correct(
+            &mut u,
+            TransactionId(2),
+            Correction::Bucket(streaming),
+            Learn::No,
+            NOW,
+        )
+        .unwrap();
+        let l = u.load_ledger().unwrap();
+        // A rule's bucket, a correction, and a merchant name.
+        for d in [
+            applied(&l, 1, true),
+            applied(&l, 2, true),
+            applied(&l, 1, false),
+        ] {
+            let err = reject_decisions(&mut u, &[d.id], LATER).unwrap_err();
+            assert!(matches!(err, CategorizeError::NotRejectable(_)), "{err}");
+        }
+        assert_eq!(u.load_ledger().unwrap(), l);
+    }
+
+    #[test]
+    fn duplicate_ids_count_once() {
+        let (_dir, mut u, ids) = three_model_decisions();
+        assert_eq!(
+            confirm_decisions(&mut u, &[ids[0], ids[0], ids[1]], LATER).unwrap(),
+            2
+        );
+        checked(&u);
+    }
+
+    #[test]
+    fn rejecting_both_halves_of_a_pair_counts_each_once() {
+        let (_dir, mut u) = stored(
+            vec![
+                txn(1, 1, -50_000, "ONLINE TRANSFER TO SAV"),
+                txn(2, 2, 50_000, "ONLINE TRANSFER FROM CHK"),
+            ],
+            vec![],
+        );
+        crate::transfers::detect(&mut u, NOW).unwrap();
+        let l = u.load_ledger().unwrap();
+        let halves = [applied(&l, 1, true).id, applied(&l, 2, true).id];
+        assert_eq!(reject_decisions(&mut u, &halves, LATER).unwrap(), 2);
+        checked(&u);
+    }
+
+    #[test]
+    fn a_batch_with_one_bad_id_changes_nothing() {
+        let streaming = cat(&default_taxonomy(), "entertainment.streaming");
+        let (_dir, mut u, ids) = three_model_decisions();
+        let mut rule = user_rule(1, "NETFLIX", Some(streaming), None);
+        rule.created_at = LATER;
+        u.insert_rule(&rule).unwrap();
+        u.insert_transaction(&txn(4, 1, -1599, "NETFLIX.COM"))
+            .unwrap();
+        run(&mut u, Scope::All, LATER).unwrap();
+        let before = u.load_ledger().unwrap();
+        let by_rule = applied(&before, 4, true).id;
+        for batch in [vec![ids[0], by_rule], vec![ids[0], DecisionId(999)]] {
+            assert!(reject_decisions(&mut u, &batch, LATER).is_err());
+            assert!(confirm_decisions(&mut u, &[ids[0], DecisionId(999)], LATER).is_err());
+            assert_eq!(u.load_ledger().unwrap(), before);
+        }
+    }
+
+    #[test]
+    fn confirm_refuses_the_placeholder_and_skips_user_input() {
+        let streaming = cat(&default_taxonomy(), "entertainment.streaming");
+        let (_dir, mut u) = stored(
+            vec![
+                txn(1, 1, -1599, "NETFLIX.COM"),
+                txn(2, 1, -1599, "HULU"),
+                txn(3, 1, -100, "SOMETHING"),
+            ],
+            vec![user_rule(1, "NETFLIX", Some(streaming), None)],
+        );
+        correct(
+            &mut u,
+            TransactionId(2),
+            Correction::Bucket(streaming),
+            Learn::No,
+            NOW,
+        )
+        .unwrap();
+        let l = u.load_ledger().unwrap();
+        let placeholder = applied(&l, 3, true).id;
+        let err = confirm_decisions(&mut u, &[placeholder], LATER).unwrap_err();
+        assert!(matches!(err, CategorizeError::NotConfirmable(_)), "{err}");
+        // The rule's and the user's decisions are skipped; the clean-up's name is marked.
+        let ids = [
+            applied(&l, 1, true).id,
+            applied(&l, 2, true).id,
+            applied(&l, 1, false).id,
+        ];
+        assert_eq!(confirm_decisions(&mut u, &ids, LATER).unwrap(), 1);
+        let after = checked(&u);
+        assert!(
+            after
+                .decisions
+                .iter()
+                .find(|d| d.id == ids[0])
+                .unwrap()
+                .seen_at
+                .is_none()
+        );
+        assert!(
+            after
+                .decisions
+                .iter()
+                .find(|d| d.id == ids[2])
+                .unwrap()
+                .seen_at
+                .is_some()
+        );
+    }
+
+    #[test]
+    fn an_orphaned_pair_half_can_still_be_dismissed() {
+        let (_dir, mut u, suggestions) = suggested_pair();
+        // An older version left only one half open.
+        u.set_decision_state(suggestions[1], DecisionState::Superseded)
+            .unwrap();
+        assert!(matches!(
+            accept_suggestion(&mut u, suggestions[0], LATER),
+            Err(CategorizeError::StaleSuggestion(_))
+        ));
+        assert_eq!(
+            dismiss_suggestion(&mut u, suggestions[0], LATER).unwrap(),
+            [suggestions[0]]
+        );
+        let l = checked(&u);
+        assert!(
+            l.decisions
+                .iter()
+                .all(|d| d.state != DecisionState::Suggested)
+        );
+    }
+
+    #[test]
+    fn correcting_one_side_closes_both_halves_of_a_pair_suggestion() {
+        let (_dir, mut u, suggestions) = suggested_pair();
+        let fees = cat(&default_taxonomy(), "financial.bank_fees");
+        correct(
+            &mut u,
+            TransactionId(1),
+            Correction::Bucket(fees),
+            Learn::No,
+            LATER,
+        )
+        .unwrap();
+        let l = checked(&u);
+        for id in &suggestions {
+            let d = l.decisions.iter().find(|d| d.id == *id).unwrap();
+            assert_eq!(d.state, DecisionState::Superseded, "decision {}", id.0);
+        }
+        assert_eq!(bucket(&l, 2), Bucket::NeedsReview);
+    }
+
+    #[test]
+    fn rules_whose_decisions_were_seen_can_be_undone_and_deleted() {
+        let streaming = cat(&default_taxonomy(), "entertainment.streaming");
+        for delete in [false, true] {
+            let (_dir, mut u) = stored(
+                vec![txn(1, 1, -1599, "NETFLIX.COM")],
+                vec![user_rule(
+                    1,
+                    "NETFLIX",
+                    Some(streaming),
+                    Some("Netflix Inc"),
+                )],
+            );
+            let l = u.load_ledger().unwrap();
+            confirm_decisions(&mut u, &[applied(&l, 1, false).id], NOW).unwrap();
+            u.mark_decision_seen(applied(&l, 1, true).id, NOW).unwrap();
+            if delete {
+                delete_rule(&mut u, RuleId(1), LATER).unwrap();
+            } else {
+                set_rule_enabled(&mut u, RuleId(1), false).unwrap();
+                undo_rule_decisions(&mut u, RuleId(1), LATER).unwrap();
+            }
+            let after = checked(&u);
+            assert_eq!(bucket(&after, 1), Bucket::NeedsReview);
+            assert_eq!(merchant(&after, 1), "Netflix");
+        }
+    }
+
+    #[test]
+    fn rejecting_a_pair_lets_a_matching_user_rule_apply() {
+        let fees = cat(&default_taxonomy(), "financial.bank_fees");
+        let (_dir, mut u) = stored(
+            vec![
+                txn(1, 1, -50_000, "ONLINE TRANSFER TO SAV"),
+                txn(2, 2, 50_000, "ONLINE TRANSFER FROM CHK"),
+            ],
+            vec![],
+        );
+        crate::transfers::detect(&mut u, NOW).unwrap();
+        let mut rule = user_rule(1, "ONLINE TRANSFER", Some(fees), None);
+        rule.created_at = LATER;
+        u.insert_rule(&rule).unwrap();
+        // The pair holds the rule off.
+        assert_eq!(
+            run(&mut u, Scope::All, LATER).unwrap().kept_transfer_pair,
+            2
+        );
+        let pair = applied(&u.load_ledger().unwrap(), 1, true).id;
+        reject_decisions(&mut u, &[pair], LATER).unwrap();
+        let l = checked(&u);
+        assert_eq!(applied(&l, 1, true).source, rule_source(1));
+        assert_eq!(bucket(&l, 1), fees);
+        assert_eq!(
+            bucket(&l, 2),
+            Bucket::Refund {
+                category_id: category(&l.taxonomy, "financial.bank_fees"),
+                original: None
+            }
+        );
+    }
+
+    #[test]
+    fn a_pair_whose_other_side_does_not_point_back_is_not_rejectable() {
+        let (_dir, mut u) = stored(
+            vec![
+                txn(1, 1, -50_000, "ONLINE TRANSFER TO SAV"),
+                txn(2, 2, 50_000, "ONLINE TRANSFER FROM CHK"),
+            ],
+            vec![],
+        );
+        // A model "pair" on 1 pointing at 2, while 2 is still in review.
+        let id = with_model_buckets(
+            &u,
+            &[(
+                1,
+                Bucket::Transfer {
+                    counterpart: Some(TransactionId(2)),
+                },
+            )],
+        )[0];
+        let before = u.load_ledger().unwrap();
+        let err = reject_decisions(&mut u, &[id], LATER).unwrap_err();
+        assert!(matches!(err, CategorizeError::NotRejectable(_)), "{err}");
+        assert_eq!(u.load_ledger().unwrap(), before);
+    }
+
+    #[test]
+    fn a_refund_for_money_going_out_is_refused() {
+        let coffee = category(&default_taxonomy(), "food.coffee");
+        let (_dir, mut u) = stored(vec![txn(1, 1, -450, "BLUE BOTTLE")], vec![]);
+        let err = correct(
+            &mut u,
+            TransactionId(1),
+            Correction::Bucket(Bucket::Refund {
+                category_id: coffee,
+                original: None,
+            }),
+            Learn::Default,
+            NOW,
+        )
+        .unwrap_err();
+        assert!(matches!(err, CategorizeError::DoesNotFit), "{err}");
+        assert!(u.rules().unwrap().is_empty());
+    }
+}
