@@ -166,6 +166,7 @@ People own their financial data, and the app adds an intelligence layer on top o
   - **Rules:** the licence must allow redistribution; pin the exact GGUF file hash; record why the winner won.
   - Specific candidates are chosen at build time, because small models change quickly.
   - Using different models for different jobs is a later optimisation.
+- **What the AI categoriser may choose (decision 45):** the user's categories, **Income**, or **uncategorised** (Needs review). It never chooses **Transfer**: transfers come only from transfer detection, the user's rules and the user's own corrections, because a wrong "transfer" silently hides real spending. Money in on a chosen category is recorded as a refund of that category.
 - **Training and eval data (decision 26):**
   - **Released (open) weights are trained only on synthetic and public data.** Never on real user data, the founder's included, because models can memorise and leak training data.
   - **Evaluation uses the founder's own data locally** (Stage 1) **plus federated evaluation:** consenting users' apps run test sets locally and share only scores.
@@ -307,3 +308,4 @@ People own their financial data, and the app adds an intelligence layer on top o
 | 42 | 2026-10-17 | Counting rules: purchase date when present (else posted); posted only, pending shown separately; net of refunds; transfers never spending or income; account currency with original amounts for foreign questions | One definition of "correct" shared by views, answers and the test set |
 | 43 | 2026-10-17 | Deleting by account or date range: delete in-scope transactions; delete fully-in-scope files; partly-in-scope files deleted whole only by opt-in; kept files record their deleted rows so they never come back | Deletion stays real without silently removing transactions the user didn't ask to delete |
 | 44 | 2026-10-17 | A file overlapping a deleted period imports everything, with a warning; refining this is a TODO | Simple and transparent for the MVP |
+| 45 | 2026-10-17 | The AI categoriser chooses from categories + Income + uncategorised; never Transfer (rules, detection and the user only) | A wrong transfer hides real spending; income in review would otherwise always be wrong |
