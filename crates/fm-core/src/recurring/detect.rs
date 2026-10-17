@@ -122,6 +122,8 @@ struct Chain {
     rows: Vec<usize>,
     pass: usize,
     variable: bool,
+    /// Found on the estimated-tax calendar rather than by gaps (see [`calendar_chains`]).
+    calendar: bool,
 }
 
 /// The rows that can take part: everything except card payments (both sides), the
@@ -494,6 +496,7 @@ fn exact_chains(rows: &[Row<'_>], params: Params) -> Vec<Chain> {
                         rows: chain,
                         pass: p,
                         variable: false,
+                        calendar: false,
                     });
                 }
             }
@@ -578,6 +581,7 @@ fn variable_chains(rows: &[Row<'_>], used: &HashSet<usize>, params: Params) -> V
                         rows: chain,
                         pass: p,
                         variable: true,
+                        calendar: false,
                     });
                 }
             }
@@ -616,6 +620,124 @@ fn absorb(rows: &[Row<'_>], exact: Vec<Chain>, variable: &mut [Chain]) -> Vec<Ch
         kept.push(e);
     }
     kept
+}
+
+/// The US federal estimated-tax due dates (IRS Form 1040-ES), as month and day. Many
+/// states use the same dates. The gaps between them are 3, 2, 3 and 4 months, so no
+/// cadence finds these payments; they are matched to the calendar instead.
+const ESTIMATED_TAX_DUE: [(u8, u8); 4] = [(1, 15), (4, 15), (6, 15), (9, 15)];
+/// How long before a due date a payment still counts for it (paying a week early).
+const DUE_EARLY_DAYS: i32 = 7;
+/// How long after: a due date on a weekend or holiday moves to the next business day
+/// (as late as the 18th), and the payment may post a day or two later.
+const DUE_LATE_DAYS: i32 = 5;
+/// The fewest payments on the calendar for a series: a year's worth.
+const CALENDAR_MIN: usize = 4;
+
+/// The due date of calendar slot `slot` (four a year, counted from year 0).
+fn due_date(slot: i32) -> Option<Date> {
+    let (month, day) = ESTIMATED_TAX_DUE[slot.rem_euclid(4) as usize];
+    Date::from_ymd(slot.div_euclid(4), month, day).ok()
+}
+
+/// The calendar slot a date falls in, if it is near a due date.
+fn slot_of(date: Date) -> Option<i32> {
+    (date.year() * 4 - 1..=date.year() * 4 + 4).find(|&slot| {
+        due_date(slot)
+            .is_some_and(|due| (-DUE_EARLY_DAYS..=DUE_LATE_DAYS).contains(&date.days_since(due)))
+    })
+}
+
+/// Payments to one payee on the estimated-tax calendar ([`ESTIMATED_TAX_DUE`]), from
+/// the rows no other series took (money out, not to an own account), one fine merchant
+/// key at a time. Each due date takes
+/// at most one payment, the one nearest in amount to the previous member: a balance-due
+/// payment made the same April day as the first estimate stays out. Consecutive due
+/// dates must make up `regular_share` of the steps, and a silence longer than
+/// `split_days` ends the series. Candidates are then judged like any other (see
+/// [`accept`]), so a payee seen at other times too isn't read as paying on schedule.
+fn calendar_chains(rows: &[Row<'_>], used: &HashSet<usize>, params: Params) -> Vec<Chain> {
+    let quarterly = PASSES
+        .iter()
+        .position(|p| p.cadence == Cadence::Quarterly)
+        .expect("a quarterly pass exists");
+    let mut groups: BTreeMap<(AccountId, &str), BTreeMap<i32, Vec<usize>>> = BTreeMap::new();
+    for (i, r) in rows.iter().enumerate() {
+        // Payments to a payee only: moving money between own accounts ahead of a due
+        // date funds the payment, and counting it too would double the commitment.
+        if used.contains(&i) || r.key.is_empty() || r.direction != Direction::Out || r.own_transfer
+        {
+            continue;
+        }
+        if let Some(slot) = slot_of(r.date) {
+            groups
+                .entry((r.account, r.fine_key.as_str()))
+                .or_default()
+                .entry(slot)
+                .or_default()
+                .push(i);
+        }
+    }
+    let mut out = Vec::new();
+    for slots in groups.values() {
+        if slots.len() < CALENDAR_MIN {
+            continue;
+        }
+        // The first slot has no previous member: compare with the group's median.
+        let mut sizes: Vec<i64> = slots
+            .values()
+            .flatten()
+            .map(|&i| rows[i].amount.minor())
+            .collect();
+        sizes.sort_unstable();
+        let median = rows[slots
+            .values()
+            .flatten()
+            .copied()
+            .find(|&i| rows[i].amount.minor() == sizes[sizes.len() / 2])
+            .expect("non-empty")]
+        .amount;
+        let mut chains: Vec<(Vec<usize>, Vec<i32>)> = Vec::new();
+        for (&slot, candidates) in slots {
+            let current = chains.last_mut().filter(|(members, _)| {
+                let last = rows[*members.last().expect("non-empty")].date;
+                due_date(slot).is_some_and(|due| due.days_since(last) <= params.split_days)
+            });
+            let reference = current.as_ref().map_or(median, |(members, _)| {
+                rows[*members.last().expect("non-empty")].amount
+            });
+            let Some(&best) = candidates
+                .iter()
+                .filter(|&&i| ratio(rows[i].amount, reference) <= params.variable_band)
+                .min_by(|&&a, &&b| {
+                    ratio(rows[a].amount, reference).total_cmp(&ratio(rows[b].amount, reference))
+                })
+            else {
+                continue;
+            };
+            match current {
+                Some((members, taken)) => {
+                    members.push(best);
+                    taken.push(slot);
+                }
+                None => chains.push((vec![best], vec![slot])),
+            }
+        }
+        for (members, taken) in chains {
+            let consecutive = taken.windows(2).filter(|w| w[1] - w[0] == 1).count();
+            if members.len() >= CALENDAR_MIN
+                && consecutive as f64 >= params.regular_share * (members.len() - 1) as f64
+            {
+                out.push(Chain {
+                    rows: members,
+                    pass: quarterly,
+                    variable: true,
+                    calendar: true,
+                });
+            }
+        }
+    }
+    out
 }
 
 /// Adds to each series the rows of its merchant that no series took and that sit in
@@ -786,6 +908,8 @@ fn describe(rows: &[Row<'_>], mut chain: Chain, as_of: Date) -> Series {
         last: last.date,
         next_expected: if ended {
             None
+        } else if chain.calendar {
+            slot_of(last.date).and_then(|slot| due_date(slot + 1))
         } else {
             next_after(last.date, cadence)
         },
@@ -826,6 +950,13 @@ pub(crate) fn detect_with(
     let mut variable = accept(&rows, variable_chains(&rows, &used, params), &used, params);
     let exact = absorb(&rows, exact, &mut variable);
     let mut chains: Vec<Chain> = exact.into_iter().chain(variable).collect();
+    let used: HashSet<usize> = chains.iter().flat_map(|c| c.rows.iter().copied()).collect();
+    chains.extend(accept(
+        &rows,
+        calendar_chains(&rows, &used, params),
+        &used,
+        params,
+    ));
     fill_gaps(&rows, &mut chains, params);
     let mut series: Vec<Series> = chains
         .into_iter()

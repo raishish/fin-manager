@@ -47,7 +47,14 @@ Income and transfers are detected too, not only charges. Cash-flow planning (aff
 7. **Variable amounts**, from the rows no exact chain took, grouped by fine key:
    - Monthly and quarterly series need at least 6 and 4 occurrences, each amount within 4× of the previous one (`variable_band`). That lets utilities drift with the seasons but rejects one-off spikes.
    - Semiannual and annual series need every amount within 1.10× (`step_band`): a price step, as with insurance or property tax.
-8. **Clean-up.**
+8. **The estimated-tax calendar** (T3.4). US estimated tax is due around Jan 15, Apr 15, Jun 15 and Sep 15 (IRS Form 1040-ES; many states use the same dates). The gaps of 3, 2, 3 and 4 months fit no cadence, so these payments are matched to the calendar instead, with no cadence band loosened.
+   - Only rows no other series took, money out to a payee, not a transfer between own accounts. Moving money to checking ahead of a due date funds the payment; counting it too would double the commitment.
+   - A payment counts for a due date from 7 days before it to 5 days after: early payments, and due dates moved past a weekend or holiday to as late as the 18th, plus a day or two of posting.
+   - Each due date takes at most one payment per fine merchant key: the one nearest in amount to the previous member. A balance-due payment made the same April day as the first estimate stays out.
+   - A series needs at least 4 payments, a year's worth. At least 75% of steps must be from one due date to the next, and a silence longer than `split_days` ends the series.
+   - Candidates are then judged like any other (step 5), so a shop that also happens to be visited near the due dates is not a tax series.
+   - `next_expected` is the next due date on the calendar.
+9. **Clean-up.**
    - Exact chains inside a variable series of the same merchant fold into it (interest that repeats an amount for a few months).
    - Leftover rows of the merchant that sit in an empty slot of a series join it, if within a price step of their neighbours.
    - A series whose amount changes more often than every fourth occurrence is described as variable.
@@ -57,14 +64,14 @@ Income and transfers are detected too, not only charges. Cash-flow planning (aff
 
 | Measure | Result |
 |---|---|
-| Series precision | 0.8913 (82 of 92) |
-| Series recall | 0.9880 (82 of 83); no truth series split |
-| Member precision / recall | 0.9819 / 0.9915 |
-| Found by kind | bills 37/38, subscriptions 29/29, income 6/6, interest 4/4, transfers 6/6 |
-| Of the 82 correct series | cadence right 82, ended right 82, kind right 79 |
+| Series precision | 0.8925 (83 of 93) |
+| Series recall | 1.0000 (83 of 83); no truth series split |
+| Member precision / recall | 0.9820 / 0.9960 |
+| Found by kind | bills 38/38, subscriptions 29/29, income 6/6, interest 4/4, transfers 6/6 |
+| Of the 83 correct series | cadence right 83, ended right 83, kind right 80 |
 | One-offs in any series | 0 of 27 |
 
-- **The missed series:** `freelancer.estimated_tax`, US quarterly estimated tax on Jan 15, Apr 15, Jun 15 and Sep 15. The gaps are 61 to 122 days, outside the quarterly band.
+- **No series is missed.** `freelancer.estimated_tax` (gaps of 61 to 122 days), missed before T3.4, is found on the estimated-tax calendar with exactly its 8 payments; the April 2025 balance-due payment stays out.
 - **The three wrong kinds:** Robinhood and 529 contributions are transfers to accounts outside the ledger. T1.4 can't pair them, so they read as `Charge`. The IRA withdrawal reads as `Income`.
 - **The 10 detected series not in TD.1's truth.** Most would count as recurring in real life:
   - annual: a Wikimedia donation, a Vanguard purchase, an IRS payment each April, an eye exam, and two Zelle payments to the same person on the same date each year;
@@ -76,11 +83,11 @@ Income and transfers are detected too, not only charges. Cash-flow planning (aff
 
 | Tolerance | Values → precision / recall |
 |---|---|
-| `split_days` | 100: .883/.976 · 150: .893/.976 · **175–250: .891/.988** · 300: .879/.964 · 400: .889/.964 |
-| `variable_band` | 1.5: .897/.940 · **2 to 100: .891/.988** (flat; dominance does the work on TD.1) |
-| `step_band` | 1.02: .919/.952 · 1.05: .900/.976 · **1.10: .891/.988** · 1.2: .863/.988 · 1.5: .812/.988 |
-| `dominance` | 0.5: .790/.988 · 0.6: .828/.988 · **0.75: .891/.988** · 0.9: .911/.988 · 1.0: .906/.916 |
-| `regular_share` | 0.5: .891/.988 · 0.6: .872/.988 · **0.75: .891/.988** · 0.9: .890/.976 · 1.0: .884/.916 |
+| `split_days` | 100: .885/.976 · 150: .894/.988 · **175–250: .893/1.000** · 300: .880/.976 · 400: .890/.976 |
+| `variable_band` | 1.5: .898/.952 · **2 to 100: .893/1.000** (flat; dominance does the work on TD.1) |
+| `step_band` | 1.02: .920/.964 · 1.05: .901/.988 · **1.10: .893/1.000** · 1.2: .865/1.000 · 1.5: .814/1.000 |
+| `dominance` | 0.5: .790/.988 · 0.6: .830/1.000 · **0.75: .893/1.000** · 0.9: .911/.988 · 1.0: .906/.916 |
+| `regular_share` | 0.5: .893/1.000 · 0.6: .874/1.000 · **0.75: .893/1.000** · 0.9: .891/.988 · 1.0: .885/.928 |
 
 **Hand-written cases** (`hand_written_cases`), in shapes TD.1 doesn't have:
 - A gym billing on the 28th or the 1st alternately: monthly.
@@ -92,10 +99,14 @@ Income and transfers are detected too, not only charges. Cash-flow planning (aff
 - A laptop from a shop that also bills a subscription: not in the series.
 - An annual membership with a price rise among the same shop's purchases: annual.
 - A gas bill six times higher in winter: monthly, variable.
+- Federal and state estimated tax on the 1040-ES calendar: two quarterly series. Payments are early, on time and moved past a weekend, and a same-day balance due stays out.
+- Three estimated-tax payments: not yet a series.
+- A shop visited all year, including near the tax due dates: no series.
+- An estimated-tax series as of October expects January 15 next.
 - **Known failure: two $9.99 Apple subscriptions on the 3rd and the 17th** read as one semimonthly $9.99 series. The rows can't tell that apart from one twice-monthly charge. The monthly total is still right for a forecast, and a labeler that knows the services can split it.
 
 ## Limits
-- Unevenly spaced calendar schedules (US estimated tax) aren't recognised.
+- The only uneven calendar known is US estimated tax. Other fixed-date schedules (a school's term fees, say) aren't recognised unless they fit a cadence.
 - A series needs 3 occurrences (4 for weekly and biweekly, 6 for variable monthly), except annual, which needs 2. A new subscription shows up from its third charge.
 - An annual series has only two points, so it is the weakest kind: most of the "extra" series above are annual.
 - Series are recomputed on each call and not stored, so a user's "this isn't recurring" needs storage (a later task).

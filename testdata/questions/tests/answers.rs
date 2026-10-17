@@ -22,19 +22,12 @@ use fm_questions::{Answer, QuestionSet, Rule, build};
 use fm_synth::truth::{PersonaTruth, TruthBucket};
 
 /// Questions whose query is right but doesn't give the answer yet, and what it gives
-/// today: (question, answer, today's value).
+/// today: (question, answer, today's value). A change in what these give fails here, so
+/// a gap can't close or widen unnoticed.
 ///
-/// T3.4 (lane A) teaches recurring detection the US estimated-tax calendar. When it
-/// lands, it flips exactly these two entries to exact by deleting them; the test then
-/// requires the expected answers. Until then, a change in what these give fails here,
-/// so the gap can't close or widen unnoticed.
-const KNOWN_GAPS: &[(&str, &str, i64)] = &[
-    // T3.4: 12 of the 13 running bills and subscriptions; the IRS quarterly series is missed.
-    ("q062", "recurring", 12),
-    // T3.4: no IRS quarterly series, so no members in 2025.
-    ("q065", "payments", 0),
-    ("q065", "total", 0),
-];
+/// Empty since T3.4 taught recurring detection the US estimated-tax calendar, which made
+/// q062 and q065 exact.
+const KNOWN_GAPS: &[(&str, &str, i64)] = &[];
 
 const NULLS: &[&str] = &["q089", "q093"];
 
@@ -276,7 +269,7 @@ fn every_expected_query_gives_its_answers() {
         "T4.1-TD3 queries={queries} exact={exact} known_gaps={gaps} nulls={} proxies={proxies}",
         NULLS.len()
     );
-    assert_eq!((queries, exact, gaps), (98, 96, 2));
+    assert_eq!((queries, exact, gaps), (98, 98, 0));
 }
 
 #[test]

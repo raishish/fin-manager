@@ -697,6 +697,57 @@ fn cases() -> Vec<Case> {
         expected: vec![gas],
     });
 
+    let mut r = Rows(Vec::new());
+    // The estimated-tax calendar: early, on time, and moved past a weekend; a balance
+    // due paid the same April day as the first estimate.
+    let federal: Vec<i64> = [
+        ("2025-01-15", -310_000),
+        ("2025-04-15", -325_000),
+        ("2025-06-16", -298_000),
+        ("2025-09-10", -305_000),
+        ("2026-01-15", -330_000),
+    ]
+    .iter()
+    .map(|&(d, a)| r.add(1, d, a, "IRS USATAXPYMT"))
+    .collect();
+    r.add(1, "2025-04-15", -91_000, "IRS USATAXPYMT");
+    // A state's estimates on the same dates are their own series.
+    let state: Vec<i64> = ["2025-01-14", "2025-04-15", "2025-06-13", "2025-09-15"]
+        .iter()
+        .map(|d| r.add(1, d, -60_000, "OHIO DEPT TAXATION ESTPMT"))
+        .collect();
+    out.push(Case {
+        name: "federal and state estimated tax on the 1040-ES calendar",
+        rows: r,
+        expected: vec![federal, state],
+    });
+
+    let mut r = Rows(Vec::new());
+    for d in ["2025-01-15", "2025-04-15", "2025-06-15"] {
+        r.add(1, d, -200_000, "IRS USATAXPYMT");
+    }
+    out.push(Case {
+        name: "three estimated-tax payments are not yet a series",
+        rows: r,
+        expected: vec![],
+    });
+
+    let mut r = Rows(Vec::new());
+    for week in 0..60 {
+        let day = date("2025-01-03").checked_add_days(week * 6).unwrap();
+        r.add(
+            2,
+            &day.to_string(),
+            -(4_000 + week as i64 * 731 % 6_000),
+            "WHOLE FOODS MARKET",
+        );
+    }
+    out.push(Case {
+        name: "a shop visited all year, including near the tax due dates",
+        rows: r,
+        expected: vec![],
+    });
+
     out
 }
 
@@ -743,4 +794,45 @@ fn hand_written_cases() {
         }
     }
     assert_eq!(failures, KNOWN_FAILURES);
+}
+
+#[test]
+fn an_estimated_tax_series_expects_the_next_due_date() {
+    let accounts = [account(1, AccountKind::Checking)];
+    let mut r = Rows(Vec::new());
+    for (d, a) in [
+        ("2025-01-15", -310_000),
+        ("2025-04-15", -325_000),
+        ("2025-06-16", -298_000),
+        ("2025-09-15", -305_000),
+    ] {
+        r.add(1, d, a, "ACH DEBIT IRS USATAXPYMT");
+    }
+    let series = detect(&accounts, &r.0, &[], date("2025-10-01"));
+    assert_eq!(series.len(), 1);
+    let s = &series[0];
+    assert_eq!(s.cadence, Cadence::Quarterly);
+    assert_eq!(s.kind, SeriesKind::Charge);
+    assert!(!s.ended);
+    // The next due date on the calendar, not three months after the last payment.
+    assert_eq!(s.next_expected, Some(date("2026-01-15")));
+}
+
+/// T3.4: the freelancer's quarterly estimated tax is one series of exactly its eight
+/// payments, without the April 2025 balance due (a one-off of the same payee and day).
+#[test]
+fn td1_estimated_tax_is_one_series_of_exactly_its_payments() {
+    let (_dir, u) = after_transfers("freelancer");
+    let truth = truth("freelancer");
+    let expected: Vec<i64> = truth.series["freelancer.estimated_tax"].1.clone();
+    let series = detect_in(&u, date(AS_OF)).unwrap();
+    let tax: Vec<&Series> = series
+        .iter()
+        .filter(|s| s.members.iter().any(|m| expected.contains(&m.0)))
+        .collect();
+    assert_eq!(tax.len(), 1);
+    let members: Vec<i64> = tax[0].members.iter().map(|m| m.0).collect();
+    assert_eq!(members, expected);
+    assert_eq!(tax[0].cadence, Cadence::Quarterly);
+    assert!(members.iter().all(|m| !truth.one_offs.contains(m)));
 }
