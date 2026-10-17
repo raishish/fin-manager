@@ -54,6 +54,12 @@ People own their financial data, and the app adds an intelligence layer on top o
   - Special buckets outside the category list: *Transfer*, *Income*, *Refund* (offsets the original category), *Needs review*.
   - The taxonomy is versioned, so evals record which version they were measured against.
   - **No split transactions in the MVP; tags for cross-cutting labels come later.** Both are later increments.
+- **Counting rules for spending views and answers (decision 42):**
+  1. A transaction belongs to the period of its **purchase date** when the bank gives one, otherwise its **posted date**.
+  2. **Posted transactions only**; pending ones are shown separately and never included in totals (their amounts can change, e.g. tips and fuel holds).
+  3. Category spending is **net of refunds and reimbursements** in that category.
+  4. **Transfers never count** as spending or income: card payments, moves between own accounts, and money to or from own accounts outside the ledger. Income is the Income bucket only.
+  5. Amounts are in the **account's currency**; questions about foreign purchases use the original amount the bank recorded.
 - **Quality gate:** transfer detection and categorisation must meet a quality bar before the views and Q&A ship on top of them.
 - **First run (decision 34):**
   1. Welcome: the promise ("your data never leaves this computer") and a link to the network log.
@@ -296,3 +302,4 @@ People own their financial data, and the app adds an intelligence layer on top o
 | 39 | 2026-10-16 | Crash reports are never uploaded by the app: Copy report, file path shown, Delete; no crash-report origin on the allowlist | MVP has no server; keeps the "nothing leaves" promise checkable |
 | 40 | 2026-10-16 | Model downloads come from Hugging Face: huggingface.co + its CDN hosts as exact allowlisted origins, kept in one fm-llm constant; no self-hosted weights | Hosting weights ourselves adds cost and a server for no privacy gain; the SHA-256 pin protects integrity |
 | 41 | 2026-10-16 | Password policy: ≥ 12 characters and zxcvbn score 4; auto-lock after 10 min idle (1/5/10/30/60) and on quit; Touch ID stays a persistent Keychain item as written in §7 | Score 3 still admits passwords crackable offline in hours; passphrases reach 4 easily |
+| 42 | 2026-10-17 | Counting rules: purchase date when present (else posted); posted only, pending shown separately; net of refunds; transfers never spending or income; account currency with original amounts for foreign questions | One definition of "correct" shared by views, answers and the test set |
