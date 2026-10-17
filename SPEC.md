@@ -139,6 +139,7 @@ People own their financial data, and the app adds an intelligence layer on top o
 - **MVP connectors (decision 12):**
   - File import: CSV (with saved per-bank column mappings) and OFX/QFX.
   - **SimpleFIN** for live bank and card sync (US). The UI states plainly that SimpleFIN and MX see the data; we don't.
+    - SimpleFIN gives timestamps, not dates; a transaction's date is the UTC date of its timestamp (decision 47). Revisit on user feedback.
   - Unified data model built for multiple currencies and regions from day one, even though v1 is US-only.
 - **PDF statement parsing with the local model** is the first proof of the AI layer. Now increment 3 (see decision 30).
 - **Later increments, each needing proof first:** SnapTrade Personal (investments); region plug-ins (Enable Banking EEA, India CAS/AIS); users' own Teller/Plaid keys.
@@ -310,3 +311,4 @@ People own their financial data, and the app adds an intelligence layer on top o
 | 44 | 2026-10-17 | A file overlapping a deleted period imports everything, with a warning; refining this is a TODO | Simple and transparent for the MVP |
 | 45 | 2026-10-17 | The AI categoriser chooses from categories + Income + uncategorised; never Transfer (rules, detection and the user only) | A wrong transfer hides real spending; income in review would otherwise always be wrong |
 | 46 | 2026-10-17 | A model decision counts as "seen" only when the user acts on it: confirms or corrects it; bulk approve/reject covers several transactions at once | Being shown a decision in a list isn't agreement; acting on it is, and bulk actions keep review fast |
+| 47 | 2026-10-17 | SimpleFIN transaction dates are the UTC date of the timestamp; revisit on user feedback | The demo bridge stamps 08:00/12:00/20:00 UTC, which give the bank's date in every continental US zone |
