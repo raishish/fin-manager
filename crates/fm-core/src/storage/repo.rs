@@ -123,6 +123,13 @@ fn table_counts(conn: &Connection) -> Result<DeletedCounts, StorageError> {
     })
 }
 
+/// The `meta` key holding the user's saved CSV layouts.
+const CSV_PROFILES_KEY: &str = "csv_profiles";
+
+/// The largest saved-layouts document [`Unlocked::save_csv_profiles`] accepts, in bytes.
+/// A layout is a few kilobytes; this leaves room for dozens.
+pub const CSV_PROFILES_MAX_BYTES: usize = 256 * 1024;
+
 /// The default category list shipped with the app.
 pub fn default_taxonomy() -> Taxonomy {
     serde_json::from_str(DEFAULT_TAXONOMY_JSON).expect("the shipped default taxonomy is valid JSON")
@@ -1201,6 +1208,41 @@ impl Unlocked {
             })?);
         }
         Ok(out)
+    }
+
+    /// The CSV layouts the user saved (`fm_import_csv::ProfileSet::user_profiles_json`),
+    /// or `None` if none were ever saved. Load them with
+    /// `ProfileSet::load_user_profiles`.
+    pub fn csv_profiles(&self) -> Result<Option<String>, StorageError> {
+        Ok(self
+            .connection()
+            .query_row(
+                "SELECT value FROM meta WHERE key = ?1",
+                [CSV_PROFILES_KEY],
+                |r| r.get(0),
+            )
+            .optional()?)
+    }
+
+    /// Saves the user's CSV layouts, replacing any saved before. They live only in the
+    /// encrypted ledger, like the rest of its data. Refused, with nothing changed, when
+    /// larger than [`CSV_PROFILES_MAX_BYTES`] or when they don't load on top of the
+    /// built-in layouts (invalid JSON, an invalid layout, an id taken twice).
+    pub fn save_csv_profiles(&self, json: &str) -> Result<(), StorageError> {
+        if json.len() > CSV_PROFILES_MAX_BYTES {
+            return Err(StorageError::InvalidRequest(
+                "the saved CSV layouts are too large",
+            ));
+        }
+        fm_import_csv::ProfileSet::with_builtin()
+            .load_user_profiles(json)
+            .map_err(|_| StorageError::InvalidRequest("not a valid set of saved CSV layouts"))?;
+        self.connection().execute(
+            "INSERT INTO meta (key, value) VALUES (?1, ?2)
+             ON CONFLICT (key) DO UPDATE SET value = excluded.value",
+            [CSV_PROFILES_KEY, json],
+        )?;
+        Ok(())
     }
 
     /// Writes a whole ledger into this (empty) one, in one transaction: the T0.5

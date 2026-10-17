@@ -1620,3 +1620,101 @@ fn migration_6_starts_each_mark_at_the_ledgers_largest_id() {
     assert_eq!(u.next_id(Table::Decisions).unwrap(), 91);
     assert_eq!(u.next_id(Table::Rules).unwrap(), 1);
 }
+
+// ---- Saved CSV layouts (T0.15).
+
+/// A user layout: a built-in one under a new id that is easy to find in bytes.
+fn layouts_json(id: &str) -> String {
+    let mut set = fm_import_csv::ProfileSet::with_builtin();
+    let mut layout = set.profiles()[0].clone();
+    layout.id = id.to_owned();
+    set.add(layout).unwrap();
+    set.user_profiles_json()
+}
+
+#[test]
+fn saved_csv_layouts_round_trip_and_stay_encrypted() {
+    let (dir, u) = new_ledger();
+    assert_eq!(u.csv_profiles().unwrap(), None);
+    let marker = "zz_layout_marker_7f3a91";
+    let json = layouts_json(marker);
+    u.save_csv_profiles(&json).unwrap();
+    assert_eq!(u.csv_profiles().unwrap().as_deref(), Some(json.as_str()));
+
+    // They load back into a layout set, and survive closing the ledger.
+    let vault = u.lock();
+    let u = vault.unlock(PASSWORD).unwrap();
+    let saved = u.csv_profiles().unwrap().unwrap();
+    let mut set = fm_import_csv::ProfileSet::with_builtin();
+    assert_eq!(set.load_user_profiles(&saved), Ok(1));
+    assert_eq!(set.profiles().last().unwrap().id, marker);
+
+    // Saving again replaces them.
+    let other = layouts_json("zz_second_layout");
+    u.save_csv_profiles(&other).unwrap();
+    assert_eq!(u.csv_profiles().unwrap().as_deref(), Some(other.as_str()));
+    u.save_csv_profiles(&json).unwrap();
+
+    // Nothing but the encrypted database holds them: no file in the ledger folder
+    // contains the layout's id in the clear.
+    drop(u);
+    let mut files = 0;
+    for entry in fs::read_dir(dir.path().join("ledger")).unwrap() {
+        let bytes = fs::read(entry.unwrap().path()).unwrap();
+        assert!(
+            !bytes.windows(marker.len()).any(|w| w == marker.as_bytes()),
+            "a ledger file holds the layout in the clear"
+        );
+        files += 1;
+    }
+    assert!(files >= 2, "the database and keyfile were checked");
+}
+
+#[test]
+fn saved_csv_layouts_are_size_capped_and_checked() {
+    let (_dir, u) = new_ledger();
+    let json = layouts_json("my_credit_union");
+    u.save_csv_profiles(&json).unwrap();
+
+    // Over the cap, even if it is otherwise valid JSON: refused, nothing changed.
+    let padded = format!("{json}{}", " ".repeat(CSV_PROFILES_MAX_BYTES));
+    assert!(serde_json::from_str::<serde_json::Value>(&padded).is_ok());
+    assert!(matches!(
+        u.save_csv_profiles(&padded),
+        Err(StorageError::InvalidRequest(_))
+    ));
+    // Exactly at the cap is fine.
+    let at_cap = format!("{json}{}", " ".repeat(CSV_PROFILES_MAX_BYTES - json.len()));
+    assert_eq!(at_cap.len(), CSV_PROFILES_MAX_BYTES);
+    u.save_csv_profiles(&at_cap).unwrap();
+    u.save_csv_profiles(&json).unwrap();
+
+    // Not layouts, or a layout reusing a built-in id: refused, nothing changed.
+    let builtin_id = fm_import_csv::ProfileSet::with_builtin().profiles()[0]
+        .id
+        .clone();
+    for bad in [
+        "not json".to_owned(),
+        "{\"layouts\": []}".to_owned(),
+        layouts_json("renamed_field").replace("\"id\"", "\"identifier\""),
+    ] {
+        assert!(
+            matches!(
+                u.save_csv_profiles(&bad),
+                Err(StorageError::InvalidRequest(_))
+            ),
+            "accepted {bad:.40}"
+        );
+    }
+    let mut duplicate: Vec<serde_json::Value> = serde_json::from_str(&json).unwrap();
+    duplicate[0]["id"] = serde_json::Value::String(builtin_id);
+    assert!(matches!(
+        u.save_csv_profiles(&serde_json::to_string(&duplicate).unwrap()),
+        Err(StorageError::InvalidRequest(_))
+    ));
+    assert_eq!(u.csv_profiles().unwrap().as_deref(), Some(json.as_str()));
+
+    // No layouts at all is a valid set.
+    u.save_csv_profiles("[]").unwrap();
+    assert_eq!(u.csv_profiles().unwrap().as_deref(), Some("[]"));
+}
