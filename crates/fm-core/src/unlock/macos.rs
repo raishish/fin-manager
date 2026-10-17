@@ -36,7 +36,7 @@ use security_framework_sys::access_control::{
 };
 use zeroize::{Zeroize, Zeroizing};
 
-use super::store::{TouchIdError, TouchIdKeychain};
+use super::store::{KeychainDeletion, TouchIdError, TouchIdKeychain};
 
 const SERVICE: &str = "fin-manager.touch-id";
 
@@ -117,6 +117,20 @@ impl TouchIdKeychain for Keychain {
         match delete_generic_password_options(self.options()) {
             Ok(()) => Ok(()),
             Err(e) if e.code() == ERR_ITEM_NOT_FOUND => Ok(()),
+            // This build has no entitlement, so it can never have stored an item; the
+            // background retry would only loop. (An item a signed build stored can't
+            // be reached from here: see `delete_verified`.)
+            Err(e) if e.code() == ERR_MISSING_ENTITLEMENT => Ok(()),
+            Err(e) => Err(map_error(e)),
+        }
+    }
+
+    fn delete_verified(&self) -> Result<KeychainDeletion, TouchIdError> {
+        match delete_generic_password_options(self.options()) {
+            Ok(()) => Ok(KeychainDeletion::Done),
+            Err(e) if e.code() == ERR_ITEM_NOT_FOUND => Ok(KeychainDeletion::Done),
+            // A signed build of the app may have stored one that this build can't see.
+            Err(e) if e.code() == ERR_MISSING_ENTITLEMENT => Ok(KeychainDeletion::Unverifiable),
             Err(e) => Err(map_error(e)),
         }
     }
@@ -147,6 +161,21 @@ mod tests {
             Err(TouchIdError::Unavailable) => {}
             // A signed test runner would get this far; then clean up.
             Ok(()) => keychain.delete().unwrap(),
+            other => panic!("unexpected {other:?}"),
+        }
+    }
+
+    /// Deleting must succeed on an unsigned build: nothing can be stored there, and
+    /// "delete everything" (T5.3) refuses to go on while a delete is failing.
+    #[test]
+    fn deleting_on_an_unsigned_build_finds_nothing_to_delete() {
+        let keychain = Keychain::for_ledger(Path::new("/nonexistent/fm-test-ledger"));
+        assert_eq!(keychain.delete(), Ok(()));
+        // But it can't vouch for an item a signed build may have stored.
+        match keychain.delete_verified() {
+            Ok(KeychainDeletion::Unverifiable) => {}
+            // A signed test runner can check.
+            Ok(KeychainDeletion::Done) => {}
             other => panic!("unexpected {other:?}"),
         }
     }

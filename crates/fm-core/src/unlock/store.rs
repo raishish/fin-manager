@@ -75,6 +75,16 @@ impl fmt::Display for TouchIdError {
 
 impl std::error::Error for TouchIdError {}
 
+/// The outcome of deleting the Touch ID copy when it matters (deleting everything).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum KeychainDeletion {
+    /// Deleted, or confirmed absent.
+    Done,
+    /// This build can't see the item, so it can't tell whether one is there: an
+    /// unsigned build can't reach an item a signed build of the app stored.
+    Unverifiable,
+}
+
 /// The copy of the data key that Touch ID unlocks (SPEC §7): one Keychain item that
 /// can only be read after a fingerprint match against the fingers enrolled when it
 /// was stored.
@@ -87,6 +97,11 @@ pub trait TouchIdKeychain {
     fn load(&self, reason: &str) -> Result<Zeroizing<[u8; 32]>, TouchIdError>;
     /// Deletes the item. Deleting a missing item succeeds.
     fn delete(&self) -> Result<(), TouchIdError>;
+    /// Deletes the item and says whether its absence could be confirmed. Used where it
+    /// must be certain the key is gone (deleting everything).
+    fn delete_verified(&self) -> Result<KeychainDeletion, TouchIdError> {
+        self.delete().map(|()| KeychainDeletion::Done)
+    }
 }
 
 /// No Touch ID (Linux, or a Mac without it): the password is always used.

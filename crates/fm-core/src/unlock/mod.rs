@@ -25,6 +25,8 @@ pub use macos::Keychain;
 pub use password::{MIN_CHARS, MIN_SCORE, Strength, normalize, strength};
 pub use recovery::{CHALLENGE_GROUPS, Challenge, GROUPS, RecoveryKey, RecoveryKeyError};
 pub use session::{RecoveryToConfirm, Session, Status, TouchIdBlocked, UnlockError};
-pub use store::{LedgerStore, NoTouchId, OpenLedger, TouchIdError, TouchIdKeychain};
+pub use store::{
+    KeychainDeletion, LedgerStore, NoTouchId, OpenLedger, TouchIdError, TouchIdKeychain,
+};
 pub use touch_id::{MAX_FAILED_SCANS, PASSWORD_EVERY, PasswordRequired, TouchIdPolicy};
 pub use vault::{VaultLedger, VaultStore};

@@ -45,6 +45,10 @@ pub const ALLOWED_WHILE_LOCKED: &[&str] = &[
     "activity",
     // Restoring a backup on a fresh install; refused unless there is no ledger yet.
     "restore_backup",
+    // After "delete everything" there is no ledger; this acts only on the offer the
+    // app itself stored when it deleted (deletion.rs).
+    "delete_old_backups",
+    "pending_backup_offer",
 ];
 
 /// The error every other command returns while locked.
@@ -165,6 +169,10 @@ pub struct UnlockState<S: LedgerStore, K: TouchIdKeychain> {
     /// A backup was restored in this run; the ledger takes a new backup id on first
     /// use (see `backup.rs`).
     pub(crate) restored: AtomicBool,
+    /// After a deletion in this run: the offer to delete old backups still holding the
+    /// data (decision 28). Kept here, not taken from the page, so the page can only
+    /// ever delete what the app offered (see `deletion.rs`).
+    pub(crate) backup_offer: Mutex<Option<fm_core::deletion::BackupOffer>>,
 }
 
 impl<S: LedgerStore, K: TouchIdKeychain> UnlockState<S, K> {
@@ -174,6 +182,7 @@ impl<S: LedgerStore, K: TouchIdKeychain> UnlockState<S, K> {
             observer: Box::new(|_| {}),
             interrupt: AtomicBool::new(false),
             restored: AtomicBool::new(false),
+            backup_offer: Mutex::new(None),
         }
     }
 
@@ -217,10 +226,6 @@ impl<S: LedgerStore, K: TouchIdKeychain> UnlockState<S, K> {
 
     /// Runs a write on the open ledger, then tells the observer (e.g. so new account
     /// names are scrubbed from crash reports). Later features use this for writes.
-    #[cfg_attr(
-        not(test),
-        expect(dead_code, reason = "for the features that read and write the ledger")
-    )]
     pub fn write_ledger<T>(&self, f: impl FnOnce(&mut S::Open) -> T) -> Option<T> {
         self.change(|s| s.ledger_mut().map(f))
     }

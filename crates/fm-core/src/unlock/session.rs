@@ -11,7 +11,7 @@ use super::autolock::{AutoLock, DEFAULT_MINUTES};
 use super::clock::Now;
 use super::password::{Strength, normalize, strength};
 use super::recovery::{CHALLENGE_GROUPS, Challenge, RecoveryKey, RecoveryKeyError};
-use super::store::{LedgerStore, OpenLedger, TouchIdError, TouchIdKeychain};
+use super::store::{KeychainDeletion, LedgerStore, OpenLedger, TouchIdError, TouchIdKeychain};
 use super::touch_id::{PasswordRequired, TouchIdPolicy};
 use crate::storage::{StorageError, VaultState};
 
@@ -359,6 +359,15 @@ impl<S: LedgerStore, K: TouchIdKeychain> Session<S, K> {
     pub fn forget_touch_id(&mut self) {
         self.touch_id_stored = false;
         self.delete_pending = self.keychain.delete().is_err();
+    }
+
+    /// [`Session::forget_touch_id`], reporting whether the Keychain copy is known to be
+    /// gone. On an error the delete is retried on every tick, as usual.
+    pub fn forget_touch_id_verified(&mut self) -> Result<KeychainDeletion, TouchIdError> {
+        self.touch_id_stored = false;
+        let result = self.keychain.delete_verified();
+        self.delete_pending = result.is_err();
+        result
     }
 
     /// True while a Keychain delete is still waiting to be retried.

@@ -2,6 +2,7 @@
 
 mod backup;
 mod crash;
+mod deletion;
 mod network;
 
 use fm_core::crash::{CrashReporter, CrashStore};
@@ -102,6 +103,12 @@ const COMMANDS: &[&str] = &[
     "set_backup_folder",
     "backup_now",
     "restore_backup",
+    "data_choices",
+    "preview_deletion",
+    "delete_data",
+    "delete_everything",
+    "delete_old_backups",
+    "pending_backup_offer",
 ];
 
 /// The app's command handler, behind the unlock gate.
@@ -133,6 +140,12 @@ fn handler<R: Runtime>() -> impl Fn(Invoke<R>) -> bool + Send + Sync + 'static {
         backup::commands::set_backup_folder,
         backup::commands::backup_now,
         backup::commands::restore_backup,
+        deletion::commands::data_choices,
+        deletion::commands::preview_deletion,
+        deletion::commands::delete_data,
+        deletion::commands::delete_everything,
+        deletion::commands::delete_old_backups,
+        deletion::commands::pending_backup_offer,
     ])
 }
 
@@ -240,6 +253,173 @@ mod tests {
             .collect();
         files.sort();
         files
+    }
+
+    /// Creates and confirms a ledger through the IPC path.
+    fn create_confirmed(webview: &Webview) {
+        let shown = invoke_with(
+            webview,
+            "create_ledger",
+            serde_json::json!({ "password": "velvet anchor mosaic tundra" }),
+        )
+        .unwrap();
+        let answers: Vec<&serde_json::Value> = shown["challenge"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|i| &shown["groups"][i.as_u64().unwrap() as usize])
+            .collect();
+        invoke_with(
+            webview,
+            "confirm_recovery_key",
+            serde_json::json!({ "answers": answers }),
+        )
+        .unwrap();
+    }
+
+    /// T5.3: "delete everything" through the IPC path: the typed phrase is checked in
+    /// Rust, the ledger is gone afterwards, and the backup offer can be accepted once,
+    /// with no ledger left, acting only on what the app offered.
+    #[test]
+    fn delete_everything_then_the_backup_offer() {
+        let dir = tempfile::tempdir().unwrap();
+        let root = std::fs::canonicalize(dir.path()).unwrap();
+        let folder = root.join("backups");
+        std::fs::create_dir(&folder).unwrap();
+        let (_app, w) = mock_app(&root);
+        create_confirmed(&w);
+        invoke_with(
+            &w,
+            "set_backup_folder",
+            serde_json::json!({ "folder": folder }),
+        )
+        .unwrap();
+        invoke(&w, "backup_now").unwrap();
+        let ledger_dir = root.join("ledger");
+
+        let err = invoke_with(
+            &w,
+            "delete_everything",
+            serde_json::json!({ "confirmation": "delete", "allowUnverifiedKeychain": false }),
+        )
+        .unwrap_err();
+        assert_eq!(err["code"], "ConfirmationMismatch");
+        assert!(ledger_dir.join("ledger.keys").exists(), "nothing touched");
+        assert_eq!(
+            invoke(&w, "delete_old_backups").unwrap_err()["code"],
+            "NoOffer",
+            "no offer before a deletion"
+        );
+
+        let confirmed = |allow: bool| {
+            invoke_with(
+                &w,
+                "delete_everything",
+                serde_json::json!({
+                    "confirmation": "Delete everything",
+                    "allowUnverifiedKeychain": allow,
+                }),
+            )
+        };
+        // An unsigned macOS build can't check the Keychain for a Touch ID key a signed
+        // build may have stored: nothing is destroyed until the user goes ahead. Linux
+        // has no Keychain, so there is nothing to check.
+        let offer = if cfg!(target_os = "macos") {
+            let err = confirmed(false).unwrap_err();
+            assert_eq!(err["code"], "KeychainUnverifiable");
+            assert!(err["message"].as_str().unwrap().contains("Keychain Access"));
+            assert!(
+                ledger_dir.join("ledger.keys").exists(),
+                "nothing destroyed yet"
+            );
+            confirmed(true).unwrap()
+        } else {
+            confirmed(false).unwrap()
+        };
+        assert_eq!(offer["count"], 1);
+        assert!(offer["message"].as_str().unwrap().contains("older backups"));
+        assert!(!ledger_dir.exists(), "ledger gone");
+        assert_eq!(invoke(&w, "unlock_state").unwrap()["status"], "NoLedger");
+        // Gated commands are refused again: there is nothing open.
+        assert_eq!(
+            invoke(&w, "data_choices").unwrap_err(),
+            serde_json::json!("locked")
+        );
+
+        assert_eq!(invoke(&w, "pending_backup_offer").unwrap()["count"], 1);
+        assert_eq!(invoke(&w, "delete_old_backups").unwrap(), 1);
+        assert_eq!(std::fs::read_dir(&folder).unwrap().count(), 0);
+        assert_eq!(
+            invoke(&w, "delete_old_backups").unwrap_err()["code"],
+            "NoOffer"
+        );
+    }
+
+    /// T5.3: preview and delete through the IPC path. The cascade itself is tested in
+    /// depth in fm-core (deletion::tests); this checks the commands: the preview is
+    /// what the deletion then removes, and bad input gets a clear error.
+    #[test]
+    fn preview_and_delete_an_account_through_the_app() {
+        use fm_core::model::{Account, AccountId, AccountKind, Currency, Timestamp};
+        let dir = tempfile::tempdir().unwrap();
+        let (app, w) = mock_app(&std::fs::canonicalize(dir.path()).unwrap());
+        create_confirmed(&w);
+        app.state::<unlock::AppUnlock>()
+            .write_ledger(|open| {
+                open.ledger().insert_account(&Account {
+                    id: AccountId(7),
+                    name: "Old card".into(),
+                    kind: AccountKind::CreditCard,
+                    currency: Currency::new("USD").unwrap(),
+                    institution: None,
+                    masked_number: None,
+                    external_id: None,
+                    own_account: true,
+                    created_at: Timestamp::now(),
+                })
+            })
+            .unwrap()
+            .unwrap();
+        let account = serde_json::json!({
+            "target": { "kind": "account", "id": 7 },
+            "deletePartialFiles": false,
+        });
+        let preview = invoke_with(&w, "preview_deletion", account.clone()).unwrap();
+        assert_eq!(preview["counts"]["accounts"], 1);
+        assert_eq!(
+            invoke(&w, "data_choices").unwrap()["accounts"]
+                .as_array()
+                .unwrap()
+                .len(),
+            1,
+            "the preview deleted nothing"
+        );
+        let deleted = invoke_with(&w, "delete_data", account.clone()).unwrap();
+        assert_eq!(deleted["counts"], preview["counts"]);
+        assert!(deleted["backupOffer"].is_null(), "no backup folder set");
+        assert_eq!(
+            invoke(&w, "data_choices").unwrap()["accounts"],
+            serde_json::json!([])
+        );
+
+        let err = invoke_with(&w, "delete_data", account).unwrap_err();
+        assert_eq!(err["code"], "NotFound");
+        let bad_date = serde_json::json!({
+            "target": { "kind": "range", "account": null, "from": "March", "to": "2026-03-31" },
+            "deletePartialFiles": false,
+        });
+        assert_eq!(
+            invoke_with(&w, "preview_deletion", bad_date).unwrap_err()["code"],
+            "InvalidDate"
+        );
+        let backwards = serde_json::json!({
+            "target": { "kind": "range", "account": null, "from": "2026-04-01", "to": "2026-03-01" },
+            "deletePartialFiles": false,
+        });
+        assert_eq!(
+            invoke_with(&w, "preview_deletion", backwards).unwrap_err()["code"],
+            "EmptyRange"
+        );
     }
 
     /// T5.2: `restore_backup` is the one data-touching command reachable while locked.

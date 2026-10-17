@@ -4,6 +4,7 @@ pub mod backup;
 pub mod categorize;
 pub mod contract;
 pub mod crash;
+pub mod deletion;
 pub mod model;
 pub mod pipeline;
 pub mod storage;
