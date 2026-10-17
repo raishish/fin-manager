@@ -240,6 +240,8 @@ fn public_v6(ip: Ipv6Addr) -> bool {
         || (s[0] & 0xffc0) == 0xfec0 // site-local (deprecated)
         || (s[0] == 0x2001 && s[1] == 0x0db8) // documentation
         || (s[0] == 0x0064 && s[1] == 0xff9b) // NAT64: an IPv4 address inside
+        || (s[..4].iter().all(|&x| x == 0) && s[4] == 0xffff && s[5] == 0) // SIIT ::ffff:0:0:0/96
+        || s[0] == 0x2002 // 6to4: an IPv4 address inside
         || s[..6].iter().all(|&x| x == 0)) // IPv4-compatible (deprecated)
 }
 
@@ -333,6 +335,10 @@ mod tests {
             "[::ffff:192.168.1.1]",
             "[::ffff:7f00:1]",
             "[64:ff9b::a00:1]",
+            "[::ffff:0:a00:1]",
+            "[::ffff:0:5db8:d822]",
+            "[2002:c000:204::1]",
+            "[2002:5db8:d822::1]",
             "printer.local",
             "nas.lan",
             "router.home.arpa",

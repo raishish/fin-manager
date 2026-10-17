@@ -150,6 +150,7 @@ impl From<SimpleFinError> for ConnectorErrorView {
             SimpleFinError::InvalidToken => "InvalidToken",
             SimpleFinError::HostNotConfirmed => "HostNotConfirmed",
             SimpleFinError::BadAccessUrl => "BadAccessUrl",
+            SimpleFinError::BridgeHostChanged => "BridgeHostChanged",
             SimpleFinError::TokenAlreadyUsed => "TokenAlreadyUsed",
             SimpleFinError::AlreadyConnected => "AlreadyConnected",
             SimpleFinError::NotConnected => "NotConnected",
@@ -261,7 +262,7 @@ impl AppUnlock {
             .with_ledger(|open| simplefin::SyncRun::start(open.ledger(), now))
             .ok_or_else(locked)??;
         while let Some(window) = self
-            .with_ledger(|open| run.next(open.ledger()))
+            .with_ledger(|open| run.next(open.ledger(), SystemTime::now()))
             .ok_or_else(locked)??
         {
             let body = simplefin::fetch(net, &run, window)?;

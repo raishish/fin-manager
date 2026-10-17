@@ -26,7 +26,7 @@
 		status = await simplefinStatus();
 	}
 
-	async function run(action: () => Promise<unknown>, done: string) {
+	async function run(action: () => Promise<unknown>, done: string, confirmedHost?: string) {
 		busy = true;
 		error = '';
 		message = '';
@@ -35,7 +35,7 @@
 			message = done;
 			await refresh();
 		} catch (e) {
-			error = connectorErrorMessage(e);
+			error = connectorErrorMessage(e, confirmedHost);
 			await refresh().catch(() => {});
 		} finally {
 			busy = false;
@@ -61,7 +61,8 @@
 		pending = null;
 		run(
 			() => simplefinConnect(setupToken, host),
-			'Connected. Update now to fetch your transactions.'
+			'Connected. Update now to fetch your transactions.',
+			host
 		);
 	}
 
