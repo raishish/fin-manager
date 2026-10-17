@@ -50,6 +50,8 @@ recovery key ──Argon2id(own salt)──► KEK' ─────────�
 
 **One instance at a time:** opening a ledger takes an exclusive advisory lock on `ledger.lock` (`flock` on Unix). A second app instance gets `StorageError::InUse` instead of racing the first one's keyfile writes. The OS releases the lock if the process dies.
 
+Taking the lock retries for up to 200 ms (`LOCK_RETRY`) before reporting `InUse`. A `flock` belongs to an open file description, and a child process spawned by any thread shares that description until its `exec` closes it. A lock released in that window stays held by the child for a moment, which is slow on macOS under load. A ledger that another instance really has open is still refused, 200 ms later (T0.12).
+
 **Rotation is crash-safe:**
 1. The new keyfile is written to `ledger.keys.next`.
 2. SQLCipher re-encrypts the database in a single transaction.

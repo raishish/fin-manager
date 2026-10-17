@@ -799,3 +799,71 @@ fn foreign_keys_off_migrations_are_guarded() {
     assert!(db::migrate(&mut conn, &permits, &next).is_err());
     conn.execute_batch("ROLLBACK").unwrap();
 }
+
+/// T0.12: a lock held for a moment by someone else (a child process that inherited the
+/// lock's file description, here a second handle on the lock file) is waited out; one
+/// held throughout still gives InUse, within the retry bound. Channels, not sleeps,
+/// decide the order, so a loaded machine can't flip the outcome.
+#[test]
+fn a_briefly_held_lock_is_waited_for_and_a_held_one_still_refuses() {
+    use std::sync::mpsc;
+    use std::time::{Duration, Instant};
+
+    let (_dir, vault) = new_vault();
+    vault.create_with_params(PASSWORD, P).unwrap().lock();
+    // Takes the lock on a second handle now; drops it when `release` says so, after
+    // `delay`, and reports the instant just before the drop.
+    let hold = |delay: Duration| {
+        let other = fs::OpenOptions::new()
+            .read(true)
+            .write(true)
+            .open(&vault.lock_path)
+            .unwrap();
+        other.try_lock().unwrap();
+        let (release, go) = mpsc::channel::<()>();
+        let (released_at, when) = mpsc::channel::<Instant>();
+        let thread = std::thread::spawn(move || {
+            go.recv().unwrap();
+            std::thread::sleep(delay);
+            released_at.send(Instant::now()).unwrap();
+            drop(other);
+        });
+        (release, when, thread)
+    };
+
+    // Released while the attempt is under way: both ways of taking the lock get it, and
+    // only after the release.
+    for unlock in [false, true] {
+        let (release, when, thread) = hold(Duration::from_millis(50));
+        release.send(()).unwrap();
+        let got = if unlock {
+            vault.unlock(PASSWORD).map(drop)
+        } else {
+            vault.lock_for_restore().map(drop)
+        };
+        let acquired = Instant::now();
+        got.unwrap();
+        thread.join().unwrap();
+        assert!(acquired >= when.recv().unwrap());
+    }
+
+    // Held throughout (until both refusals are checked): InUse, after the bound, and
+    // without hanging.
+    let (release, when, thread) = hold(Duration::ZERO);
+    for unlock in [false, true] {
+        let started = Instant::now();
+        let attempt = if unlock {
+            vault.unlock(PASSWORD).map(drop)
+        } else {
+            vault.lock_for_restore().map(drop)
+        };
+        let waited = started.elapsed();
+        assert!(matches!(attempt, Err(StorageError::InUse)));
+        assert!(waited >= LOCK_RETRY, "{waited:?}");
+        assert!(waited < LOCK_RETRY + Duration::from_secs(2), "{waited:?}");
+    }
+    release.send(()).unwrap();
+    thread.join().unwrap();
+    when.recv().unwrap();
+    vault.unlock(PASSWORD).unwrap();
+}

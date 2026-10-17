@@ -34,6 +34,14 @@ const KEYFILE: &str = "ledger.keys";
 const NEXT_KEYFILE: &str = "ledger.keys.next";
 /// Advisory lock held while the ledger is open, so two app instances can't both write.
 const LOCK_FILE: &str = "ledger.lock";
+/// How long taking the ledger lock keeps trying before reporting [`StorageError::InUse`].
+/// The lock is a `flock` on an open file description, and a child process spawned by
+/// any thread shares that description until its `exec` closes it: if a lock is released
+/// in that window, the child holds it for a moment longer (slow on macOS under load).
+/// Another instance that really has the ledger open holds it far longer than this.
+const LOCK_RETRY: std::time::Duration = std::time::Duration::from_millis(200);
+/// The pause between attempts within [`LOCK_RETRY`].
+const LOCK_RETRY_STEP: std::time::Duration = std::time::Duration::from_millis(5);
 
 /// Owner-only permissions (SPEC §7: other users on the same machine).
 #[cfg(unix)]
@@ -323,7 +331,8 @@ impl Vault {
         Ok(())
     }
 
-    /// Takes the ledger's advisory lock, or fails with [`StorageError::InUse`].
+    /// Takes the ledger's advisory lock, or fails with [`StorageError::InUse`] if it is
+    /// still held after [`LOCK_RETRY`].
     fn lock(&self) -> Result<LedgerLock, StorageError> {
         let mut options = fs::OpenOptions::new();
         options.read(true).write(true).create(true).truncate(false);
@@ -336,10 +345,16 @@ impl Vault {
             }
             Err(e) => return Err(e.into()),
         };
-        match file.try_lock() {
-            Ok(()) => Ok(LedgerLock(file)),
-            Err(fs::TryLockError::WouldBlock) => Err(StorageError::InUse),
-            Err(fs::TryLockError::Error(e)) => Err(e.into()),
+        let deadline = std::time::Instant::now() + LOCK_RETRY;
+        loop {
+            match file.try_lock() {
+                Ok(()) => return Ok(LedgerLock(file)),
+                Err(fs::TryLockError::WouldBlock) if std::time::Instant::now() < deadline => {
+                    std::thread::sleep(LOCK_RETRY_STEP);
+                }
+                Err(fs::TryLockError::WouldBlock) => return Err(StorageError::InUse),
+                Err(fs::TryLockError::Error(e)) => return Err(e.into()),
+            }
         }
     }
 
