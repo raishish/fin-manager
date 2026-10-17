@@ -68,6 +68,10 @@ Every connection also turns on `foreign_keys` and `secure_delete`, so deleted ro
 - Released migrations are never edited; a change is always a new migration.
 - Version 1 creates only the `meta` key/value table.
 - Version 2 (`schema/v2_ledger.sql`) creates the ledger tables. When a version-1 ledger is opened, it gains the ledger tables and the default category list.
+- Version 3 (`schema/v3_source_facts.sql`) makes two changes:
+  - It adds `trn_type` and `check_number` to `transactions`.
+  - It lets `decisions.builtin_logic` be `import_pipeline`. SQLite can't change a `CHECK` in place, so the decisions table is rebuilt with [SQLite's procedure](https://sqlite.org/lang_altertable.html): create, copy, drop, rename, then recreate the indexes and triggers.
+- A migration that rebuilds a table runs with `foreign_keys_off`. The runner switches foreign keys off around its transaction, so the `DROP TABLE` can't cascade into rules, and requires `foreign_key_check` to come back empty before it commits.
 
 ## Ledger tables and the repository
 The tables mirror the T0.5 model (`crates/fm-core/src/model/README.md`). All of them are `STRICT` and use relational columns, never JSON blobs. Each enum is stored as its JSON name (`"credit_card"`), each `Bucket` as `(bucket, bucket_category_id, bucket_transaction_id)`, and each `DecisionSource` as one column per field. `CHECK` constraints enforce each variant's shape. `repo.rs` is the only code that reads or writes these tables, through methods on `Unlocked`:

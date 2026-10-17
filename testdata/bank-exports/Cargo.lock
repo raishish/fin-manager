@@ -292,6 +292,9 @@ version = "0.0.0"
 dependencies = [
  "argon2",
  "chacha20poly1305",
+ "fm-import-csv",
+ "fm-import-ofx",
+ "fm-import-types",
  "getrandom",
  "rusqlite",
  "rustix",
@@ -303,6 +306,29 @@ dependencies = [
  "unicode-normalization",
  "zeroize",
  "zxcvbn",
+]
+
+[[package]]
+name = "fm-import-csv"
+version = "0.0.0"
+dependencies = [
+ "fm-import-types",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "fm-import-ofx"
+version = "0.0.0"
+dependencies = [
+ "fm-import-types",
+]
+
+[[package]]
+name = "fm-import-types"
+version = "0.0.0"
+dependencies = [
+ "serde",
 ]
 
 [[package]]

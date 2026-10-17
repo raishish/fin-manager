@@ -151,6 +151,8 @@ pub(crate) fn sample_ledger() -> Ledger {
         description: desc.into(),
         payee: None,
         memo: None,
+        trn_type: None,
+        check_number: None,
     };
     let mut groceries = tx(2, 2, 2, 0, "2026-09-03", usd(-8_412), "TRADER JOE'S #123");
     groceries.transaction_date = Some(date("2026-09-02"));
@@ -161,18 +163,23 @@ pub(crate) fn sample_ledger() -> Ledger {
     abroad.original_amount = Some(Money::new(-1_150, Currency::EUR));
     let mut pending = tx(6, 2, 2, 4, "2026-09-30", usd(-450), "PENDING COFFEE");
     pending.status = TransactionStatus::Pending;
+    let mut payroll = tx(1, 1, 1, 0, "2026-09-01", usd(250_000), "PAYROLL ACME");
+    payroll.trn_type = Some("DIRECTDEP".into());
+    let mut payment = tx(
+        3,
+        1,
+        1,
+        1,
+        "2026-09-15",
+        usd(-50_000),
+        "CARD PAYMENT THANK YOU",
+    );
+    payment.trn_type = Some("CHECK".into());
+    payment.check_number = Some("1042".into());
     let transactions = vec![
-        tx(1, 1, 1, 0, "2026-09-01", usd(250_000), "PAYROLL ACME"),
+        payroll,
         groceries,
-        tx(
-            3,
-            1,
-            1,
-            1,
-            "2026-09-15",
-            usd(-50_000),
-            "CARD PAYMENT THANK YOU",
-        ),
+        payment,
         tx(4, 2, 2, 1, "2026-09-16", usd(50_000), "PAYMENT RECEIVED"),
         abroad,
         pending,
@@ -430,6 +437,36 @@ fn golden_transaction() {
             "memo": null
         })
     );
+}
+
+/// Fields added in schema 3 are written when set and omitted (not `null`) when absent,
+/// so older fixtures stay byte-identical.
+#[test]
+fn golden_transaction_with_source_facts() {
+    let l = sample_ledger();
+    let tx = l
+        .transactions
+        .iter()
+        .find(|t| t.id == TransactionId(3))
+        .unwrap();
+    let v = round_trip(tx);
+    assert_eq!(v["trn_type"], json!("CHECK"));
+    assert_eq!(v["check_number"], json!("1042"));
+    let plain = l
+        .transactions
+        .iter()
+        .find(|t| t.id == TransactionId(5))
+        .unwrap();
+    let v = round_trip(plain);
+    assert!(
+        v.get("trn_type").is_none() && v.get("check_number").is_none(),
+        "{v}"
+    );
+    // An explicit null reads back as None too.
+    let mut with_null = v.clone();
+    with_null["trn_type"] = Value::Null;
+    let back: Transaction = serde_json::from_value(with_null).unwrap();
+    assert_eq!(&back, plain);
 }
 
 #[test]

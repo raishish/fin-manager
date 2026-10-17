@@ -17,7 +17,7 @@ The JSON form is stable. Test fixtures, the synthetic data generator's ground tr
 | **Ids** | Plain integers (`AccountId`, `ImportId`, `TransactionId`, `CategoryGroupId`, `CategoryId`, `DecisionId`, `RuleId`). Storage assigns them as SQLite rowids. They are only meaningful inside one ledger. |
 | **Hashes** | `Sha256Hash` = 64 lowercase hex digits. |
 | **Confidence** | Integer basis points, 0 to 10000 (9150 = 91.5%). |
-| **Optional fields** | Written as `null`; a missing key also reads as `null`. |
+| **Optional fields** | Written as `null`; a missing key also reads as `null`. One exception: fields added after the first release (`Transaction.trn_type` and `check_number`, schema 3) are left out when absent instead of written as `null`, so files written before they existed stay byte-identical. |
 | **Unknown fields** | Rejected on every struct and every struct-like enum variant, so a typo in a fixture fails loudly. One serde limit: unit variants inside `"kind"`-tagged enums (`{"kind": "income"}`) ignore extra keys. |
 | **Enums** | `snake_case` strings (`"credit_card"`, `"simplefin"`). Enums with data use a `"kind"` tag (`Bucket`, `DecisionSource`, `RuleOrigin`) or a one-key object (`Assignment`, `TextMatch`, `AmountMatch`), as shown below. |
 | **i64 in JavaScript** | Amounts above 2^53 minor units (about $90 trillion) would lose precision in a JS `number`. Out of reach for real data, but the UI shouldn't do arithmetic on amounts anyway: the core computes every figure. |
@@ -71,6 +71,8 @@ What the source reported, normalised. Derived facts such as the cleaned merchant
 | `description` | string | Exactly as received |
 | `payee` | string? | OFX `NAME` or similar |
 | `memo` | string? | OFX `MEMO` or similar |
+| `trn_type` | string? | The source's transaction type (OFX `TRNTYPE`: `DEBIT`, `XFER`, `DIRECTDEP`, …), when given. A hint for transfer and income detection. Omitted when absent |
+| `check_number` | string? | A paper check's number. Omitted when absent |
 
 ### `Taxonomy`, `CategoryGroup`, `Category`
 ```json
@@ -117,7 +119,7 @@ Every categorisation and merchant clean-up, from any source. Decisions are appen
 |---|---|
 | `{"kind": "user"}` | the user |
 | `{"kind": "rule", "rule_id": 4}` | a rule (user-written or learned from a correction) |
-| `{"kind": "builtin", "logic": "transfer_matcher" \| "merchant_cleaner", "version": 1}` | a rule: fixed logic shipped in the app, versioned |
+| `{"kind": "builtin", "logic": "transfer_matcher" \| "merchant_cleaner" \| "import_pipeline", "version": 1}` | a rule: fixed logic shipped in the app, versioned. `import_pipeline` is the Needs review decision every new transaction gets on import |
 | `{"kind": "model", "model_id": "...", "gguf_sha256": "<hex>", "prompt_version": "...", "confidence": 9150}` | the model, with exact identity and confidence |
 
 `DecisionSource::is_user_input()` is true for `user` and `rule`. These always beat model decisions (constraint 2).

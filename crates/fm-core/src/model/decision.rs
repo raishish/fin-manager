@@ -79,6 +79,9 @@ pub enum BuiltinLogic {
     TransferMatcher,
     /// The built-in merchant name clean-up (T2.2).
     MerchantCleaner,
+    /// The import pipeline (T1.3): files every new transaction under Needs review until
+    /// something decides it (SPEC constraint 4).
+    ImportPipeline,
 }
 
 /// Who or what made a decision (SPEC constraint 8: every decision shows its source).

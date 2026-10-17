@@ -248,12 +248,12 @@ fn raw_import_from_row(r: &Row<'_>) -> Result<RawImport, StorageError> {
 
 const TRANSACTION_COLUMNS: &str = "id, account_id, import_id, source_index, external_id, status, \
      posted_date, transaction_date, amount_minor, currency, original_amount_minor, \
-     original_currency, description, payee, memo";
+     original_currency, description, payee, memo, trn_type, check_number";
 
 fn insert_transaction(conn: &Connection, t: &Transaction) -> Result<(), StorageError> {
     conn.prepare(&format!(
         "INSERT INTO transactions ({TRANSACTION_COLUMNS}) \
-         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15)"
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17)"
     ))?
     .execute(params![
         t.id.0,
@@ -271,6 +271,8 @@ fn insert_transaction(conn: &Connection, t: &Transaction) -> Result<(), StorageE
         t.description,
         t.payee,
         t.memo,
+        t.trn_type,
+        t.check_number,
     ])?;
     Ok(())
 }
@@ -304,6 +306,8 @@ fn transaction_from_row(r: &Row<'_>) -> Result<Transaction, StorageError> {
         description: r.get(12)?,
         payee: r.get(13)?,
         memo: r.get(14)?,
+        trn_type: r.get(15)?,
+        check_number: r.get(16)?,
     })
 }
 
@@ -737,6 +741,29 @@ impl Unlocked {
         query_all(self.connection(), &sql, [], raw_import_from_row)
     }
 
+    /// Every import's source and CSV mapping profile, without its bytes: what the
+    /// pipeline needs to know which dates an earlier import's rows carry.
+    pub(crate) fn import_origins(
+        &self,
+    ) -> Result<
+        std::collections::HashMap<ImportId, (crate::model::ImportSource, Option<String>)>,
+        StorageError,
+    > {
+        const T: &str = "raw_imports";
+        let mut stmt = self
+            .connection()
+            .prepare("SELECT id, source, mapping_profile FROM raw_imports")?;
+        let mut rows = stmt.query([])?;
+        let mut out = std::collections::HashMap::new();
+        while let Some(r) = rows.next()? {
+            out.insert(
+                ImportId(r.get(0)?),
+                (text_enum(T, r.get(1)?)?, r.get::<_, Option<String>>(2)?),
+            );
+        }
+        Ok(out)
+    }
+
     /// Imports whose bytes have this SHA-256 (the same file imported before).
     pub fn imports_with_sha256(&self, sha256: Sha256Hash) -> Result<Vec<ImportId>, StorageError> {
         let mut stmt = self
@@ -879,7 +906,8 @@ impl Unlocked {
                     "UPDATE transactions SET import_id = ?2, source_index = ?3, external_id = ?4,
                          status = ?5, posted_date = ?6, transaction_date = ?7, amount_minor = ?8,
                          currency = ?9, original_amount_minor = ?10, original_currency = ?11,
-                         description = ?12, payee = ?13, memo = ?14
+                         description = ?12, payee = ?13, memo = ?14, trn_type = ?16,
+                         check_number = ?17
                      WHERE id = ?1 AND account_id = ?15",
                     params![
                         posted.id.0,
@@ -897,6 +925,8 @@ impl Unlocked {
                         posted.payee,
                         posted.memo,
                         posted.account_id.0,
+                        posted.trn_type,
+                        posted.check_number,
                     ],
                 )
                 .map_err(map_write_error)?

@@ -1304,6 +1304,8 @@ impl Sim {
                 description: d.description.clone(),
                 payee: None,
                 memo: None,
+                trn_type: None,
+                check_number: None,
             });
             let check_key = |k: &'static str| {
                 assert!(known_keys.contains(k), "unknown category key {k}");

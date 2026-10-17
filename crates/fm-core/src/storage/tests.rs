@@ -140,6 +140,7 @@ fn with_extra_migration(name: &'static str, sql: &'static str) -> Vec<Migration>
         version: MIGRATIONS.len() as u32 + 1,
         name,
         sql,
+        foreign_keys_off: false,
     });
     all
 }
@@ -203,7 +204,7 @@ fn version_1_ledger_upgrades_to_the_ledger_schema() {
     drop(conn);
 
     let u = vault.unlock(PASSWORD).unwrap();
-    assert_eq!(u.schema_version().unwrap(), 2);
+    assert_eq!(u.schema_version().unwrap(), MIGRATIONS.len() as u32);
     assert_eq!(get(&u, "greeting").as_deref(), Some(MARKER));
     assert_eq!(u.taxonomy().unwrap(), default_taxonomy());
 }
@@ -717,4 +718,84 @@ fn restore_lock_excludes_other_instances_until_dropped() {
     assert!(matches!(vault.lock_for_restore(), Err(StorageError::InUse)));
     drop(u);
     drop(vault.lock_for_restore().unwrap());
+}
+
+/// Review 1 of T1.3, item 6: a foreign-keys-off migration really runs with foreign keys
+/// off, refuses to start inside a transaction, and always switches them back on, with
+/// the migration's own error reported.
+#[test]
+fn foreign_keys_off_migrations_are_guarded() {
+    let latest = MIGRATIONS.len() as u32;
+    let (_dir, vault) = new_vault();
+    let u = vault.create_with_params(PASSWORD, P).unwrap();
+    let (mut conn, permits) = db::open_encrypted(vault.db_path(), &u.key, false).unwrap();
+    let fk = |c: &Connection| -> i64 {
+        c.query_row("PRAGMA foreign_keys", [], |r| r.get(0))
+            .unwrap()
+    };
+
+    // Inside the migration, foreign keys read 0 (the SQL records what it saw).
+    let mut probe = MIGRATIONS.to_vec();
+    probe.push(Migration {
+        version: latest + 1,
+        name: "test: probe",
+        sql: "CREATE TABLE seen (fk INTEGER) STRICT;
+              INSERT INTO seen SELECT foreign_keys FROM pragma_foreign_keys;",
+        foreign_keys_off: true,
+    });
+    db::migrate(&mut conn, &permits, &probe).unwrap();
+    let seen: i64 = conn
+        .query_row("SELECT fk FROM seen", [], |r| r.get(0))
+        .unwrap();
+    assert_eq!(seen, 0, "foreign keys were on during the migration");
+    assert_eq!(fk(&conn), 1, "foreign keys not switched back on");
+
+    // A failing one: its error is reported, it's rolled back, and keys are back on.
+    let mut failing = probe.clone();
+    failing.push(Migration {
+        version: latest + 2,
+        name: "test: fails",
+        sql: "CREATE TABLE half (x INTEGER) STRICT; SELECT * FROM no_such_table;",
+        foreign_keys_off: true,
+    });
+    let err = db::migrate(&mut conn, &permits, &failing).unwrap_err();
+    assert!(
+        matches!(err, StorageError::Migration { version, .. } if version == latest + 2),
+        "{err:?}"
+    );
+    assert_eq!(fk(&conn), 1);
+    assert_eq!(db::schema_version(&conn).unwrap(), latest + 1);
+
+    // One that leaves a dangling reference: refused by the foreign key check.
+    let mut dangling = probe.clone();
+    dangling.push(Migration {
+        version: latest + 2,
+        name: "test: dangling",
+        sql: "INSERT INTO accounts (id, name, kind, currency, own_account, created_at)
+                  VALUES (1, 'a', 'checking', 'USD', 1, 0);
+              INSERT INTO raw_imports (id, source, imported_at, sha256, bytes)
+                  VALUES (1, 'manual', 0, zeroblob(32), x'');
+              INSERT INTO transactions (id, account_id, import_id, source_index, status,
+                  posted_date, amount_minor, currency, description)
+                  VALUES (1, 77, 1, 0, 'posted', '2026-01-01', 1, 'USD', 'x');",
+        foreign_keys_off: true,
+    });
+    assert!(db::migrate(&mut conn, &permits, &dangling).is_err());
+    assert_eq!(fk(&conn), 1);
+    let txs: i64 = conn
+        .query_row("SELECT count(*) FROM transactions", [], |r| r.get(0))
+        .unwrap();
+    assert_eq!(txs, 0, "a migration with FK violations was committed");
+
+    // Inside an open transaction it refuses to start.
+    conn.execute_batch("BEGIN").unwrap();
+    let mut next = probe.clone();
+    next.push(Migration {
+        version: latest + 2,
+        name: "test: in a transaction",
+        sql: "SELECT 1;",
+        foreign_keys_off: true,
+    });
+    assert!(db::migrate(&mut conn, &permits, &next).is_err());
+    conn.execute_batch("ROLLBACK").unwrap();
 }

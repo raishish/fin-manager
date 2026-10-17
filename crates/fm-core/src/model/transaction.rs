@@ -56,4 +56,14 @@ pub struct Transaction {
     pub payee: Option<String>,
     /// Memo or extra details, if the source gives them (OFX `MEMO`).
     pub memo: Option<String>,
+    /// The source's own transaction type (OFX `TRNTYPE`: `DEBIT`, `XFER`, `DIRECTDEP`,
+    /// ...; a CSV type column), when given. A hint for transfer and income detection.
+    ///
+    /// Added in schema 3. Omitted from JSON when absent (not written as `null`), so
+    /// fixtures from before it stay byte-identical.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub trn_type: Option<String>,
+    /// The check number, for a paper check. Same JSON rule as `trn_type`.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub check_number: Option<String>,
 }

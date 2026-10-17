@@ -19,6 +19,10 @@ pub struct Migration {
     pub version: u32,
     pub name: &'static str,
     pub sql: &'static str,
+    /// Run with foreign keys off, as SQLite's table-rebuild procedure requires (a
+    /// `DROP TABLE` would otherwise cascade). `foreign_key_check` must then come back
+    /// empty before the migration commits.
+    pub foreign_keys_off: bool,
 }
 
 /// The ledger schema, in order.
@@ -27,11 +31,19 @@ pub const MIGRATIONS: &[Migration] = &[
         version: 1,
         name: "meta",
         sql: "CREATE TABLE meta (key TEXT PRIMARY KEY NOT NULL, value TEXT NOT NULL) STRICT;",
+        foreign_keys_off: false,
     },
     Migration {
         version: 2,
         name: "ledger",
         sql: include_str!("schema/v2_ledger.sql"),
+        foreign_keys_off: false,
+    },
+    Migration {
+        version: 3,
+        name: "source facts and the import pipeline source",
+        sql: include_str!("schema/v3_source_facts.sql"),
+        foreign_keys_off: true,
     },
 ];
 
@@ -215,6 +227,42 @@ pub(crate) fn schema_version(conn: &Connection) -> Result<u32, StorageError> {
     Ok(conn.query_row("PRAGMA user_version", [], |r| r.get(0))?)
 }
 
+/// Foreign keys switched off for one migration, and back on when dropped.
+struct ForeignKeysOff<'c> {
+    conn: &'c Connection,
+}
+
+impl<'c> ForeignKeysOff<'c> {
+    fn new(conn: &'c Connection) -> rusqlite::Result<ForeignKeysOff<'c>> {
+        let refused = |why: &str| {
+            rusqlite::Error::SqliteFailure(
+                rusqlite::ffi::Error::new(rusqlite::ffi::SQLITE_MISUSE),
+                Some(why.into()),
+            )
+        };
+        if !conn.is_autocommit() {
+            return Err(refused(
+                "can't switch foreign keys off inside a transaction",
+            ));
+        }
+        conn.execute_batch("PRAGMA foreign_keys = OFF;")?;
+        let guard = ForeignKeysOff { conn };
+        let on: i64 = conn.query_row("PRAGMA foreign_keys", [], |r| r.get(0))?;
+        if on != 0 {
+            return Err(refused("foreign keys didn't switch off"));
+        }
+        Ok(guard)
+    }
+}
+
+impl Drop for ForeignKeysOff<'_> {
+    fn drop(&mut self) {
+        // Can't fail outside a transaction; if it somehow did, the next open turns
+        // foreign keys on again (open_encrypted sets them on every connection).
+        let _ = self.conn.execute_batch("PRAGMA foreign_keys = ON;");
+    }
+}
+
 /// Brings the database up to the last of `migrations`, each in its own transaction that
 /// also records the new version, so a failed migration leaves the previous version
 /// intact. Refuses a database newer than the app. Returns the resulting version.
@@ -237,12 +285,40 @@ pub(crate) fn migrate(
         });
     }
     for m in migrations.iter().filter(|m| m.version > current) {
-        let apply = |conn: &mut Connection| -> rusqlite::Result<()> {
-            let tx = conn.transaction()?;
+        // `unchecked_transaction` takes `&Connection`, so the foreign-keys guard below can
+        // hold the connection too; `migrate` holds `&mut`, so nothing else is in one.
+        let apply = |conn: &Connection| -> rusqlite::Result<()> {
+            let tx = conn.unchecked_transaction()?;
             tx.execute_batch(m.sql)?;
+            if m.foreign_keys_off {
+                let violations: i64 =
+                    tx.query_row("SELECT count(*) FROM pragma_foreign_key_check", [], |r| {
+                        r.get(0)
+                    })?;
+                if violations != 0 {
+                    return Err(rusqlite::Error::SqliteFailure(
+                        rusqlite::ffi::Error::new(rusqlite::ffi::SQLITE_CONSTRAINT_FOREIGNKEY),
+                        Some("migration left foreign key violations".into()),
+                    ));
+                }
+            }
             // PRAGMA can't take parameters; the version is our own integer.
             tx.execute_batch(&format!("PRAGMA user_version = {};", m.version))?;
             tx.commit()
+        };
+        // PRAGMA foreign_keys has no effect inside a transaction, so it is switched
+        // around the migration's transaction, checked to have taken effect (otherwise a
+        // table rebuild's DROP TABLE would cascade), and switched back by a guard
+        // whatever happens.
+        let _foreign_keys = if m.foreign_keys_off {
+            Some(
+                ForeignKeysOff::new(conn).map_err(|source| StorageError::Migration {
+                    version: m.version,
+                    source,
+                })?,
+            )
+        } else {
+            None
         };
         apply(conn).map_err(|source| StorageError::Migration {
             version: m.version,

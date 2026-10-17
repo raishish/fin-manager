@@ -664,7 +664,7 @@ fn the_authorizer_refuses_schema_and_setting_changes() {
     };
     assert_eq!(pragma("foreign_keys"), 1);
     assert_eq!(pragma("recursive_triggers"), 1);
-    assert_eq!(pragma("user_version"), 2);
+    assert_eq!(pragma("user_version"), MIGRATIONS.len() as i64);
     // Reads, temporary tables and defer_foreign_keys are fine.
     u.connection()
         .execute_batch(
@@ -849,4 +849,113 @@ fn replace_bypass_needs_recursive_triggers_off() {
         })
         .unwrap();
     assert_eq!(swapped, [0]);
+}
+
+/// Migration 3 on a schema-2 file that already holds decisions, a correction-learned
+/// rule and the decisions that rule made: nothing is lost or cascaded away by the
+/// decisions table rebuild, the protections still hold, and the new columns and decision
+/// source work.
+#[test]
+fn migration_3_keeps_existing_decisions_and_rules() {
+    let dir = tempfile::tempdir().unwrap();
+    let vault = Vault::at(&dir.path().join("ledger"));
+    fs::create_dir_all(vault.dir()).unwrap();
+    let key = keyfile::DataKey::generate().unwrap();
+    let mut kf = keyfile::Keyfile::new().unwrap();
+    kf.set_slot(SlotKind::Password, PASSWORD, P, &key).unwrap();
+    kf.write_atomic(vault.keyfile_path()).unwrap();
+    let (mut conn, permits) = db::open_encrypted(vault.db_path(), &key, true).unwrap();
+    assert_eq!(
+        db::migrate(&mut conn, &permits, &MIGRATIONS[..2]).unwrap(),
+        2
+    );
+    repo::seed_default_taxonomy(&mut conn).unwrap();
+    // A schema-2 ledger, written with schema-2 columns: two transactions, a user
+    // correction, a rule learned from it, a decision by that rule, and a later user
+    // decision replacing the rule's.
+    conn.execute_batch(
+        "INSERT INTO accounts (id, name, kind, currency, own_account, created_at)
+             VALUES (1, 'Card', 'credit_card', 'USD', 1, 0);
+         INSERT INTO raw_imports (id, source, imported_at, sha256, bytes)
+             VALUES (1, 'manual', 0, x'6e340b9cffb37a989ca544e6bb780a2c78901d3fb33738768511a30617afa01d', x'00');
+         INSERT INTO transactions (id, account_id, import_id, source_index, status, posted_date,
+             amount_minor, currency, description)
+             VALUES (1, 1, 1, 0, 'posted', '2026-01-02', -500, 'USD', 'COFFEE'),
+                    (2, 1, 1, 1, 'posted', '2026-01-03', -600, 'USD', 'COFFEE');
+         INSERT INTO decisions (id, transaction_id, assignment, bucket, bucket_category_id, source,
+             taxonomy_base, taxonomy_revision, decided_at, state)
+             VALUES (1, 1, 'bucket', 'category', 1, 'user', '1', 0, 10, 'applied');
+         INSERT INTO rules (id, match_kind, match_text, bucket, bucket_category_id, origin,
+             origin_transaction_id, origin_decision_id, priority, enabled, created_at)
+             VALUES (1, 'contains', 'COFFEE', 'category', 1, 'correction', 1, 1, 0, 1, 11);
+         INSERT INTO decisions (id, transaction_id, assignment, bucket, bucket_category_id, source,
+             rule_id, taxonomy_base, taxonomy_revision, decided_at, state)
+             VALUES (2, 2, 'bucket', 'category', 1, 'rule', 1, '1', 0, 12, 'superseded');
+         INSERT INTO decisions (id, transaction_id, assignment, bucket, source, taxonomy_base,
+             taxonomy_revision, decided_at, state, replaces)
+             VALUES (3, 2, 'bucket', 'needs_review', 'user', '1', 0, 13, 'applied', 2);",
+    )
+    .unwrap();
+    let before: Vec<(i64, String)> = conn
+        .prepare("SELECT id, state FROM decisions ORDER BY id")
+        .unwrap()
+        .query_map([], |r| Ok((r.get(0)?, r.get(1)?)))
+        .unwrap()
+        .collect::<Result<_, _>>()
+        .unwrap();
+    drop(conn);
+
+    let u = vault.unlock(PASSWORD).unwrap();
+    assert_eq!(u.schema_version().unwrap(), 3);
+    let l = u.load_ledger().unwrap();
+    let after: Vec<(i64, String)> = l
+        .decisions
+        .iter()
+        .map(|d| {
+            (
+                d.id.0,
+                serde_json::to_value(d.state)
+                    .unwrap()
+                    .as_str()
+                    .unwrap()
+                    .to_owned(),
+            )
+        })
+        .collect();
+    assert_eq!(after, before);
+    assert_eq!(l.rules.len(), 1, "the rebuild cascaded into rules");
+    assert_eq!(l.decisions[2].replaces, Some(DecisionId(2)));
+    assert!(
+        l.transactions
+            .iter()
+            .all(|t| t.trn_type.is_none() && t.check_number.is_none())
+    );
+
+    // The rebuilt table is protected exactly as before.
+    assert!(sql_fails(
+        &u,
+        "UPDATE decisions SET merchant = 'x' WHERE id = 1"
+    ));
+    assert!(sql_fails(&u, "DELETE FROM decisions WHERE id = 1"));
+    assert!(sql_fails(
+        &u,
+        "UPDATE rules SET match_text = 'TEA' WHERE id = 1"
+    ));
+    let fks: i64 = u
+        .connection()
+        .query_row("SELECT count(*) FROM pragma_foreign_key_check", [], |r| {
+            r.get(0)
+        })
+        .unwrap();
+    assert_eq!(fks, 0);
+    // The new decision source is accepted.
+    let mut d = l.decisions[0].clone();
+    d.id = DecisionId(4);
+    d.source = DecisionSource::Builtin {
+        logic: BuiltinLogic::ImportPipeline,
+        version: 1,
+    };
+    d.state = DecisionState::Suggested;
+    u.insert_decision(&d).unwrap();
+    assert_eq!(u.decision(DecisionId(4)).unwrap().unwrap(), d);
 }
