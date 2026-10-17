@@ -4,6 +4,7 @@ mod backup;
 mod categories;
 mod connectors;
 mod crash;
+mod csv_mapping;
 mod dashboard;
 mod deletion;
 mod importing;
@@ -140,6 +141,9 @@ const COMMANDS: &[&str] = &[
     "delete_rule",
     "accounts",
     "import_file",
+    "csv_mapping_inspect",
+    "csv_mapping_preview",
+    "csv_mapping_save",
 ];
 
 /// The app's command handler, behind the unlock gate.
@@ -200,6 +204,9 @@ fn handler<R: Runtime>() -> impl Fn(Invoke<R>) -> bool + Send + Sync + 'static {
         categories::commands::delete_rule,
         importing::commands::accounts,
         importing::commands::import_file,
+        csv_mapping::commands::csv_mapping_inspect,
+        csv_mapping::commands::csv_mapping_preview,
+        csv_mapping::commands::csv_mapping_save,
     ])
 }
 
