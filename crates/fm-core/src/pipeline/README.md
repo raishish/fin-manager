@@ -15,6 +15,7 @@ Steps 1–4 run in one `SAVEPOINT`: an import is stored completely or not at all
 1. **Raw layer.** The bytes and their SHA-256 are stored as a `RawImport`.
    - Fields set: `source` (`csv`, `ofx`, or `qfx` when the file carries `INTU.BID`), the file name, the CSV mapping profile, and the account when the file has one statement.
    - **The same bytes twice are refused** (`AlreadyImported`) and nothing is written. A re-saved copy with different bytes goes through, and every row in it comes out as a duplicate.
+   - **Rows deleted out of a kept import stay deleted (SPEC decision 43).** `Unlocked::deleted_rows(import)` lists the source indexes a deletion removed while keeping the file. Anything that re-parses a stored raw import (a re-import, a parser upgrade, a repair) must skip those rows. No code re-parses stored imports yet. Known gap: a re-saved copy with different bytes is a new import, so rows the user deleted from the original come back from it as new transactions. Detecting that is policy for T5.3.
 2. **Parse.** A file whose header says OFX goes to `fm-import-ofx`. Anything else is read as CSV by `fm-import-csv`, which recognises the layout from its profiles. Both return `fm_import_types::Statement`s.
 3. **Accounts.**
    - With `Target::Account(id)`: that account.

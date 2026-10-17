@@ -6,6 +6,7 @@ use std::path::PathBuf;
 
 use tempfile::TempDir;
 
+use super::repo::{DeletionPlan, DeletionScope};
 use super::*;
 use crate::model::round_trip_tests::sample_ledger;
 use crate::model::*;
@@ -336,6 +337,9 @@ fn deleting_an_import_cascades_to_everything_derived_from_it() {
             // whose counterpart (4) is gone; 12 was made by the deleted rule.
             decisions: 11,
             rules: 1,
+            imports: 1,
+            accounts: 0,
+            recorded_rows: 0,
         }
     );
     let tx_ids: Vec<_> = u.transactions().unwrap().iter().map(|t| t.id.0).collect();
@@ -906,7 +910,7 @@ fn migration_3_keeps_existing_decisions_and_rules() {
     drop(conn);
 
     let u = vault.unlock(PASSWORD).unwrap();
-    assert_eq!(u.schema_version().unwrap(), 3);
+    assert_eq!(u.schema_version().unwrap(), MIGRATIONS.len() as u32);
     let l = u.load_ledger().unwrap();
     let after: Vec<(i64, String)> = l
         .decisions
@@ -958,4 +962,388 @@ fn migration_3_keeps_existing_decisions_and_rules() {
     d.state = DecisionState::Suggested;
     u.insert_decision(&d).unwrap();
     assert_eq!(u.decision(DecisionId(4)).unwrap().unwrap(), d);
+}
+
+// ---- Planned deletion (T0.10, SPEC decisions 28, 42 and 43).
+
+fn d(text: &str) -> Date {
+    text.parse().unwrap()
+}
+
+fn scope(account: Option<i64>, from: Option<&str>, to: Option<&str>) -> DeletionScope {
+    DeletionScope {
+        account: account.map(AccountId),
+        from: from.map(d),
+        to: to.map(d),
+    }
+}
+
+fn db_bytes(dir: &TempDir) -> Vec<u8> {
+    fs::read(dir.path().join("ledger").join(DB_FILE)).unwrap()
+}
+
+/// Everything a deletion could touch: the whole ledger and the deleted-row records.
+fn snapshot(u: &Unlocked) -> (Ledger, Vec<(i64, i64)>) {
+    let mut statement = u
+        .connection()
+        .prepare("SELECT import_id, source_index FROM deleted_rows ORDER BY 1, 2")
+        .unwrap();
+    let records = statement
+        .query_map([], |r| Ok((r.get(0)?, r.get(1)?)))
+        .unwrap()
+        .map(Result::unwrap)
+        .collect();
+    (u.load_ledger().unwrap(), records)
+}
+
+fn no_foreign_key_violations(u: &Unlocked) {
+    let violations: i64 = u
+        .connection()
+        .query_row("SELECT count(*) FROM pragma_foreign_key_check", [], |r| {
+            r.get(0)
+        })
+        .unwrap();
+    assert_eq!(violations, 0);
+}
+
+/// The sample ledger without the given rows, as a deletion should leave it.
+fn sample_without(transactions: &[i64], decisions: &[i64], rules: &[i64]) -> Ledger {
+    let mut ledger = sample_ledger();
+    ledger
+        .transactions
+        .retain(|t| !transactions.contains(&t.id.0));
+    ledger.decisions.retain(|x| !decisions.contains(&x.id.0));
+    ledger.rules.retain(|r| !rules.contains(&r.id.0));
+    ledger
+}
+
+#[test]
+fn deleting_a_scope_cascades_and_records_rows_of_kept_imports() {
+    let (_dir, mut u) = with_sample();
+    // The card (account 2) up to 10 September: transaction 2 (bought 2 September,
+    // posted 3 September) and 5 (10 September). Transaction 4 (16 September) stays.
+    let plan = DeletionPlan {
+        transactions: Some(scope(Some(2), None, Some("2026-09-10"))),
+        ..DeletionPlan::default()
+    };
+    let counts = u.delete_planned(&plan, false).unwrap();
+    assert_eq!(
+        counts,
+        DeletedCounts {
+            transactions: 2,
+            // 2, 3, 4 are about transaction 2 and 9, 10, 11 about transaction 5; 7 is
+            // a refund pointing at 2, made by rule 1, which was learned from 2.
+            decisions: 7,
+            rules: 1,
+            imports: 0,
+            accounts: 0,
+            recorded_rows: 2,
+        }
+    );
+    // Out of scope: every other row is exactly as it was.
+    assert_eq!(
+        u.load_ledger().unwrap(),
+        sample_without(&[2, 5], &[2, 3, 4, 7, 9, 10, 11], &[1])
+    );
+    // Import 2 is kept, so its deleted rows (indexes 0 and 3) are recorded.
+    assert_eq!(u.deleted_rows(ImportId(2)).unwrap(), [0, 3]);
+    assert!(u.deleted_rows(ImportId(1)).unwrap().is_empty());
+    no_foreign_key_violations(&u);
+
+    // Deleting the import afterwards takes its records with it.
+    u.delete_import(ImportId(2)).unwrap();
+    assert!(u.deleted_rows(ImportId(2)).unwrap().is_empty());
+    assert_eq!(snapshot(&u).1, []);
+}
+
+#[test]
+fn a_scope_dates_transactions_by_purchase_date_when_given() {
+    // Transaction 2 was bought on 2 September and posted on 3 September.
+    for (from, to, expected) in [
+        ("2026-09-02", "2026-09-02", vec![2]),
+        ("2026-09-03", "2026-09-03", vec![]),
+        ("2026-09-01", "2026-09-02", vec![1, 2]),
+        ("2026-09-15", "2026-09-16", vec![3, 4]),
+    ] {
+        let (_dir, mut u) = with_sample();
+        let all: Vec<i64> = u.transactions().unwrap().iter().map(|t| t.id.0).collect();
+        let plan = DeletionPlan {
+            transactions: Some(scope(None, Some(from), Some(to))),
+            ..DeletionPlan::default()
+        };
+        let counts = u.delete_planned(&plan, false).unwrap();
+        let left: Vec<i64> = u.transactions().unwrap().iter().map(|t| t.id.0).collect();
+        let gone: Vec<i64> = all.into_iter().filter(|id| !left.contains(id)).collect();
+        assert_eq!(gone, expected, "{from}..={to}");
+        assert_eq!(counts.transactions, expected.len() as u64);
+        no_foreign_key_violations(&u);
+    }
+}
+
+#[test]
+fn listed_imports_go_whole_and_record_nothing() {
+    let (_dir, mut u) = with_sample();
+    // The scope covers import 2's first rows, but import 2 is deleted whole too.
+    let plan = DeletionPlan {
+        transactions: Some(scope(Some(2), None, Some("2026-09-10"))),
+        imports: vec![ImportId(2)],
+        ..DeletionPlan::default()
+    };
+    let counts = u.delete_planned(&plan, false).unwrap();
+    assert_eq!(
+        counts,
+        DeletedCounts {
+            transactions: 5,
+            // As for delete_import, without the extra decision 12 that test adds.
+            decisions: 10,
+            rules: 1,
+            imports: 1,
+            accounts: 0,
+            recorded_rows: 0,
+        }
+    );
+    assert!(u.raw_import(ImportId(2)).unwrap().is_none());
+    assert_eq!(snapshot(&u).1, []);
+    no_foreign_key_violations(&u);
+}
+
+#[test]
+fn listed_accounts_go_last_with_their_rules() {
+    let (_dir, mut u) = with_sample();
+    // A rule scoped to the unused account 11 that has made one decision.
+    let mut rule = u.rules().unwrap().remove(1);
+    rule.id = RuleId(4);
+    rule.matcher.account_id = Some(AccountId(11));
+    u.insert_rule(&rule).unwrap();
+    let mut by_rule = u.decision(DecisionId(1)).unwrap().unwrap();
+    by_rule.id = DecisionId(14);
+    by_rule.source = DecisionSource::Rule { rule_id: RuleId(4) };
+    by_rule.state = DecisionState::Suggested;
+    u.insert_decision(&by_rule).unwrap();
+    let plan = DeletionPlan {
+        accounts: vec![AccountId(11)],
+        ..DeletionPlan::default()
+    };
+    assert_eq!(
+        u.delete_planned(&plan, false).unwrap(),
+        DeletedCounts {
+            decisions: 1,
+            rules: 1,
+            accounts: 1,
+            ..DeletedCounts::default()
+        }
+    );
+    assert!(u.account(AccountId(11)).unwrap().is_none());
+
+    // The checking account, with its transactions and the import that names it.
+    let plan = DeletionPlan {
+        transactions: Some(scope(Some(1), None, None)),
+        imports: vec![ImportId(1)],
+        accounts: vec![AccountId(1)],
+    };
+    let counts = u.delete_planned(&plan, false).unwrap();
+    assert_eq!(
+        counts,
+        DeletedCounts {
+            transactions: 2,
+            // 1 is about transaction 1, 5 about 3, and 6 is 4's transfer pointing at 3.
+            decisions: 3,
+            rules: 0,
+            imports: 1,
+            accounts: 1,
+            recorded_rows: 0,
+        }
+    );
+    assert!(u.account(AccountId(1)).unwrap().is_none());
+    no_foreign_key_violations(&u);
+}
+
+#[test]
+fn an_account_still_in_use_is_refused_and_nothing_changes() {
+    for plan in [
+        // The card still has transactions.
+        DeletionPlan {
+            accounts: vec![AccountId(2)],
+            ..DeletionPlan::default()
+        },
+        // The checking account's transactions go first, but import 1 still names it:
+        // the scope's deletions are rolled back too.
+        DeletionPlan {
+            transactions: Some(scope(Some(1), None, None)),
+            accounts: vec![AccountId(1)],
+            ..DeletionPlan::default()
+        },
+    ] {
+        let (dir, mut u) = with_sample();
+        let (before, bytes) = (snapshot(&u), db_bytes(&dir));
+        assert!(matches!(
+            u.delete_planned(&plan, false),
+            Err(StorageError::AccountInUse)
+        ));
+        assert_eq!(snapshot(&u), before);
+        assert_eq!(db_bytes(&dir), bytes);
+    }
+}
+
+#[test]
+fn an_error_mid_plan_rolls_everything_back() {
+    let (dir, mut u) = with_sample();
+    let (before, bytes) = (snapshot(&u), db_bytes(&dir));
+    for plan in [
+        DeletionPlan {
+            transactions: Some(scope(None, None, None)),
+            imports: vec![ImportId(2), ImportId(99)],
+            ..DeletionPlan::default()
+        },
+        DeletionPlan {
+            transactions: Some(scope(Some(2), Some("2026-09-01"), None)),
+            imports: vec![ImportId(1)],
+            accounts: vec![AccountId(99)],
+        },
+    ] {
+        assert!(matches!(
+            u.delete_planned(&plan, false),
+            Err(StorageError::NotFound)
+        ));
+        assert_eq!(snapshot(&u), before);
+        assert_eq!(db_bytes(&dir), bytes);
+    }
+    // The permit is off again afterwards.
+    assert!(sql_fails(&u, "DELETE FROM decisions WHERE id = 1"));
+}
+
+#[test]
+fn malformed_plans_are_refused() {
+    let (_dir, mut u) = with_sample();
+    let before = snapshot(&u);
+    for plan in [
+        DeletionPlan::default(),
+        DeletionPlan {
+            transactions: Some(scope(None, Some("2026-09-10"), Some("2026-09-09"))),
+            ..DeletionPlan::default()
+        },
+        DeletionPlan {
+            imports: vec![ImportId(1), ImportId(1)],
+            ..DeletionPlan::default()
+        },
+        DeletionPlan {
+            accounts: vec![AccountId(11), AccountId(11)],
+            ..DeletionPlan::default()
+        },
+    ] {
+        for dry_run in [false, true] {
+            assert!(
+                matches!(
+                    u.delete_planned(&plan, dry_run),
+                    Err(StorageError::InvalidRequest(_))
+                ),
+                "{plan:?}"
+            );
+        }
+    }
+    assert_eq!(snapshot(&u), before);
+}
+
+#[test]
+fn a_dry_run_counts_exactly_what_the_real_run_removes_and_changes_nothing() {
+    let plans = [
+        DeletionPlan {
+            transactions: Some(scope(Some(2), None, Some("2026-09-10"))),
+            ..DeletionPlan::default()
+        },
+        DeletionPlan {
+            transactions: Some(scope(None, Some("2026-09-02"), Some("2026-09-15"))),
+            imports: vec![ImportId(3)],
+            ..DeletionPlan::default()
+        },
+        DeletionPlan {
+            transactions: Some(scope(Some(1), None, None)),
+            imports: vec![ImportId(1)],
+            accounts: vec![AccountId(1), AccountId(11)],
+        },
+        DeletionPlan {
+            imports: vec![ImportId(2)],
+            ..DeletionPlan::default()
+        },
+    ];
+    for plan in plans {
+        let (dir, mut u) = with_sample();
+        let (before, bytes) = (snapshot(&u), db_bytes(&dir));
+        let dry = u.delete_planned(&plan, true).unwrap();
+        assert_eq!(snapshot(&u), before, "{plan:?}");
+        assert_eq!(db_bytes(&dir), bytes, "{plan:?}: the file changed");
+        assert_eq!(u.delete_planned(&plan, false).unwrap(), dry, "{plan:?}");
+        assert_ne!(snapshot(&u), before);
+    }
+}
+
+#[test]
+fn deleting_a_td1_account_month_leaves_the_rest_intact() {
+    let (_, ledger) = td1_ledgers().remove(0);
+    let (dir, mut u) = new_ledger();
+    u.save_ledger(&ledger).unwrap();
+    let account = ledger.transactions[0].account_id;
+    let (from, to) = (d("2025-03-01"), d("2025-03-31"));
+    let in_scope = |t: &Transaction| {
+        let date = t.transaction_date.unwrap_or(t.posted_date);
+        t.account_id == account && from <= date && date <= to
+    };
+    let expected = ledger.transactions.iter().filter(|t| in_scope(t)).count() as u64;
+    assert!(expected > 0, "the scope should hold transactions");
+    let plan = DeletionPlan {
+        transactions: Some(DeletionScope {
+            account: Some(account),
+            from: Some(from),
+            to: Some(to),
+        }),
+        ..DeletionPlan::default()
+    };
+
+    let (before, bytes) = (snapshot(&u), db_bytes(&dir));
+    let dry = u.delete_planned(&plan, true).unwrap();
+    assert_eq!(snapshot(&u), before);
+    assert_eq!(db_bytes(&dir), bytes);
+    let counts = u.delete_planned(&plan, false).unwrap();
+    assert_eq!(counts, dry);
+    assert_eq!(counts.transactions, expected);
+    assert_eq!(counts.recorded_rows, expected, "every import is kept");
+
+    let kept: Vec<_> = ledger
+        .transactions
+        .iter()
+        .filter(|t| !in_scope(t))
+        .cloned()
+        .collect();
+    assert_eq!(u.transactions().unwrap(), kept);
+    let recorded: usize = ledger
+        .imports
+        .iter()
+        .map(|i| u.deleted_rows(i.id).unwrap().len())
+        .sum();
+    assert_eq!(recorded as u64, expected);
+    no_foreign_key_violations(&u);
+}
+
+#[test]
+fn deleted_row_records_are_written_only_by_deletion() {
+    let (_dir, mut u) = with_sample();
+    assert!(sql_fails(
+        &u,
+        "INSERT INTO deleted_rows (import_id, source_index) VALUES (1, 7)"
+    ));
+    let plan = DeletionPlan {
+        transactions: Some(scope(Some(2), None, Some("2026-09-10"))),
+        ..DeletionPlan::default()
+    };
+    u.delete_planned(&plan, false).unwrap();
+    assert!(sql_fails(
+        &u,
+        "UPDATE deleted_rows SET source_index = 9 WHERE import_id = 2"
+    ));
+    assert!(sql_fails(&u, "DELETE FROM deleted_rows"));
+    assert!(sql_fails(
+        &u,
+        "INSERT OR REPLACE INTO deleted_rows (import_id, source_index) VALUES (2, 0)"
+    ));
+    assert_eq!(u.deleted_rows(ImportId(2)).unwrap(), [0, 3]);
 }

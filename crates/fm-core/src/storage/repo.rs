@@ -5,6 +5,8 @@
 //! Every read rebuilds validated model types, so a row that breaks a model invariant is
 //! reported as [`StorageError::InvalidRow`] instead of being passed on.
 
+use std::collections::HashSet;
+
 use rusqlite::{Connection, OptionalExtension, Row, params};
 use serde::Serialize;
 use serde::de::DeserializeOwned;
@@ -48,12 +50,77 @@ impl Table {
     }
 }
 
-/// What deleting an import removed (SPEC decision 28: everything derived from it).
+/// What a deletion removed (SPEC decision 28: everything derived from what was asked
+/// for), or would remove, for a dry run.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub struct DeletedCounts {
     pub transactions: u64,
     pub decisions: u64,
     pub rules: u64,
+    pub imports: u64,
+    pub accounts: u64,
+    /// Rows recorded as deleted out of imports that were kept (SPEC decision 43).
+    pub recorded_rows: u64,
+}
+
+/// Which transactions a [`DeletionPlan`] removes: every transaction, narrowed to one
+/// account and to an inclusive date range when given. A transaction's date is its
+/// purchase date when the bank gives one, otherwise its posted date (SPEC decision 42).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub(crate) struct DeletionScope {
+    pub(crate) account: Option<AccountId>,
+    pub(crate) from: Option<Date>,
+    pub(crate) to: Option<Date>,
+}
+
+/// What one call to [`Unlocked::delete_planned`] removes, in this order: the
+/// transactions in scope, the listed imports (whole, with their transactions), then the
+/// listed accounts. Which files and accounts go with a scope is policy, decided above
+/// storage (SPEC decision 43); the plan only says what to remove.
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
+pub(crate) struct DeletionPlan {
+    pub(crate) transactions: Option<DeletionScope>,
+    pub(crate) imports: Vec<ImportId>,
+    pub(crate) accounts: Vec<AccountId>,
+}
+
+impl DeletionPlan {
+    fn check(&self) -> Result<(), StorageError> {
+        if self.transactions.is_none() && self.imports.is_empty() && self.accounts.is_empty() {
+            return Err(StorageError::InvalidRequest("the deletion plan is empty"));
+        }
+        if let Some(DeletionScope {
+            from: Some(from),
+            to: Some(to),
+            ..
+        }) = self.transactions
+            && from > to
+        {
+            return Err(StorageError::InvalidRequest(
+                "the date range ends before it starts",
+            ));
+        }
+        let imports: HashSet<_> = self.imports.iter().collect();
+        let accounts: HashSet<_> = self.accounts.iter().collect();
+        if imports.len() != self.imports.len() || accounts.len() != self.accounts.len() {
+            return Err(StorageError::InvalidRequest(
+                "the deletion plan lists an id twice",
+            ));
+        }
+        Ok(())
+    }
+}
+
+/// The row counts a [`DeletedCounts`] is the difference of.
+fn table_counts(conn: &Connection) -> Result<DeletedCounts, StorageError> {
+    Ok(DeletedCounts {
+        transactions: count(conn, "transactions")?,
+        decisions: count(conn, "decisions")?,
+        rules: count(conn, "rules")?,
+        imports: count(conn, "raw_imports")?,
+        accounts: count(conn, "accounts")?,
+        recorded_rows: 0,
+    })
 }
 
 /// The default category list shipped with the app.
@@ -697,6 +764,53 @@ fn query_one<T>(
     Ok(all.pop())
 }
 
+/// Deletes the transactions in `scope`, first recording the ones whose import isn't in
+/// `kept_out` (the imports the plan deletes next) in `deleted_rows`. Returns how many
+/// rows it recorded. Runs under the delete permit.
+fn delete_scope(
+    tx: &Connection,
+    scope: &DeletionScope,
+    kept_out: &[ImportId],
+) -> Result<u64, StorageError> {
+    const IN_SCOPE: &str = "(?1 IS NULL OR account_id = ?1) \
+         AND (?2 IS NULL OR coalesce(transaction_date, posted_date) >= ?2) \
+         AND (?3 IS NULL OR coalesce(transaction_date, posted_date) <= ?3)";
+    let (account, from, to) = (
+        scope.account.map(|a| a.0),
+        scope.from.map(date_text),
+        scope.to.map(date_text),
+    );
+    let scope_params = params![account, from, to];
+    let mut rows = Vec::new();
+    {
+        let mut statement = tx.prepare(&format!(
+            "SELECT import_id, source_index FROM transactions WHERE {IN_SCOPE}"
+        ))?;
+        let mut found = statement.query(scope_params)?;
+        while let Some(r) = found.next()? {
+            let import: i64 = r.get(0)?;
+            if !kept_out.contains(&ImportId(import)) {
+                rows.push((import, r.get::<_, i64>(1)?));
+            }
+        }
+    }
+    let mut recorded = 0;
+    {
+        // OR IGNORE: a row recorded already stays recorded.
+        let mut insert = tx.prepare(
+            "INSERT OR IGNORE INTO deleted_rows (import_id, source_index) VALUES (?1, ?2)",
+        )?;
+        for (import, index) in rows {
+            recorded += insert.execute([import, index])? as u64;
+        }
+    }
+    tx.execute(
+        &format!("DELETE FROM transactions WHERE {IN_SCOPE}"),
+        scope_params,
+    )?;
+    Ok(recorded)
+}
+
 fn count(conn: &Connection, table: &str) -> Result<u64, StorageError> {
     let n: i64 = conn.query_row(&format!("SELECT count(*) FROM {table}"), [], |r| r.get(0))?;
     Ok(n.unsigned_abs())
@@ -943,27 +1057,101 @@ impl Unlocked {
     /// A surviving decision that `replaces` a deleted one keeps standing, with
     /// `replaces` cleared. Runs in one transaction.
     pub fn delete_import(&mut self, id: ImportId) -> Result<DeletedCounts, StorageError> {
+        self.delete_planned(
+            &DeletionPlan {
+                imports: vec![id],
+                ..DeletionPlan::default()
+            },
+            false,
+        )
+    }
+
+    /// Carries out `plan` in one transaction, in its order (see [`DeletionPlan`]), each
+    /// part with everything derived from it as for [`delete_import`](Self::delete_import).
+    /// Accounts delete the rules scoped to them, with those rules' decisions.
+    ///
+    /// A transaction removed by the scope whose import is kept is recorded in
+    /// `deleted_rows` (SPEC decision 43, see [`deleted_rows`](Self::deleted_rows)).
+    ///
+    /// With `dry_run`, everything is done and then rolled back: the counts are exactly
+    /// what the real run would remove, and the ledger is left as it was.
+    ///
+    /// Refuses an empty plan, an inverted date range and an id listed twice; fails with
+    /// [`StorageError::NotFound`] for an import or account that doesn't exist and with
+    /// [`StorageError::AccountInUse`] for an account that still has transactions or
+    /// imports after the earlier parts. Any failure leaves the ledger unchanged.
+    pub(crate) fn delete_planned(
+        &mut self,
+        plan: &DeletionPlan,
+        dry_run: bool,
+    ) -> Result<DeletedCounts, StorageError> {
+        plan.check()?;
         let permits = std::sync::Arc::clone(&self.permits);
         let tx = self.connection_mut().transaction()?;
-        let before = DeletedCounts {
-            transactions: count(&tx, "transactions")?,
-            decisions: count(&tx, "decisions")?,
-            rules: count(&tx, "rules")?,
-        };
-        let deleted = {
+        let before = table_counts(&tx)?;
+        let mut recorded_rows = 0;
+        {
             let _delete = permits.grant(Permit::Delete);
-            tx.execute("DELETE FROM raw_imports WHERE id = ?1", [id.0])?
-        };
-        if deleted == 0 {
-            return Err(StorageError::NotFound);
+            if let Some(scope) = &plan.transactions {
+                recorded_rows = delete_scope(&tx, scope, &plan.imports)?;
+            }
+            for id in &plan.imports {
+                if tx.execute("DELETE FROM raw_imports WHERE id = ?1", [id.0])? == 0 {
+                    return Err(StorageError::NotFound);
+                }
+            }
+            for id in &plan.accounts {
+                let in_use: bool = tx.query_row(
+                    "SELECT EXISTS (SELECT 1 FROM transactions WHERE account_id = ?1) \
+                         OR EXISTS (SELECT 1 FROM raw_imports WHERE account_id = ?1)",
+                    [id.0],
+                    |r| r.get(0),
+                )?;
+                if in_use {
+                    return Err(StorageError::AccountInUse);
+                }
+                if tx.execute("DELETE FROM accounts WHERE id = ?1", [id.0])? == 0 {
+                    return Err(StorageError::NotFound);
+                }
+            }
         }
+        let after = table_counts(&tx)?;
         let counts = DeletedCounts {
-            transactions: before.transactions - count(&tx, "transactions")?,
-            decisions: before.decisions - count(&tx, "decisions")?,
-            rules: before.rules - count(&tx, "rules")?,
+            transactions: before.transactions - after.transactions,
+            decisions: before.decisions - after.decisions,
+            rules: before.rules - after.rules,
+            imports: before.imports - after.imports,
+            accounts: before.accounts - after.accounts,
+            recorded_rows,
         };
-        tx.commit()?;
+        if dry_run {
+            tx.rollback()?;
+        } else {
+            tx.commit()?;
+        }
         Ok(counts)
+    }
+
+    /// The rows of import `id` deleted while the import was kept (SPEC decision 43), as
+    /// source indexes in ascending order. Anything that re-reads the import's raw bytes
+    /// must skip these rows, so a deleted transaction never comes back from its file.
+    #[allow(
+        dead_code,
+        reason = "read by T5.3 and by any re-parse of a raw import (SPEC decision 43)"
+    )]
+    pub(crate) fn deleted_rows(&self, id: ImportId) -> Result<Vec<u32>, StorageError> {
+        let mut statement = self.connection().prepare(
+            "SELECT source_index FROM deleted_rows WHERE import_id = ?1 ORDER BY source_index",
+        )?;
+        let rows = statement.query_map([id.0], |r| r.get::<_, i64>(0))?;
+        let mut out = Vec::new();
+        for row in rows {
+            out.push(u32::try_from(row?).map_err(|_| StorageError::InvalidRow {
+                table: "deleted_rows",
+                reason: "source index out of range",
+            })?);
+        }
+        Ok(out)
     }
 
     /// Writes a whole ledger into this (empty) one, in one transaction: the T0.5

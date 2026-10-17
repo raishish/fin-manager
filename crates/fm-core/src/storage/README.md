@@ -71,6 +71,7 @@ Every connection also turns on `foreign_keys` and `secure_delete`, so deleted ro
 - Version 3 (`schema/v3_source_facts.sql`) makes two changes:
   - It adds `trn_type` and `check_number` to `transactions`.
   - It lets `decisions.builtin_logic` be `import_pipeline`. SQLite can't change a `CHECK` in place, so the decisions table is rebuilt with [SQLite's procedure](https://sqlite.org/lang_altertable.html): create, copy, drop, rename, then recreate the indexes and triggers.
+- Version 4 (`schema/v4_deleted_rows.sql`) adds `deleted_rows`: the rows deleted out of an import that was kept (SPEC decision 43, see below).
 - A migration that rebuilds a table runs with `foreign_keys_off`. The runner switches foreign keys off around its transaction, so the `DROP TABLE` can't cascade into rules, and requires `foreign_key_check` to come back empty before it commits.
 
 ## Ledger tables and the repository
@@ -83,22 +84,24 @@ The tables mirror the T0.5 model (`crates/fm-core/src/model/README.md`). All of 
 | `save_ledger`, `load_ledger` | Write a whole `Ledger` into an empty ledger, or read it all back. Used for fixtures and the TD.1 ground truth |
 | `set_decision_state`, `mark_decision_seen` | The only changes a stored decision can take (see below) |
 | `post_pending` | The only change a stored transaction can take: pending → posted |
-| `delete_import` | Cascading deletion (see below) |
+| `delete_import`, `delete_planned` (crate-private) | Cascading deletion (see below) |
+| `deleted_rows(import)` (crate-private) | The source indexes deleted out of a kept import |
 
 **What the database refuses.** These rules hold for any SQL on the app's connection, not just for the repository:
 
 | Rows | Rule |
 |---|---|
-| Decisions | Append-only. An `UPDATE` may only move `state` (applied → superseded, or suggested → applied, dismissed or superseded) and set `seen_at` once, from `NULL`. An update that changes nothing is refused too. A `DELETE` happens only through `delete_import` |
-| Transactions | Immutable, with one exception: `post_pending` turns a pending transaction into the posted one. That may change everything except the id and the account, including the import it points to. A `DELETE` happens only with the transaction's import |
-| Raw imports | The id, `sha256` and `bytes` never change; metadata such as the file name can. A `DELETE` happens only through `delete_import` |
+| Decisions | Append-only. An `UPDATE` may only move `state` (applied → superseded, or suggested → applied, dismissed or superseded) and set `seen_at` once, from `NULL`. An update that changes nothing is refused too. A `DELETE` happens only through the deletion API |
+| Transactions | Immutable, with one exception: `post_pending` turns a pending transaction into the posted one. That may change everything except the id and the account, including the import it points to. A `DELETE` happens only through the deletion API |
+| Raw imports | The id, `sha256` and `bytes` never change; metadata such as the file name can. A `DELETE` happens only through the deletion API |
+| Deleted rows | Inserted only by the deletion API, never updated, and removed only with their import |
 | Rules | Once a rule has made decisions, its matcher, action, origin and id are fixed (`priority` and `enabled` can still change). Changing what it does means a new rule |
 | Accounts | The id and currency never change |
 
 Violations come back as `StorageError::ForbiddenChange`.
 
 **How it holds:**
-- **`fm_permit(kind)`** is an SQL function the app registers on each connection. It returns 1 only while the matching Rust API call runs: `'delete'` during `delete_import`, `'post_pending'` during `post_pending`. A drop guard turns it off again. No SQL can turn it on.
+- **`fm_permit(kind)`** is an SQL function the app registers on each connection. It returns 1 only while the matching Rust API call runs: `'delete'` during `delete_planned` (and `delete_import`, which is a one-import plan), `'post_pending'` during `post_pending`. A drop guard turns it off again. No SQL can turn it on.
 - **Failing closed:** a connection without the function (another tool opening the file with the key) can't change or delete protected rows at all.
 - **`recursive_triggers` is on,** so `REPLACE` / `INSERT OR REPLACE` can't get around the DELETE triggers through their implicit delete. A control test shows the bypass works when the setting is off.
 - **An authorizer on the connection** refuses:
@@ -117,7 +120,16 @@ raw_imports ─► transactions ─► decisions about them
                      └─────► rules learned from them (Correction origin) ─► decisions those rules made
 decisions.replaces ─► SET NULL: a surviving decision that replaced a deleted one still stands
 ```
-A transaction can end up with no applied decision; categorisation (T2.2) and transfer detection (T1.4) decide it again. Accounts are `RESTRICT` for now: deleting by account or date range is T5.3.
+A transaction can end up with no applied decision; categorisation (T2.2) and transfer detection (T1.4) decide it again.
+
+**A deletion plan** (`DeletionPlan`, run by `delete_planned`) removes, in one transaction and in this order:
+1. **The transactions in a scope:** all of them, narrowed to one account and an inclusive date range when given. A transaction's date is its purchase date when the bank gives one, otherwise its posted date (SPEC decision 42). Each goes with the cascade above.
+2. **The listed imports,** whole, with their transactions.
+3. **The listed accounts,** with the rules scoped to them and those rules' decisions. An account that still has transactions or imports is refused (`AccountInUse`); transactions and imports are `RESTRICT` on accounts.
+
+Any failure (an unknown id is `NotFound`) rolls the whole plan back. An empty plan, an inverted date range and an id listed twice are refused (`InvalidRequest`). A **dry run** does everything and rolls back, so its `DeletedCounts` are exactly what the real run removes; the tests check that the file's bytes don't change. Which files and accounts go with a scope is policy, decided above storage (T5.3, SPEC decision 43); the plan only says what to remove.
+
+**Rows deleted out of a kept import never come back (SPEC decision 43).** When the scope deletes a transaction whose import isn't also in the plan, `(import_id, source_index)` goes into `deleted_rows`, in the same transaction (`DeletedCounts::recorded_rows`). The records go with their import (`ON DELETE CASCADE`). **Any code that re-reads a raw import's bytes must skip the rows `deleted_rows(import)` lists.**
 
 ## Hooks for T5.1 (crate-private)
 - `Unlocked::data_key_copy()` returns a zeroizing copy of the raw data key, for the Keychain item behind Touch ID.

@@ -42,6 +42,10 @@ pub enum StorageError {
     InUse,
     /// A ledger already exists at this location.
     AlreadyExists,
+    /// A request that makes no sense on its own (for example an empty deletion plan).
+    InvalidRequest(&'static str),
+    /// An account can't be deleted while transactions or imports still refer to it.
+    AccountInUse,
     /// The database was written by a newer version of the app.
     NewerSchema {
         found: u32,
@@ -82,6 +86,10 @@ impl fmt::Display for StorageError {
             }
             Self::InUse => f.write_str("the ledger is open in another instance of the app"),
             Self::AlreadyExists => f.write_str("a ledger already exists at this location"),
+            Self::InvalidRequest(why) => write!(f, "invalid request: {why}"),
+            Self::AccountInUse => {
+                f.write_str("the account still has transactions or imports; delete those first")
+            }
             Self::NewerSchema { found, supported } => write!(
                 f,
                 "the ledger has schema version {found}, but this app supports up to {supported}; update the app"
