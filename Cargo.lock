@@ -965,6 +965,7 @@ version = "0.0.0"
 dependencies = [
  "argon2",
  "chacha20poly1305",
+ "fm-import-types",
  "getrandom 0.4.3",
  "rusqlite",
  "rustix",
@@ -991,6 +992,10 @@ dependencies = [
 [[package]]
 name = "fm-import-ofx"
 version = "0.0.0"
+dependencies = [
+ "fm-import-types",
+ "serde_json",
+]
 
 [[package]]
 name = "fm-import-types"
