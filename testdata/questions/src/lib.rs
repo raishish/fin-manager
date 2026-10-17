@@ -6,6 +6,7 @@
 //! re-add them. `README.md` documents the file and the counting conventions.
 
 pub mod facts;
+mod queries;
 mod questions;
 
 use std::collections::BTreeMap;
@@ -86,8 +87,18 @@ pub struct Question {
     pub answers: Vec<Answer>,
     /// How the answer is meant to be read, when that isn't obvious.
     pub note: Option<String>,
-    /// The expected structured query, filled in once T4.1 defines the query type.
-    pub expected_query: Option<serde_json::Value>,
+    /// The structured query (T4.1) a perfect interpreter would write. `None` when the
+    /// question can't be expressed (`null_reason` says why).
+    pub expected_query: Option<fm_core::query::Query>,
+    /// Set when the answers came from a ground-truth tag or series the ledger doesn't
+    /// record, and the query reaches the same transactions another way. A model can't be
+    /// expected to guess these, so accuracy is reported with and without them.
+    pub proxy: Option<String>,
+    /// Set when the query is right but doesn't give the answer yet, because of a known
+    /// limit elsewhere (which, and why).
+    pub known_gap: Option<String>,
+    /// Why the question has no query.
+    pub null_reason: Option<String>,
 }
 
 /// `questions.json`.
@@ -288,6 +299,18 @@ pub fn build() -> QuestionSet {
     let mut questions = questions::all(&book);
     for (i, q) in questions.iter_mut().enumerate() {
         q.id = format!("q{:03}", i + 1);
+        match queries::expected(&q.id) {
+            queries::Expected::Query(query) => q.expected_query = Some(query),
+            queries::Expected::Proxy(query, why) => {
+                q.expected_query = Some(query);
+                q.proxy = Some(why.to_string());
+            }
+            queries::Expected::KnownGap(query, why) => {
+                q.expected_query = Some(query);
+                q.known_gap = Some(why.to_string());
+            }
+            queries::Expected::Null(why) => q.null_reason = Some(why.to_string()),
+        }
     }
     let conventions = [
         ("date_basis", match facts::DATE_BASIS {

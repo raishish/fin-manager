@@ -69,8 +69,8 @@ fn one_hundred_questions_across_every_type() {
         *types.entry(q.kind.as_str()).or_default() += 1;
         assert!(!q.answers.is_empty(), "{} has no answer", q.id);
         assert!(
-            q.expected_query.is_none(),
-            "{}: queries come with T4.1",
+            q.expected_query.is_some() != q.null_reason.is_some(),
+            "{}: a query or a reason for none",
             q.id
         );
     }

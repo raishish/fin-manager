@@ -28,17 +28,17 @@ These rules decide what the right answer is. The spending views (T3.1) and quest
 
 | Rule | Value | |
 |---|---|---|
-| Date basis | The purchase date when the bank gives one, otherwise the posted date | **Pending the user's decision** (coordinator's recommendation; `DATE_BASIS` in `src/facts.rs`) |
-| Pending transactions | Left out of every total. Only the question about pending items includes them | **Pending the user's decision** (coordinator's recommendation; `COUNT_PENDING`) |
-| Spending | Net of refunds and reimbursements in the same category. Total spending is the sum over categories | Approved |
-| Transfers | Never spending or income: card payments, moves between own accounts, money to or from own accounts outside the ledger | Approved |
-| Income | The income bucket only: paychecks, client payments, interest | Approved |
-| Currency | Amounts in USD, the account currency. Foreign-currency questions use the original amount the bank recorded | Approved |
+| Date basis | The purchase date when the bank gives one, otherwise the posted date | SPEC decision 42 (`DATE_BASIS` in `src/facts.rs`) |
+| Pending transactions | Left out of every total. Only the question about pending items includes them | SPEC decision 42 (`COUNT_PENDING`) |
+| Spending | Net of refunds and reimbursements in the same category. Total spending is the sum over categories | SPEC decision 42 |
+| Transfers | Never spending or income: card payments, moves between own accounts, money to or from own accounts outside the ledger | SPEC decision 42 |
+| Income | The income bucket only: paychecks, client payments, interest | SPEC decision 42 |
+| Currency | Amounts in USD, the account currency. Foreign-currency questions use the original amount the bank recorded | SPEC decision 42 |
 | Today | 2026-10-01, fixed. Last month = September 2026; this year = 2026 | Fixture choice |
 | Periods | Calendar months and quarters. Last N months = the N full months before the current month. Last N days = the N days before today. Weeks run Monday to Sunday | Fixture choice |
 | Rounding | Averages, medians and percentages round half away from zero, to the cent or basis point | Fixture choice |
 
-If the user decides the first two rules differently, change the constant and run `cargo run --release`. Every answer is recomputed.
+To change a rule, change its constant and run `cargo run --release`. Every answer is recomputed.
 
 ## `data/questions.json`
 
@@ -50,7 +50,10 @@ If the user decides the first two rules differently, change the constant and run
    {"id": "q001", "question": "How much did I spend in total in 2025?", "type": "totals", "tags": [],
     "answers": [{"kind": "money", "name": "total", "amount": {"minor": 8129956, "currency": "USD"},
                  "evidence": {"rule": "negated_sum", "transaction_ids": [ … ]}}],
-    "note": null, "expected_query": null}
+    "note": null,
+    "expected_query": {"items": [{"name": "total", "ask": {"op": "sum", "measure": "spending",
+                                  "scope": {"period": {"year": 2025}, …}}}]},
+    "proxy": null, "known_gap": null, "null_reason": null}
  ]}
 ```
 
@@ -80,7 +83,10 @@ If the user decides the first two rules differently, change the constant and run
 
   The ids join with `testdata/synthetic/data/freelancer/truth.json`, so a wrong answer can be traced to the transactions it should have counted.
 - `note` says how to read the answer where that isn't obvious, for example "Card payments are transfers and don't count".
-- `expected_query` is `null` until T4.1 defines the structured query type. Then each question gets the query that should produce its answer.
+- `expected_query` is the structured query (T4.1, `fm_core::query`) a perfect interpreter would write. It has one item per answer, with the same names. The queries are written in `src/queries.rs` and generated into the file like the answers. 98 questions have one:
+  - `proxy` (9 questions: q044, q058, q059, q060, q064, q090, q094, q097, q100) says why the query is a stand-in. The answers came from a ground-truth tag or series the ledger doesn't record (the trip, the fee lines, the set-asides), and the query reaches the same transactions another way. A model can't be expected to guess these, so T4.2 reports accuracy with and without them.
+  - `known_gap` (q062, q065) says why a correct query doesn't give the answer yet: T3.2's recurring detection misses the US estimated-tax series, which T3.4 adds.
+- `null_reason` is set on the two questions with no query (q089, the Lisbon trip, and q093, without one-offs): the ledger has no trip tags or one-off marks yet.
 
 ## Checks (`tests/questions.rs`)
 
@@ -89,7 +95,7 @@ If the user decides the first two rules differently, change the constant and run
   - 100 questions, with no repeated question text.
   - At least 15 of each type.
   - The hard-case tags are all present.
-  - `expected_query` is empty for now.
+  - Every question has a query or a reason for none.
 - **Evidence.** Every `money` and `count` answer that has evidence (117 of them) is re-added straight from TD.1's ledger, without the generator's code, and must match. Every comparison's `difference` must be the first value minus the second.
 - **An independent recount.** 2025 spending and September 2026 spending are recomputed from the raw ledger and truth with the conventions written out again in the test. The results must equal the answers, and the twelve 2025 months must add up to the year.
 - **The conventions hold.**
@@ -98,6 +104,17 @@ If the user decides the first two rules differently, change the constant and run
   - The food group's total equals its categories added up.
 
 Mutation-checked: making refunds not offset spending fails the independent recount.
+
+## The expected queries (`tests/answers.rs`)
+
+- **Every expected query gives its answers.**
+  - Each query runs through `fm_core::query::run` on the freelancer's ledger, labelled from truth, as of 2026-10-01.
+  - Every answer must match exactly, and so must its evidence ids for sums and counts.
+  - Recurring questions name their series through a labeler that reads truth. It stands in for the model behind T3.2's `Labeler` hook.
+  - The test prints `T4.1-TD3 queries=98 exact=96 known_gaps=2 nulls=2 proxies=9`.
+- **The known gaps live in one place**, `KNOWN_GAPS` at the top of the test. Each pins what its query gives today. If that changes, the test fails. When T3.4 lands, it deletes the two entries, and the queries must then give the expected answers.
+- **Every query round-trips through JSON.**
+- fm-core's `query::schema_tests` also validates every expected query against `schema.json`.
 
 ## Changing the set
 

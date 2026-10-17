@@ -1,0 +1,284 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/raishish/fin-manager/query.schema.json",
+  "title": "fin-manager structured query (T4.1)",
+  "description": "A question as a list of named items; each item gives one answer. Amounts out and in are both reported as positive. Periods resolve against the as_of day the app supplies.",
+  "$ref": "#/$defs/Query",
+  "$defs": {
+    "Query": {
+      "type": "object",
+      "properties": {
+        "items": { "type": "array", "items": { "$ref": "#/$defs/Item" }, "minItems": 1 }
+      },
+      "required": ["items"],
+      "additionalProperties": false
+    },
+    "Item": {
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "The answer's name, unique in the query; derive items refer to it." },
+        "ask": { "$ref": "#/$defs/Ask" }
+      },
+      "required": ["name", "ask"],
+      "additionalProperties": false
+    },
+    "Ask": {
+      "oneOf": [
+        {
+          "type": "object",
+          "description": "The measure added up. Money.",
+          "properties": {
+            "op": { "const": "sum" },
+            "measure": { "$ref": "#/$defs/Measure" },
+            "scope": { "$ref": "#/$defs/Scope" }
+          },
+          "required": ["op", "measure", "scope"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "description": "How many transactions the measure counts. Count.",
+          "properties": {
+            "op": { "const": "count" },
+            "measure": { "$ref": "#/$defs/Measure" },
+            "scope": { "$ref": "#/$defs/Scope" }
+          },
+          "required": ["op", "measure", "scope"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "description": "The measure per transaction or per complete month. Money.",
+          "properties": {
+            "op": { "const": "average" },
+            "measure": { "$ref": "#/$defs/Measure" },
+            "scope": { "$ref": "#/$defs/Scope" },
+            "per": { "$ref": "#/$defs/Per" }
+          },
+          "required": ["op", "measure", "scope", "per"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "description": "The middle value per transaction or per complete month. Money.",
+          "properties": {
+            "op": { "const": "median" },
+            "measure": { "$ref": "#/$defs/Measure" },
+            "scope": { "$ref": "#/$defs/Scope" },
+            "per": { "$ref": "#/$defs/Per" }
+          },
+          "required": ["op", "measure", "scope", "per"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "description": "Groups, orders, and reports the top n labels or the group at position (1-based).",
+          "properties": {
+            "op": { "const": "rank" },
+            "measure": { "$ref": "#/$defs/Measure" },
+            "scope": { "$ref": "#/$defs/Scope" },
+            "by": { "$ref": "#/$defs/By" },
+            "order": { "$ref": "#/$defs/Order" },
+            "metric": { "$ref": "#/$defs/Metric" },
+            "n": { "type": "integer", "minimum": 0 },
+            "output": { "$ref": "#/$defs/RankOutput" },
+            "position": { "type": "integer", "minimum": 1 }
+          },
+          "required": ["op", "measure", "scope", "by", "order", "output"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "description": "Every group's label: months in calendar order, others largest first. Texts.",
+          "properties": {
+            "op": { "const": "keys" },
+            "measure": { "$ref": "#/$defs/Measure" },
+            "scope": { "$ref": "#/$defs/Scope" },
+            "by": { "$ref": "#/$defs/By" }
+          },
+          "required": ["op", "measure", "scope", "by"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "description": "How many different groups. Count.",
+          "properties": {
+            "op": { "const": "distinct" },
+            "measure": { "$ref": "#/$defs/Measure" },
+            "scope": { "$ref": "#/$defs/Scope" },
+            "by": { "$ref": "#/$defs/By" }
+          },
+          "required": ["op", "measure", "scope", "by"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "description": "One transaction: its merchant, amount or date.",
+          "properties": {
+            "op": { "const": "pick" },
+            "measure": { "$ref": "#/$defs/Measure" },
+            "scope": { "$ref": "#/$defs/Scope" },
+            "order": { "$ref": "#/$defs/PickOrder" },
+            "output": { "$ref": "#/$defs/PickOutput" }
+          },
+          "required": ["op", "measure", "scope", "order", "output"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "description": "Recurring series: subscriptions, bills, income, interest, transfers.",
+          "properties": {
+            "op": { "const": "recurring" },
+            "select": { "$ref": "#/$defs/SeriesSelect" },
+            "output": { "$ref": "#/$defs/SeriesOutput" }
+          },
+          "required": ["op", "select", "output"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "description": "Arithmetic on other items, named in of.",
+          "properties": {
+            "op": { "const": "derive" },
+            "formula": { "$ref": "#/$defs/DeriveOp" },
+            "of": { "type": "array", "items": { "type": "string" }, "minItems": 1 }
+          },
+          "required": ["op", "formula", "of"],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "Measure": {
+      "description": "spending is net of refunds; purchases are before refunds; money_in and money_out are every posted amount whatever its bucket; pending is never in any other measure.",
+      "enum": ["spending", "purchases", "refunds", "income", "transfers_in", "transfers_out", "money_in", "money_out", "pending"]
+    },
+    "Scope": {
+      "type": "object",
+      "properties": {
+        "period": { "$ref": "#/$defs/PeriodSpec" },
+        "categories": { "type": ["array", "null"], "items": { "type": "string" }, "description": "Category keys, e.g. food.groceries." },
+        "groups": { "type": ["array", "null"], "items": { "type": "string" }, "description": "Group keys, e.g. food." },
+        "merchant": { "type": ["string", "null"] },
+        "accounts": { "oneOf": [{ "$ref": "#/$defs/AccountSelect" }, { "type": "null" }] },
+        "counterpart_accounts": { "oneOf": [{ "$ref": "#/$defs/AccountSelect" }, { "type": "null" }] },
+        "description": { "type": ["string", "null"], "description": "Words that must appear together in the bank's description." },
+        "original_currency": { "type": ["string", "null"], "pattern": "^[A-Z]{3}$" },
+        "amounts": { "$ref": "#/$defs/Amounts" }
+      },
+      "additionalProperties": false
+    },
+    "AccountSelect": {
+      "type": "object",
+      "properties": {
+        "kinds": { "type": "array", "items": { "$ref": "#/$defs/AccountKind" } },
+        "ids": { "type": "array", "items": { "type": "integer" } }
+      },
+      "additionalProperties": false
+    },
+    "AccountKind": {
+      "enum": ["checking", "savings", "credit_card", "cash", "loan", "mortgage", "brokerage", "retirement", "other"]
+    },
+    "Amounts": { "enum": ["account", "original"] },
+    "Date": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$" },
+    "YearMonth": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}$" },
+    "PeriodSpec": {
+      "oneOf": [
+        { "enum": ["last_week", "last_quarter", "year_to_date", "all_time"] },
+        {
+          "type": "object",
+          "properties": {
+            "range": {
+              "type": "object",
+              "properties": { "from": { "$ref": "#/$defs/Date" }, "to": { "$ref": "#/$defs/Date" } },
+              "required": ["from", "to"],
+              "additionalProperties": false
+            }
+          },
+          "required": ["range"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": { "month": { "$ref": "#/$defs/YearMonth" } },
+          "required": ["month"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "months": {
+              "type": "object",
+              "properties": { "from": { "$ref": "#/$defs/YearMonth" }, "to": { "$ref": "#/$defs/YearMonth" } },
+              "required": ["from", "to"],
+              "additionalProperties": false
+            }
+          },
+          "required": ["months"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "quarter": {
+              "type": "object",
+              "properties": {
+                "year": { "type": "integer" },
+                "quarter": { "type": "integer", "minimum": 1, "maximum": 4 }
+              },
+              "required": ["year", "quarter"],
+              "additionalProperties": false
+            }
+          },
+          "required": ["quarter"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": { "year": { "type": "integer" } },
+          "required": ["year"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "description": "The n full calendar months before the month of as_of.",
+          "properties": { "last_months": { "type": "integer", "minimum": 1 } },
+          "required": ["last_months"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "description": "The n days before as_of, not including it.",
+          "properties": { "last_days": { "type": "integer", "minimum": 1 } },
+          "required": ["last_days"],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "Per": { "enum": ["transaction", "month"] },
+    "By": { "enum": ["category", "group", "merchant", "month", "account"] },
+    "Order": { "enum": ["highest", "lowest"] },
+    "Metric": { "enum": ["amount", "count"] },
+    "RankOutput": { "enum": ["labels", "label", "amount", "count"] },
+    "PickOrder": { "enum": ["largest", "smallest", "latest", "earliest"] },
+    "PickOutput": { "enum": ["merchant", "amount", "date"] },
+    "SeriesSelect": {
+      "type": "object",
+      "properties": {
+        "name": { "type": ["string", "null"] },
+        "categories": { "type": ["array", "null"], "items": { "type": "string" } },
+        "kinds": { "type": ["array", "null"], "items": { "$ref": "#/$defs/SeriesKindSel" } },
+        "cadences": { "type": ["array", "null"], "items": { "$ref": "#/$defs/CadenceSel" } },
+        "status": { "$ref": "#/$defs/SeriesStatus" },
+        "period": { "oneOf": [{ "$ref": "#/$defs/PeriodSpec" }, { "type": "null" }] }
+      },
+      "additionalProperties": false
+    },
+    "SeriesKindSel": { "enum": ["subscription", "bill", "income", "interest", "transfer"] },
+    "CadenceSel": { "enum": ["weekly", "biweekly", "semimonthly", "monthly", "quarterly", "semiannual", "annual"] },
+    "SeriesStatus": { "enum": ["active", "ended", "cancelled", "any"] },
+    "SeriesOutput": {
+      "enum": ["names", "count", "latest", "latest_total", "price_from", "price_before", "price_after", "member_count", "member_total"]
+    },
+    "DeriveOp": { "enum": ["difference", "sum", "percent_change", "share", "larger"] }
+  }
+}

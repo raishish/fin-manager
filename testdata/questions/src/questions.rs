@@ -17,6 +17,9 @@ fn q(text: &str, kind: &str, tags: &[&str], answers: Vec<Answer>, note: Option<&
         answers,
         note: note.map(str::to_string),
         expected_query: None,
+        proxy: None,
+        known_gap: None,
+        null_reason: None,
     }
 }
 
