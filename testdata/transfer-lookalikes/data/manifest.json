@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "seed": 20261017,
+  "candidate_window_days": 7,
+  "households": [
+    {"key":"alex","description":"Renter with Chase checking and card, an Amex, Ally savings and a second checking at Bank of America. Equal scheduled savings transfers that cross, rent split with a roommate, Zelle both ways, card refunds next to equal bills, weakly worded and long-weekend transfers.","transactions":476,"transfer_pairs":74,"lookalikes":76,"ledger":"alex/ledger.json","ledger_sha256":"c14058e8fcf9ebc834581a9838f282f24b1bc2cd20c2cdfef880ca58a3f540be","truth":"alex/truth.json","truth_sha256":"6dea048fe5ac939a8e45423c980c47c27d817219314a50fa1fbb97dccdd39292"},
+    {"key":"jordan","description":"Family with Bank of America checking and savings, a Capital One and a Citi card, and a credit union checking. Two balance transfers on days both cards are paid the same amount, bills equal to savings moves, deposits equal to brokerage outflows, transfers with no wording.","transactions":515,"transfer_pairs":103,"lookalikes":92,"ledger":"jordan/ledger.json","ledger_sha256":"0418b0215fba7ac3bd338c833c99a3237c54a0d820f66901fc85fe8900e832d6","truth":"jordan/truth.json","truth_sha256":"fcf394f7cf0315715b7d7651eba6c1bad12cf0d42334aeea419d53f78938fa36"},
+    {"key":"pat","description":"Retiree with Wells Fargo checking and savings, Ally savings, an Amex and a Discover card. Pension days with an equal savings withdrawal, card charges equal to deposits, crossing equal transfers to Ally, one-sided wording and long-weekend landings.","transactions":501,"transfer_pairs":95,"lookalikes":82,"ledger":"pat/ledger.json","ledger_sha256":"bc80dce12f8e1ab89e1debf9758ec05310446994cb013f64c930b5727da7d638","truth":"pat/truth.json","truth_sha256":"0f6bc9c98a6e85652a70ccb27759617d031e47981f05ea84312ecdbfa85c62e2"}
+  ],
+  "lookalikes_by_pattern": {
+    "balance_transfer_vs_payments": 10,
+    "bill_vs_savings_move": 24,
+    "card_charge_vs_deposit": 24,
+    "card_refund_vs_bill": 36,
+    "deposit_vs_savings_outflow": 12,
+    "equal_recurring_crossed": 72,
+    "payroll_vs_equal_transfer": 12,
+    "pmt_bill_vs_savings_move": 24,
+    "rent_split_repayment": 12,
+    "zelle_out_vs_zelle_in": 24
+  },
+  "pairs_by_pattern": {
+    "balance_transfer": 2,
+    "card_payment": 76,
+    "equal_recurring": 72,
+    "long_weekend": 9,
+    "savings_move": 96,
+    "weak_none": 9,
+    "weak_one_sided": 8
+  }
+}
