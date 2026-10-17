@@ -2,6 +2,7 @@
 
 pub mod backup;
 pub mod categorize;
+pub mod connectors;
 pub mod contract;
 pub mod crash;
 pub mod deletion;

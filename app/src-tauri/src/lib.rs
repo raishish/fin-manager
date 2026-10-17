@@ -1,9 +1,12 @@
 //! Desktop app shell: Tauri 2 host for the Svelte UI, calling into fm-core.
 
 mod backup;
+mod connectors;
 mod crash;
 mod deletion;
 mod network;
+
+use std::sync::Arc;
 
 use fm_core::crash::{CrashReporter, CrashStore};
 use fm_netguard::{Allowlist, NetGuard};
@@ -32,7 +35,7 @@ fn core_info() -> CoreInfo {
 
 /// The app's one network client. Every request any feature makes goes through it, so its
 /// log is the whole picture. Nothing is allowed until a feature adds an origin.
-struct Net(NetGuard);
+struct Net(Arc<NetGuard>);
 
 #[tauri::command]
 fn network_log(net: State<'_, Net>, since_id: Option<u64>) -> Vec<network::NetworkLogEntry> {
@@ -109,6 +112,11 @@ const COMMANDS: &[&str] = &[
     "delete_everything",
     "delete_old_backups",
     "pending_backup_offer",
+    "simplefin_status",
+    "simplefin_inspect_token",
+    "simplefin_connect",
+    "simplefin_sync",
+    "simplefin_disconnect",
 ];
 
 /// The app's command handler, behind the unlock gate.
@@ -146,6 +154,11 @@ fn handler<R: Runtime>() -> impl Fn(Invoke<R>) -> bool + Send + Sync + 'static {
         deletion::commands::delete_everything,
         deletion::commands::delete_old_backups,
         deletion::commands::pending_backup_offer,
+        connectors::commands::simplefin_status,
+        connectors::commands::simplefin_inspect_token,
+        connectors::commands::simplefin_connect,
+        connectors::commands::simplefin_sync,
+        connectors::commands::simplefin_disconnect,
     ])
 }
 
@@ -157,9 +170,15 @@ pub fn run() {
             let reporter = CrashReporter::new(CrashStore::new(dir), env!("CARGO_PKG_VERSION"));
             reporter.install_panic_hook();
             let ledger_dir = app.path().app_data_dir()?.join("ledger");
-            app.manage(unlock::app_unlock(&ledger_dir, reporter.clone()));
+            let net = Arc::new(NetGuard::new(Allowlist::new()));
+            app.manage(unlock::app_unlock(
+                &ledger_dir,
+                reporter.clone(),
+                connectors::BridgeAllowance::new(Arc::clone(&net)),
+            ));
             app.manage(reporter);
-            app.manage(Net(NetGuard::new(Allowlist::new())));
+            app.manage(Net(net));
+            app.manage(connectors::Busy::default());
             unlock::start_autolock_timer(app.handle().clone());
             Ok(())
         })
@@ -224,9 +243,15 @@ mod tests {
             .build(mock_context(noop_assets()))
             .unwrap();
         let reporter = CrashReporter::new(CrashStore::new(dir.join("crash")), "test");
-        app.manage(unlock::app_unlock(&dir.join("ledger"), reporter.clone()));
+        let net = Arc::new(NetGuard::new(Allowlist::new()));
+        app.manage(unlock::app_unlock(
+            &dir.join("ledger"),
+            reporter.clone(),
+            connectors::BridgeAllowance::new(Arc::clone(&net)),
+        ));
         app.manage(reporter);
-        app.manage(Net(NetGuard::new(Allowlist::new())));
+        app.manage(Net(net));
+        app.manage(connectors::Busy::default());
         let webview = tauri::WebviewWindowBuilder::new(&app, "main", Default::default())
             .build()
             .unwrap();
@@ -605,5 +630,77 @@ mod tests {
         // The unlock flow itself still runs.
         let state = invoke(&webview, "unlock_state").unwrap();
         assert_eq!(state["status"], "NoLedger");
+    }
+
+    /// T5.4: the SimpleFIN commands through the IPC path. The connector itself is
+    /// tested against a fake bridge in fm-core (connectors::simplefin::tests).
+    #[test]
+    fn simplefin_commands_answer_with_codes_and_allow_nothing_unasked() {
+        let dir = tempfile::tempdir().unwrap();
+        let (_app, w) = mock_app(&std::fs::canonicalize(dir.path()).unwrap());
+        assert_eq!(
+            invoke(&w, "simplefin_status").unwrap_err(),
+            serde_json::json!("locked")
+        );
+        create_confirmed(&w);
+        let status = invoke(&w, "simplefin_status").unwrap();
+        assert_eq!(status["connected"], false);
+        assert_eq!(status["requestsLeft"], 24);
+        assert_eq!(status["requestsPerDay"], 24);
+
+        let err = invoke_with(
+            &w,
+            "simplefin_connect",
+            serde_json::json!({ "setupToken": "not a token", "confirmedHost": "" }),
+        )
+        .unwrap_err();
+        assert_eq!(err["code"], "InvalidToken");
+        // The demo token's host, shown for the user to confirm; nothing is sent.
+        let demo = "aHR0cHM6Ly9iZXRhLWJyaWRnZS5zaW1wbGVmaW4ub3JnL3NpbXBsZWZpbi9jbGFpbS9ERU1PLXYyLTUyMjI1MEZCMzBBNDNGRUNEQjBD";
+        let token = invoke_with(
+            &w,
+            "simplefin_inspect_token",
+            serde_json::json!({ "setupToken": demo }),
+        )
+        .unwrap();
+        assert_eq!(
+            token,
+            serde_json::json!({ "host": "beta-bridge.simplefin.org", "simplefin": true })
+        );
+        let err = invoke_with(
+            &w,
+            "simplefin_connect",
+            serde_json::json!({ "setupToken": demo, "confirmedHost": "evil.example" }),
+        )
+        .unwrap_err();
+        assert_eq!(err["code"], "HostNotConfirmed");
+        // A token for this machine is refused before anything is sent.
+        let local = "aHR0cHM6Ly9sb2NhbGhvc3QvY2xhaW0veA=="; // https://localhost/claim/x
+        assert_eq!(
+            invoke_with(
+                &w,
+                "simplefin_inspect_token",
+                serde_json::json!({ "setupToken": local }),
+            )
+            .unwrap_err()["code"],
+            "InvalidToken"
+        );
+        assert_eq!(
+            invoke(&w, "simplefin_sync").unwrap_err()["code"],
+            "NotConnected"
+        );
+        assert_eq!(
+            invoke(&w, "simplefin_disconnect").unwrap()["connected"],
+            false
+        );
+        assert_eq!(
+            invoke(&w, "network_allowlist").unwrap(),
+            serde_json::json!([])
+        );
+        assert_eq!(
+            invoke(&w, "network_log").unwrap(),
+            serde_json::json!([]),
+            "nothing sent"
+        );
     }
 }

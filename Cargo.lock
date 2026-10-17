@@ -1052,10 +1052,12 @@ name = "fm-core"
 version = "0.0.0"
 dependencies = [
  "argon2",
+ "base64 0.23.1",
  "chacha20poly1305",
  "fm-import-csv",
  "fm-import-ofx",
  "fm-import-types",
+ "fm-netguard",
  "getrandom 0.4.3",
  "rusqlite",
  "rustix",

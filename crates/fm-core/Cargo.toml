@@ -12,6 +12,9 @@ workspace = true
 
 [dependencies]
 argon2 = { version = "=0.6.0", default-features = false, features = ["alloc", "zeroize"] }
+# SimpleFIN setup tokens and the Basic authorization header (T5.4). 0.23.1, the version
+# ureq (through fm-netguard) already uses, so the tree has one base64.
+base64 = { version = "=0.23.1", default-features = false, features = ["alloc"] }
 chacha20poly1305 = { version = "=0.11.0", default-features = false, features = ["zeroize"] }
 getrandom = { version = "=0.4.3", default-features = false }
 rusqlite = { version = "=0.40.2", default-features = false, features = ["bundled-sqlcipher-vendored-openssl", "functions", "hooks"] }
@@ -24,6 +27,8 @@ zeroize = { version = "=1.9.1", default-features = false, features = ["alloc"] }
 fm-import-csv = { path = "../fm-import-csv" }
 fm-import-ofx = { path = "../fm-import-ofx" }
 fm-import-types = { path = "../fm-import-types" }
+# The only way the core reaches the network (SimpleFIN, T5.4).
+fm-netguard = { path = "../fm-netguard" }
 
 # A monotonic clock that counts sleep, for the unlock time limits (T5.1), and a
 # non-blocking open for restoring backups (T5.2).

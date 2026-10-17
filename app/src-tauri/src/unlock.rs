@@ -359,8 +359,13 @@ pub type AppUnlock = UnlockState<VaultStore, PlatformKeychain>;
 
 /// The session for the ledger stored in `ledger_dir`. While the ledger is open, its
 /// account names are scrubbed from crash reports; once locked, the list is cleared so
-/// no names stay in memory.
-pub fn app_unlock(ledger_dir: &Path, reporter: CrashReporter) -> AppUnlock {
+/// no names stay in memory. The SimpleFIN bridge is allowed on the network only while
+/// the ledger is open and connected.
+pub fn app_unlock(
+    ledger_dir: &Path,
+    reporter: CrashReporter,
+    bridge: crate::connectors::BridgeAllowance,
+) -> AppUnlock {
     #[cfg(target_os = "macos")]
     let keychain = fm_core::unlock::Keychain::for_ledger(ledger_dir);
     #[cfg(not(target_os = "macos"))]
@@ -370,6 +375,7 @@ pub fn app_unlock(ledger_dir: &Path, reporter: CrashReporter) -> AppUnlock {
             Some(open) => reporter.set_sensitive_terms(sensitive_terms(open.ledger())),
             None => reporter.clear_sensitive_terms(),
         }
+        bridge.update(open.map(|o| o.ledger()));
     })
 }
 
@@ -715,7 +721,12 @@ mod tests {
         let store = CrashStore::new(dir.path().join("crash"));
         store.set_enabled(true).unwrap();
         let reporter = CrashReporter::new(store, "test");
-        let unlock = app_unlock(&dir.path().join("ledger"), reporter.clone());
+        let net = std::sync::Arc::new(fm_netguard::NetGuard::new(fm_netguard::Allowlist::new()));
+        let unlock = app_unlock(
+            &dir.path().join("ledger"),
+            reporter.clone(),
+            crate::connectors::BridgeAllowance::new(net),
+        );
         let shown = unlock.create(secret(STRONG)).unwrap();
         let answers: Vec<String> = shown
             .challenge
