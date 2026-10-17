@@ -1,10 +1,15 @@
 //! Desktop app shell: Tauri 2 host for the Svelte UI, calling into fm-core.
 
 mod backup;
+mod categories;
 mod connectors;
 mod crash;
+mod dashboard;
 mod deletion;
+mod importing;
+mod ledger_view;
 mod network;
+mod review;
 
 use std::sync::Arc;
 
@@ -117,6 +122,24 @@ const COMMANDS: &[&str] = &[
     "simplefin_connect",
     "simplefin_sync",
     "simplefin_disconnect",
+    "dashboard",
+    "review_queue",
+    "transactions",
+    "category_picker",
+    "preview_rule",
+    "correct_transaction",
+    "suggestions",
+    "approve_decisions",
+    "reject_decisions",
+    "accept_suggestion",
+    "dismiss_suggestion",
+    "taxonomy",
+    "edit_taxonomy",
+    "rules",
+    "set_rule_enabled",
+    "delete_rule",
+    "accounts",
+    "import_file",
 ];
 
 /// The app's command handler, behind the unlock gate.
@@ -159,6 +182,24 @@ fn handler<R: Runtime>() -> impl Fn(Invoke<R>) -> bool + Send + Sync + 'static {
         connectors::commands::simplefin_connect,
         connectors::commands::simplefin_sync,
         connectors::commands::simplefin_disconnect,
+        dashboard::commands::dashboard,
+        review::commands::review_queue,
+        review::commands::transactions,
+        review::commands::category_picker,
+        review::commands::preview_rule,
+        review::commands::correct_transaction,
+        review::commands::suggestions,
+        review::commands::approve_decisions,
+        review::commands::reject_decisions,
+        review::commands::accept_suggestion,
+        review::commands::dismiss_suggestion,
+        categories::commands::taxonomy,
+        categories::commands::edit_taxonomy,
+        categories::commands::rules,
+        categories::commands::set_rule_enabled,
+        categories::commands::delete_rule,
+        importing::commands::accounts,
+        importing::commands::import_file,
     ])
 }
 
@@ -195,7 +236,12 @@ pub fn run() {
 }
 
 #[cfg(test)]
-mod tests {
+mod ipc_contract_tests;
+#[cfg(test)]
+mod ui_tests;
+
+#[cfg(test)]
+pub(crate) mod tests {
     use fm_core::crash::{CrashReporter, CrashStore};
     use fm_netguard::{Allowlist, NetGuard};
     use sha2::{Digest, Sha256};
@@ -213,13 +259,16 @@ mod tests {
         assert_eq!(info.version, env!("CARGO_PKG_VERSION"));
     }
 
-    type Webview = tauri::WebviewWindow<tauri::test::MockRuntime>;
+    pub(crate) type Webview = tauri::WebviewWindow<tauri::test::MockRuntime>;
 
-    fn invoke(webview: &Webview, cmd: &str) -> Result<serde_json::Value, serde_json::Value> {
+    pub(crate) fn invoke(
+        webview: &Webview,
+        cmd: &str,
+    ) -> Result<serde_json::Value, serde_json::Value> {
         invoke_with(webview, cmd, serde_json::json!({}))
     }
 
-    fn invoke_with(
+    pub(crate) fn invoke_with(
         webview: &Webview,
         cmd: &str,
         args: serde_json::Value,
@@ -237,7 +286,9 @@ mod tests {
     }
 
     /// The app on the mock runtime, with its data under `dir`.
-    fn mock_app(dir: &std::path::Path) -> (tauri::App<tauri::test::MockRuntime>, Webview) {
+    pub(crate) fn mock_app(
+        dir: &std::path::Path,
+    ) -> (tauri::App<tauri::test::MockRuntime>, Webview) {
         let app = mock_builder()
             .invoke_handler(handler())
             .build(mock_context(noop_assets()))
@@ -281,7 +332,7 @@ mod tests {
     }
 
     /// Creates and confirms a ledger through the IPC path.
-    fn create_confirmed(webview: &Webview) {
+    pub(crate) fn create_confirmed(webview: &Webview) {
         let shown = invoke_with(
             webview,
             "create_ledger",

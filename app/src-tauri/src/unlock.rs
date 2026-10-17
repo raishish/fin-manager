@@ -5,12 +5,12 @@
 
 use std::path::Path;
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::{Mutex, MutexGuard};
+use std::sync::{Mutex, MutexGuard, PoisonError};
 use std::thread;
 use std::time::Duration;
 
 use fm_core::crash::CrashReporter;
-use fm_core::storage::{Unlocked, Vault};
+use fm_core::storage::{StorageError, Unlocked, Vault};
 use fm_core::unlock::{
     CHOICES_MINUTES, LedgerStore, MIN_CHARS, Now, RecoveryToConfirm, Session, Status, Strength,
     TouchIdBlocked, TouchIdKeychain, UnlockError, VaultStore,
@@ -157,7 +157,9 @@ type Result<T> = std::result::Result<T, ErrorView>;
 
 /// Called with the open ledger (or `None` once it isn't open) after every change,
 /// while the session's lock is still held.
-type Observer<O> = Box<dyn Fn(Option<&O>) + Send + Sync>;
+/// Called after every change of state with the open ledger (if any) and whether the
+/// change wrote to it.
+type Observer<O> = Box<dyn Fn(Option<&O>, bool) + Send + Sync>;
 
 /// The app's one unlock session, shared by the commands and the timer thread.
 pub struct UnlockState<S: LedgerStore, K: TouchIdKeychain> {
@@ -179,7 +181,7 @@ impl<S: LedgerStore, K: TouchIdKeychain> UnlockState<S, K> {
     pub fn new(store: S, keychain: K) -> Self {
         Self {
             session: Mutex::new(Session::new(store, keychain, Now::current())),
-            observer: Box::new(|_| {}),
+            observer: Box::new(|_, _| {}),
             interrupt: AtomicBool::new(false),
             restored: AtomicBool::new(false),
             backup_offer: Mutex::new(None),
@@ -187,10 +189,11 @@ impl<S: LedgerStore, K: TouchIdKeychain> UnlockState<S, K> {
     }
 
     /// Calls `observer` after every change of state, under the session's lock, so it
-    /// never sees a state that has already moved on.
+    /// never sees a state that has already moved on. Its second argument says whether the
+    /// change wrote to the ledger ([`Self::write_ledger`]).
     pub fn with_observer(
         mut self,
-        observer: impl Fn(Option<&S::Open>) + Send + Sync + 'static,
+        observer: impl Fn(Option<&S::Open>, bool) + Send + Sync + 'static,
     ) -> Self {
         self.observer = Box::new(observer);
         self
@@ -204,7 +207,7 @@ impl<S: LedgerStore, K: TouchIdKeychain> UnlockState<S, K> {
             Err(poisoned) => {
                 let mut guard = poisoned.into_inner();
                 guard.lock(Now::current());
-                (self.observer)(guard.ledger());
+                (self.observer)(guard.ledger(), false);
                 self.session.clear_poison();
                 guard
             }
@@ -213,9 +216,13 @@ impl<S: LedgerStore, K: TouchIdKeychain> UnlockState<S, K> {
 
     /// Runs a change on the session and tells the observer, all under one lock.
     pub(crate) fn change<T>(&self, f: impl FnOnce(&mut Session<S, K>) -> T) -> T {
+        self.change_with(false, f)
+    }
+
+    fn change_with<T>(&self, wrote: bool, f: impl FnOnce(&mut Session<S, K>) -> T) -> T {
         let mut session = self.session();
         let out = f(&mut session);
-        (self.observer)(session.ledger());
+        (self.observer)(session.ledger(), wrote);
         out
     }
 
@@ -227,7 +234,7 @@ impl<S: LedgerStore, K: TouchIdKeychain> UnlockState<S, K> {
     /// Runs a write on the open ledger, then tells the observer (e.g. so new account
     /// names are scrubbed from crash reports). Later features use this for writes.
     pub fn write_ledger<T>(&self, f: impl FnOnce(&mut S::Open) -> T) -> Option<T> {
-        self.change(|s| s.ledger_mut().map(f))
+        self.change_with(true, |s| s.ledger_mut().map(f))
     }
 
     pub fn is_unlocked(&self) -> bool {
@@ -370,23 +377,81 @@ pub fn app_unlock(
     let keychain = fm_core::unlock::Keychain::for_ledger(ledger_dir);
     #[cfg(not(target_os = "macos"))]
     let keychain = fm_core::unlock::NoTouchId;
-    UnlockState::new(VaultStore::new(Vault::at(ledger_dir)), keychain).with_observer(move |open| {
-        match open {
-            Some(open) => reporter.set_sensitive_terms(sensitive_terms(open.ledger())),
-            None => reporter.clear_sensitive_terms(),
-        }
-        bridge.update(open.map(|o| o.ledger()));
-    })
+    let terms = Mutex::new(TermsCache::default());
+    UnlockState::new(VaultStore::new(Vault::at(ledger_dir)), keychain).with_observer(
+        move |open, wrote| {
+            let mut terms = terms.lock().unwrap_or_else(PoisonError::into_inner);
+            match open {
+                Some(open) => {
+                    if let Some(t) = terms.refresh(wrote, || sensitive_terms(open.ledger())) {
+                        reporter.set_sensitive_terms(t);
+                    }
+                }
+                None => {
+                    terms.clear();
+                    reporter.clear_sensitive_terms();
+                }
+            }
+            bridge.update(open.map(|o| o.ledger()));
+        },
+    )
 }
 
-fn sensitive_terms(ledger: &Unlocked) -> Vec<String> {
-    // TODO(T2.2): add merchant names once the merchant table exists.
-    let mut terms = Vec::new();
-    for account in ledger.accounts().unwrap_or_default() {
-        terms.push(account.name);
+/// The crash scrubber's terms for the open ledger. They are read from the ledger only when
+/// it has just been opened or was written to, never on a timer tick or a read, so the
+/// session lock isn't held for a scan of every decision on each change of state.
+#[derive(Debug, Default)]
+struct TermsCache {
+    terms: Option<Vec<String>>,
+}
+
+impl TermsCache {
+    /// The terms to install, or `None` when nothing changed. A failed read keeps the
+    /// previous terms in place (names stay scrubbed) and is retried after the next write.
+    fn refresh<E>(
+        &mut self,
+        wrote: bool,
+        read: impl FnOnce() -> std::result::Result<Vec<String>, E>,
+    ) -> Option<&[String]> {
+        if self.terms.is_some() && !wrote {
+            return None;
+        }
+        match read() {
+            Ok(terms) => {
+                self.terms = Some(terms);
+                self.terms.as_deref()
+            }
+            Err(_) => None,
+        }
+    }
+
+    fn clear(&mut self) {
+        self.terms = None;
+    }
+}
+
+/// Names that could identify the user's finances: account names and institutions, the
+/// merchant names decisions and rules assign, and rule patterns. Read after the ledger
+/// opens and after every write through [`UnlockState::write_ledger`] (see
+/// [`TermsCache`]), so it follows imports and corrections. Any read error fails the
+/// whole refresh, so a partial list never replaces a complete one.
+fn sensitive_terms(ledger: &Unlocked) -> std::result::Result<Vec<String>, StorageError> {
+    use fm_core::model::Assignment;
+    let mut terms = std::collections::BTreeSet::new();
+    for account in ledger.accounts()? {
+        terms.insert(account.name);
         terms.extend(account.institution);
     }
-    terms
+    for decision in ledger.decisions()? {
+        if let Assignment::Merchant(name) = decision.assignment {
+            terms.insert(name);
+        }
+    }
+    for rule in ledger.rules()? {
+        terms.insert(rule.matcher.description.pattern().to_string());
+        terms.extend(rule.action.merchant);
+    }
+    Ok(terms.into_iter().collect())
 }
 
 /// Wraps the app's command handler: unless the ledger is open, every command not in
@@ -710,6 +775,54 @@ mod tests {
         let shown = app.create(secret(STRONG)).unwrap();
         let debug = format!("{shown:?}");
         assert!(!debug.contains(shown.groups[0].as_str()));
+    }
+
+    /// Review T3.3 #1: the terms are read when the ledger opens and after writes, not on
+    /// every change of state (the 5-second tick), and a failed read keeps the old terms.
+    #[test]
+    fn scrubber_terms_are_read_on_open_and_after_writes_only() {
+        let mut cache = TermsCache::default();
+        let reads = std::cell::Cell::new(0);
+        let read = |terms: &[&str]| {
+            reads.set(reads.get() + 1);
+            Ok::<_, ()>(terms.iter().map(|t| t.to_string()).collect())
+        };
+        assert_eq!(
+            cache.refresh(false, || read(&["a"])),
+            Some(&["a".to_string()][..]),
+            "open"
+        );
+        assert_eq!(
+            cache.refresh(false, || read(&["b"])),
+            None,
+            "a tick reads nothing"
+        );
+        assert_eq!(reads.get(), 1);
+        assert_eq!(
+            cache
+                .refresh(true, || read(&["a", "b"]))
+                .map(<[String]>::len),
+            Some(2)
+        );
+        assert_eq!(reads.get(), 2, "a write re-reads");
+        assert_eq!(
+            cache.refresh(true, || Err::<Vec<String>, ()>(())),
+            None,
+            "a failed read"
+        );
+        assert_eq!(
+            cache.terms.as_deref().map(<[String]>::len),
+            Some(2),
+            "keeps the previous terms rather than dropping them"
+        );
+        cache.clear();
+        assert!(cache.terms.is_none());
+        assert_eq!(cache.refresh(false, || Err::<Vec<String>, ()>(())), None);
+        assert_eq!(
+            cache.refresh(false, || read(&["c"])).map(<[String]>::len),
+            Some(1),
+            "with nothing cached, the next change of state tries again"
+        );
     }
 
     #[test]
