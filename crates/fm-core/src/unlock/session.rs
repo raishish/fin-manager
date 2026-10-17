@@ -192,6 +192,11 @@ impl<S: LedgerStore, K: TouchIdKeychain> Session<S, K> {
         }
     }
 
+    /// The ledger at rest, e.g. to restore a backup into while there is none yet.
+    pub fn store(&self) -> &S {
+        &self.store
+    }
+
     pub fn has_recovery_key(&self) -> Option<bool> {
         self.open.as_ref().map(OpenLedger::has_recovery_key)
     }

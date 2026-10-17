@@ -42,6 +42,8 @@ pub const ALLOWED_WHILE_LOCKED: &[&str] = &[
     "confirm_recovery_key",
     "lock",
     "activity",
+    // Restoring a backup on a fresh install; refused unless there is no ledger yet.
+    "restore_backup",
 ];
 
 /// The error every other command returns while locked.
@@ -192,7 +194,7 @@ impl<S: LedgerStore, K: TouchIdKeychain> UnlockState<S, K> {
     }
 
     /// Runs a change on the session and tells the observer, all under one lock.
-    fn change<T>(&self, f: impl FnOnce(&mut Session<S, K>) -> T) -> T {
+    pub(crate) fn change<T>(&self, f: impl FnOnce(&mut Session<S, K>) -> T) -> T {
         let mut session = self.session();
         let out = f(&mut session);
         (self.observer)(session.ledger());
@@ -200,10 +202,6 @@ impl<S: LedgerStore, K: TouchIdKeychain> UnlockState<S, K> {
     }
 
     /// Runs `f` on the open ledger, if it is fully unlocked.
-    #[cfg_attr(
-        not(test),
-        expect(dead_code, reason = "for the features that read and write the ledger")
-    )]
     pub fn with_ledger<T>(&self, f: impl FnOnce(&S::Open) -> T) -> Option<T> {
         self.session().ledger().map(f)
     }
@@ -382,13 +380,18 @@ pub fn gated<R: Runtime>(
     }
 }
 
-/// Locks the ledger after the idle timeout, checking every [`TICK`].
+/// Locks the ledger after the idle timeout, checking every [`TICK`], and runs the daily
+/// backup while it is open.
 pub fn start_autolock_timer<R: Runtime>(app: AppHandle<R>) {
     thread::spawn(move || {
         loop {
             thread::sleep(TICK);
-            if app.state::<AppUnlock>().tick() {
+            let unlock = app.state::<AppUnlock>();
+            if unlock.tick() {
                 let _ = app.emit(LOCKED_EVENT, ());
+            } else {
+                // While open: the daily backup, if one is due (T5.2).
+                unlock.daily_backup();
             }
         }
     });
