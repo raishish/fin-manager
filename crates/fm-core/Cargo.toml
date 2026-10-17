@@ -18,7 +18,18 @@ rusqlite = { version = "=0.40.2", default-features = false, features = ["bundled
 serde = { version = "=1.0.229", default-features = false, features = ["derive", "std"] }
 serde_json = "=1.0.154"
 sha2 = { version = "=0.11.1", default-features = false }
+unicode-normalization = { version = "=0.1.25", default-features = false }
+zxcvbn = { version = "=3.1.1", default-features = false }
 zeroize = { version = "=1.9.1", default-features = false, features = ["alloc"] }
+
+# A monotonic clock that counts sleep, for the unlock time limits (T5.1).
+[target.'cfg(unix)'.dependencies]
+rustix = { version = "=1.1.5", default-features = false, features = ["std", "time"] }
+
+# Touch ID (T5.1): the Keychain item holding the data key's Touch ID copy.
+[target.'cfg(target_os = "macos")'.dependencies]
+security-framework = { version = "=3.7.0", default-features = false, features = ["OSX_10_15"] }
+security-framework-sys = { version = "=2.17.0", default-features = false, features = ["OSX_10_15"] }
 
 [dev-dependencies]
 tempfile = "=3.27.0"
