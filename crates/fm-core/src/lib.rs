@@ -7,6 +7,7 @@ pub mod crash;
 pub mod deletion;
 pub mod model;
 pub mod pipeline;
+pub mod recurring;
 pub mod storage;
 pub mod transfers;
 pub mod unlock;
