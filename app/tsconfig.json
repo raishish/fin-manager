@@ -1,6 +1,9 @@
 {
 	"extends": "$app/tsconfig",
 	"include": ["src", "*"],
+	// Node runs the unit tests (`npm test`) and strips their types; svelte-check would
+	// need @types/node for `node:test`, which the app doesn't otherwise use.
+	"exclude": ["src/**/*.test.ts"],
 	"compilerOptions": {
 		"allowJs": true,
 		"checkJs": true,

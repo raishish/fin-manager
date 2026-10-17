@@ -210,6 +210,13 @@ fn handler<R: Runtime>() -> impl Fn(Invoke<R>) -> bool + Send + Sync + 'static {
     ])
 }
 
+/// The app's context: its config, assets and the permission ACL generated from
+/// `capabilities/`. Expanded once (the macro embeds Info.plist on macOS), so the tests use
+/// the same one (`capability_tests`).
+fn context<R: Runtime>() -> tauri::Context<R> {
+    tauri::generate_context!()
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -231,7 +238,7 @@ pub fn run() {
             Ok(())
         })
         .invoke_handler(handler())
-        .build(tauri::generate_context!())
+        .build(context())
         .expect("error while building the Tauri application")
         .run(|app, event| {
             // Quitting locks (the database closes and the data key is wiped) and deletes
@@ -242,6 +249,8 @@ pub fn run() {
         });
 }
 
+#[cfg(test)]
+mod capability_tests;
 #[cfg(test)]
 mod ipc_contract_tests;
 #[cfg(test)]
