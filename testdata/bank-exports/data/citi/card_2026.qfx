@@ -1,0 +1,773 @@
+OFXHEADER:100
+DATA:OFXSGML
+VERSION:102
+SECURITY:NONE
+ENCODING:USASCII
+CHARSET:1252
+COMPRESSION:NONE
+OLDFILEUID:NONE
+NEWFILEUID:NONE
+
+<OFX>
+  <SIGNONMSGSRSV1>
+    <SONRS>
+      <STATUS>
+        <CODE>0
+        <SEVERITY>INFO
+      </STATUS>
+      <DTSERVER>20260930120000
+      <LANGUAGE>ENG
+      <FI>
+        <ORG>Citibank
+        <FID>2102
+      </FI>
+      <INTU.BID>2102
+    </SONRS>
+  </SIGNONMSGSRSV1>
+  <BANKMSGSRSV1>
+    <STMTTRNRS>
+      <TRNUID>1
+      <STATUS>
+        <CODE>0
+        <SEVERITY>INFO
+      </STATUS>
+      <STMTRS>
+        <CURDEF>USD
+        <BANKACCTFROM>
+          <BANKID>999999008
+          <ACCTID>9999000000003378
+          <ACCTTYPE>CREDITLINE
+        </BANKACCTFROM>
+        <BANKTRANLIST>
+          <DTSTART>20260101120000
+          <DTEND>20260930120000
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260101120000
+            <TRNAMT>-7.51
+            <FITID>HENGH4Y50C4O607L
+            <NAME>DUTCH BROS COFFEE 5021 TUCSONAZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260106120000
+            <TRNAMT>-21.88
+            <FITID>6M58LDFQDMYB18L2
+            <NAME>PETCO ANIMAL SUPPLIES 151 TUCSON
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260109120000
+            <TRNAMT>-8.42
+            <FITID>1IEUR89VWF2M6IYA
+            <NAME>DUTCH BROS COFFEE 5021 TUCSONAZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260111120000
+            <TRNAMT>-59.11
+            <FITID>J97HM8RPE230YVSI
+            <NAME>SAGUARO GRILL TUCSONAZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260114120000
+            <TRNAMT>-18.40
+            <FITID>LXEPKWV8VDNP92L9
+            <NAME>SQ *MESQUITE DINER TUCSONAZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260116120000
+            <TRNAMT>-34.04
+            <FITID>B78N6SU8BWL1OVOG
+            <NAME>MESQUITE DINER LLC TUCSONAZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260117120000
+            <TRNAMT>-59.03
+            <FITID>HFB0SMTU8GBZL9ZF
+            <NAME>SAGUARO GRILL MARANAAZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260119120000
+            <TRNAMT>-37.14
+            <FITID>JD973556C632HNVR
+            <NAME>B&amp;N.COM TUCSONAZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260120120000
+            <TRNAMT>-9.35
+            <FITID>NW3BAH2E83FCPDCY
+            <NAME>DUTCH BROS #5021 TUCSONAZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260120120000
+            <TRNAMT>-37.32
+            <FITID>1Y3FWO42AYOWTEB5
+            <NAME>B&amp;N.COM TUCSONAZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260122120000
+            <TRNAMT>-62.91
+            <FITID>JQEV9V8R28ZA0ZUQ
+            <NAME>DESERT SKY CARDIO PC TUCSONAZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260122120000
+            <TRNAMT>-28.16
+            <FITID>K9HJ90RXIQAQWVTB
+            <NAME>GREAT CLIPS 2827 TUCSONAZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260124120000
+            <TRNAMT>-26.24
+            <FITID>N5LXTDN9MONH21GH
+            <NAME>GREAT CLIPS #2827 TUCSONAZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260129120000
+            <TRNAMT>-7.47
+            <FITID>41DPLTB9H5OVYWIG
+            <NAME>DUTCH BROS COFFEE 5021 TUCSONAZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260130120000
+            <TRNAMT>-6.94
+            <FITID>3YP82A3A4OBMBBI0
+            <NAME>DUTCH BROS COFFEE 5021 TUCSONAZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>PAYMENT
+            <DTPOSTED>20260130120000
+            <TRNAMT>325.45
+            <FITID>5G4W85LDL0J93TRN
+            <NAME>CAPITAL ONE MOBILE PYMT
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260201120000
+            <TRNAMT>-29.95
+            <FITID>8SSXF8LSSKU6NNCJ
+            <NAME>GREAT CLIPS #2827 MARANAAZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260208120000
+            <TRNAMT>-44.52
+            <FITID>B46LEBSFKW2QY33J
+            <NAME>SAGUARO GRILL ORO VALLEYAZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260212120000
+            <TRNAMT>-123.43
+            <FITID>XGNXQJEQVU5VZRZO
+            <NAME>BRIGHT SMILE DENTAL PC TUCSONAZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260222120000
+            <TRNAMT>-24.27
+            <FITID>HE6RMS9JKU1QC25G
+            <NAME>MESQUITE DINER LLC TUCSONAZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260301120000
+            <TRNAMT>-40.49
+            <FITID>R64N2EIV1H0NSN03
+            <NAME>SQ *MESQUITE DINER TUCSONAZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260301120000
+            <TRNAMT>-43.62
+            <FITID>Q5JTMSDOL3P2OY80
+            <NAME>SAGUARO GRILL TUCSONAZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>PAYMENT
+            <DTPOSTED>20260302120000
+            <TRNAMT>446.36
+            <FITID>MHJ5057A9RANFH4T
+            <NAME>CAPITAL ONE AUTOPAY PYMT
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260306120000
+            <TRNAMT>-8.78
+            <FITID>H1WKUOQCLOGCTE92
+            <NAME>DUTCH BROS COFFEE 5021 TUCSONAZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260308120000
+            <TRNAMT>-41.67
+            <FITID>KWLSI8G4VL2ACEPZ
+            <NAME>SAGUARO GRILL TUCSONAZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260316120000
+            <TRNAMT>-55.54
+            <FITID>PE7B17LA9BEGVMUB
+            <NAME>PETCO 8379 TUCSONAZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260317120000
+            <TRNAMT>-69.02
+            <FITID>7G7NSIZK49UYV5U9
+            <NAME>TST* SAGUARO GRILL TUCSONAZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260320120000
+            <TRNAMT>-8.09
+            <FITID>ZMOOPMD0PC6OHKMF
+            <NAME>DUTCH BROS COFFEE 5021 TUCSONAZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260320120000
+            <TRNAMT>-142.07
+            <FITID>TJ8SD3RRJLUNRJMD
+            <NAME>DESERT PAWS VET CLINIC TUCSONAZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260321120000
+            <TRNAMT>-80.59
+            <FITID>89C071PH2BNURD3B
+            <NAME>PETCO 1519 TUCSONAZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260324120000
+            <TRNAMT>-58.49
+            <FITID>LJMZPB0YJ6EECOBI
+            <NAME>PETCO ANIMAL SUPPLIES 151 MARANA
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260329120000
+            <TRNAMT>-26.23
+            <FITID>MBN7M48TU7IJ4QVN
+            <NAME>GREAT CLIPS 2827 TUCSONAZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>PAYMENT
+            <DTPOSTED>20260330120000
+            <TRNAMT>276.33
+            <FITID>TX9K9DA639OF8KE7
+            <NAME>CAPITAL ONE AUTOPAY PYMT
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260404120000
+            <TRNAMT>-25.19
+            <FITID>TE5FIBT1XTHFZPO6
+            <NAME>SQ *MESQUITE DINER TUCSONAZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260405120000
+            <TRNAMT>-53.75
+            <FITID>NKL25ZT7JZ1LCCND
+            <NAME>SAGUARO GRILL TUCSONAZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260411120000
+            <TRNAMT>-29.05
+            <FITID>77CYMOA7CX9XS3BY
+            <NAME>MESQUITE DINER LLC TUCSONAZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260413120000
+            <TRNAMT>-54.27
+            <FITID>SVYI7D0CE157NGC8
+            <NAME>PETCO 1519 TUCSONAZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260414120000
+            <TRNAMT>-8.02
+            <FITID>2ZR0FOPJWP71SB2R
+            <NAME>DUTCH BROS COFFEE 5021 TUCSONAZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260418120000
+            <TRNAMT>-107.56
+            <FITID>W7XR2VW6S17PQMWF
+            <NAME>HOMEDEPOT.COM TUCSONAZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260420120000
+            <TRNAMT>-30.96
+            <FITID>HH6Z6KUDO3QWQEFN
+            <NAME>PETCO ANIMAL SUPPLIES 151 TUCSON
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260420120000
+            <TRNAMT>-40.98
+            <FITID>83LEO1HFA3RP3DZ5
+            <NAME>SAGUARO GRILL TUCSONAZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260422120000
+            <TRNAMT>-37.36
+            <FITID>5G6YVMUJJO6EFE7J
+            <NAME>HOMEDEPOT.COM TUCSONAZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260423120000
+            <TRNAMT>-21.00
+            <FITID>ZSQTUHE7U8PDO3N4
+            <NAME>GREAT CLIPS 2827 TUCSONAZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260501120000
+            <TRNAMT>-28.21
+            <FITID>G4VXVRGL8D4BCCOR
+            <NAME>GREAT CLIPS #2827 TUCSONAZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>PAYMENT
+            <DTPOSTED>20260501120000
+            <TRNAMT>569.42
+            <FITID>EEPAS4JFGSFBWVSZ
+            <NAME>CAPITAL ONE MOBILE PYMT
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260509120000
+            <TRNAMT>-37.59
+            <FITID>6P0RDCS4Q54TA6EH
+            <NAME>SQ *MESQUITE DINER TUCSONAZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260513120000
+            <TRNAMT>-8.62
+            <FITID>4AA5GKSZAW0SBVFJ
+            <NAME>DUTCH BROS #3408 TUCSONAZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260518120000
+            <TRNAMT>-27.89
+            <FITID>KFQA93G7H9OUURGT
+            <NAME>BARNES &amp; NOBLE #1361 TUCSONAZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260520120000
+            <TRNAMT>-106.07
+            <FITID>ZQFYDASI41HIUVZS
+            <NAME>THE HOME DEPOT 1456 TUCSONAZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260520120000
+            <TRNAMT>-8.53
+            <FITID>U5SL5Y7L48Q71MV4
+            <NAME>DUTCH BROS #5021 TUCSONAZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260523120000
+            <TRNAMT>-25.32
+            <FITID>IEK90MF5PGRD7HMN
+            <NAME>MESQUITE DINER LLC TUCSONAZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260526120000
+            <TRNAMT>-43.26
+            <FITID>VW732DXOJA1VDA0T
+            <NAME>SAGUARO GRILL TUCSONAZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260530120000
+            <TRNAMT>-8.44
+            <FITID>MZCZR38IXK09NR08
+            <NAME>DUTCH BROS COFFEE 5021 TUCSONAZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260531120000
+            <TRNAMT>-8.37
+            <FITID>JBCCS90ELW4726MI
+            <NAME>DUTCH BROS #5021 TUCSONAZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260601120000
+            <TRNAMT>-58.06
+            <FITID>BOSW0G1UHEC91K4J
+            <NAME>TST* SAGUARO GRILL ORO VALLEYAZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>PAYMENT
+            <DTPOSTED>20260602120000
+            <TRNAMT>357.41
+            <FITID>9BYJ8E82CVHKAASS
+            <NAME>CAPITAL ONE MOBILE PYMT
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260606120000
+            <TRNAMT>-19.09
+            <FITID>4NHCM30Z54CANTOI
+            <NAME>SQ *MESQUITE DINER TUCSONAZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260608120000
+            <TRNAMT>-46.84
+            <FITID>YDMD61SUCSLXP7BH
+            <NAME>SAGUARO GRILL TUCSONAZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260609120000
+            <TRNAMT>-7.69
+            <FITID>K2YPCOIZVV3MP4IH
+            <NAME>DUTCH BROS #5021 TUCSONAZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260623120000
+            <TRNAMT>-28.43
+            <FITID>WNK4Q98JTKBFK3P8
+            <NAME>MESQUITE DINER LLC TUCSONAZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>PAYMENT
+            <DTPOSTED>20260630120000
+            <TRNAMT>332.15
+            <FITID>7R2CESHT0P53UUKU
+            <NAME>CAPITAL ONE AUTOPAY PYMT
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260704120000
+            <TRNAMT>-52.38
+            <FITID>4N7LPKVJUUVUB9G9
+            <NAME>SAGUARO GRILL ORO VALLEYAZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260704120000
+            <TRNAMT>-5.82
+            <FITID>6VFH293KRG5QO4T2
+            <NAME>DUTCH BROS COFFEE 5021 TUCSONAZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260708120000
+            <TRNAMT>-6.54
+            <FITID>561IB0L65T4PGDFG
+            <NAME>DUTCH BROS COFFEE 4513 TUCSONAZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260709120000
+            <TRNAMT>-46.81
+            <FITID>QW79W7236LV2WPPH
+            <NAME>B&amp;N.COM MARANAAZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260717120000
+            <TRNAMT>-84.31
+            <FITID>EBW55WJQ6SN48ICS
+            <NAME>PETCO ANIMAL SUPPLIES 151 TUCSON
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260717120000
+            <TRNAMT>-32.81
+            <FITID>G88OHZ8CWRIKZ38X
+            <NAME>MESQUITE DINER LLC TUCSONAZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260717120000
+            <TRNAMT>-29.40
+            <FITID>GTE5IARR1S6D00TF
+            <NAME>PETCO 1519 TUCSONAZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260717120000
+            <TRNAMT>-27.49
+            <FITID>NF9V0P414VESTY7D
+            <NAME>GREAT CLIPS #6018 TUCSONAZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260718120000
+            <TRNAMT>-58.08
+            <FITID>LWYJP0C371YEH1VX
+            <NAME>DESERT SKY CARDIOLOGY TUCSONAZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260718120000
+            <TRNAMT>-140.52
+            <FITID>CJPNXEBDM44IKF2N
+            <NAME>THE HOME DEPOT #1456 TUCSONAZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260722120000
+            <TRNAMT>-30.82
+            <FITID>9Q7TPIQD6C9LHGBW
+            <NAME>SQ *MESQUITE DINER TUCSONAZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260727120000
+            <TRNAMT>-41.39
+            <FITID>6W9WAW5C9BQIW92V
+            <NAME>ACE HARDWARE #54284 MARANAAZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>PAYMENT
+            <DTPOSTED>20260730120000
+            <TRNAMT>160.25
+            <FITID>DY6W9QGCSMMHD3Q5
+            <NAME>CAPITAL ONE AUTOPAY PYMT
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260731120000
+            <TRNAMT>-63.98
+            <FITID>Z5MU7FJKE03TMG23
+            <NAME>DESERT SKY CARDIO PC TUCSONAZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260801120000
+            <TRNAMT>-25.13
+            <FITID>4PQPW1YGFDYXZRJW
+            <NAME>MESQUITE DINER LLC TUCSONAZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260801120000
+            <TRNAMT>-74.78
+            <FITID>BFQ505UVBNWL9KW5
+            <NAME>HOMEDEPOT.COM TUCSONAZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260805120000
+            <TRNAMT>-66.69
+            <FITID>SCNOQQQDPVC4PPX2
+            <NAME>TST* SAGUARO GRILL TUCSONAZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260809120000
+            <TRNAMT>-7.00
+            <FITID>DDYLY6VNTZF8TDNX
+            <NAME>DUTCH BROS COFFEE 9560 TUCSONAZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260810120000
+            <TRNAMT>-28.93
+            <FITID>51R6IPQ6N1LCPBZ6
+            <NAME>SQ *MESQUITE DINER TUCSONAZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260810120000
+            <TRNAMT>-8.19
+            <FITID>3CYLADEXN4CB7BI5
+            <NAME>DUTCH BROS #5021 TUCSONAZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260810120000
+            <TRNAMT>-36.72
+            <FITID>CNHA4P1PWJTWKGRK
+            <NAME>ACE HARDWARE #54284 TUCSONAZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260812120000
+            <TRNAMT>-102.15
+            <FITID>SZ9I438V9JFSMJZC
+            <NAME>BRIGHT SMILE DENTAL TUCSONAZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260816120000
+            <TRNAMT>-30.87
+            <FITID>UGR981I8XCWGHIZX
+            <NAME>GREAT CLIPS #2827 MARANAAZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260817120000
+            <TRNAMT>-41.19
+            <FITID>GPE81IKSXM10H5ZB
+            <NAME>TST* SAGUARO GRILL TUCSONAZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260818120000
+            <TRNAMT>-8.01
+            <FITID>WNLJ0EZQ7OPM525L
+            <NAME>DUTCH BROS COFFEE 5021 TUCSONAZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260820120000
+            <TRNAMT>-210.48
+            <FITID>TUDIXRCRNOOQAZTB
+            <NAME>CLEAR VIEW OPTOMETRY MARANAAZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260821120000
+            <TRNAMT>-52.74
+            <FITID>THT2RBV2KB1O2920
+            <NAME>SAGUARO GRILL TUCSONAZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260822120000
+            <TRNAMT>-8.30
+            <FITID>JPXVSP2ZKJEQLHX5
+            <NAME>DUTCH BROS #5021 TUCSONAZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260822120000
+            <TRNAMT>-45.90
+            <FITID>H0U30PAMYZVK9RL1
+            <NAME>PETCO 1519 TUCSONAZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260825120000
+            <TRNAMT>-48.01
+            <FITID>CLY8H8PLV3Q2H7JB
+            <NAME>QUEST DIAG
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260830120000
+            <TRNAMT>-45.05
+            <FITID>HU4CVB5PTUKEE9VL
+            <NAME>BARNES &amp; NOBLE #1300 TUCSONAZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>PAYMENT
+            <DTPOSTED>20260831120000
+            <TRNAMT>728.75
+            <FITID>1CDLYT1KCT877WOV
+            <NAME>CAPITAL ONE AUTOPAY PYMT
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260903120000
+            <TRNAMT>-9.81
+            <FITID>HH0XTRFEMJO2QZMC
+            <NAME>DUTCH BROS COFFEE 5021 ORO VALLE
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260906120000
+            <TRNAMT>-21.38
+            <FITID>5V1L89XWPDA44R70
+            <NAME>SQ *MESQUITE DINER TUCSONAZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260919120000
+            <TRNAMT>-27.63
+            <FITID>94YYELKMYP6O8PS3
+            <NAME>PETCO 1519 TUCSONAZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260920120000
+            <TRNAMT>-30.45
+            <FITID>KAZ6VBPO88TGCCIX
+            <NAME>ACE HDWE 54284 TUCSONAZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260922120000
+            <TRNAMT>-29.47
+            <FITID>STKYYBIA7LA4CP0Y
+            <NAME>GREAT CLIPS #2827 TUCSONAZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260924120000
+            <TRNAMT>-72.69
+            <FITID>4LX2RAEFZURQS7RD
+            <NAME>PETCO 1519 TUCSONAZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260924120000
+            <TRNAMT>-166.24
+            <FITID>4MG0UT5EXDBUKA2R
+            <NAME>THE HOME DEPOT 1456 TUCSONAZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260925120000
+            <TRNAMT>-20.14
+            <FITID>60YZRKFOMD7MN3J6
+            <NAME>MESQUITE DINER LLC TUCSONAZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260930120000
+            <TRNAMT>-22.74
+            <FITID>DJTPQVW72ACONPRA
+            <NAME>GREAT CLIPS #2827 MARANAAZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>PAYMENT
+            <DTPOSTED>20260930120000
+            <TRNAMT>683.35
+            <FITID>JGAAVPGWKCFG2X4M
+            <NAME>CAPITAL ONE MOBILE PYMT
+          </STMTTRN>
+        </BANKTRANLIST>
+        <LEDGERBAL>
+          <BALAMT>-390.74
+          <DTASOF>20260930120000
+        </LEDGERBAL>
+      </STMTRS>
+    </STMTTRNRS>
+  </BANKMSGSRSV1>
+</OFX>

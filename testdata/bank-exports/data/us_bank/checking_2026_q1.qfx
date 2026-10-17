@@ -1,0 +1,604 @@
+OFXHEADER:100
+DATA:OFXSGML
+VERSION:102
+SECURITY:NONE
+ENCODING:USASCII
+CHARSET:1252
+COMPRESSION:NONE
+OLDFILEUID:NONE
+NEWFILEUID:NONE
+
+<OFX>
+  <SIGNONMSGSRSV1>
+    <SONRS>
+      <STATUS>
+        <CODE>0
+        <SEVERITY>INFO
+      </STATUS>
+      <DTSERVER>20260402120000
+      <LANGUAGE>ENG
+      <FI>
+        <ORG>U.S. Bank
+        <FID>1402
+      </FI>
+      <INTU.BID>1402
+    </SONRS>
+  </SIGNONMSGSRSV1>
+  <BANKMSGSRSV1>
+    <STMTTRNRS>
+      <TRNUID>1
+      <STATUS>
+        <CODE>0
+        <SEVERITY>INFO
+      </STATUS>
+      <STMTRS>
+        <CURDEF>USD
+        <BANKACCTFROM>
+          <BANKID>999999020
+          <ACCTID>999900002290
+          <ACCTTYPE>CHECKING
+        </BANKACCTFROM>
+        <BANKTRANLIST>
+          <DTSTART>20260101120000
+          <DTEND>20260331120000
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEBIT
+            <DTPOSTED>20260101120000
+            <TRNAMT>-2488.21
+            <FITID>36NTO91LAI962VBE
+            <NAME>ROCKET MORTGAGE DES:MTG PYMT ID:
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEBIT
+            <DTPOSTED>20260101120000
+            <TRNAMT>-89.00
+            <FITID>FRN3JRNZK9UP76B5
+            <NAME>YMCA CENTRAL OHIO DES:MEMBERSHIP
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEBIT
+            <DTPOSTED>20260101120000
+            <TRNAMT>-640.00
+            <FITID>RK7B5PCGGUCD274B
+            <NAME>LITTLE ACORNS LLC DES:TUITION ID
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEP
+            <DTPOSTED>20260102120000
+            <TRNAMT>2890.10
+            <FITID>XW2WX84QNTE2T35P
+            <NAME>CONTOSO HEALTH SYS DES:DIR DEP I
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>XFER
+            <DTPOSTED>20260102120000
+            <TRNAMT>-400.00
+            <FITID>02OVFVTI49E921SR
+            <NAME>Online Banking transfer to SAV 2
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260102120000
+            <TRNAMT>-108.94
+            <FITID>90L0PVHU3H4VSKNX
+            <NAME>Zelle payment to Harper Pretendl
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>PAYMENT
+            <DTPOSTED>20260102120000
+            <TRNAMT>-1623.07
+            <FITID>36TN6QKNAAYJ8JLJ
+            <NAME>CHASE CREDIT CRD DES:EPAY ID:J17
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>CHECK
+            <DTPOSTED>20260105120000
+            <TRNAMT>-160.00
+            <FITID>OG1YXZRPB6XBZEDS
+            <CHECKNUM>1060
+            <NAME>Check 1060
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEBIT
+            <DTPOSTED>20260107120000
+            <TRNAMT>-171.22
+            <FITID>VAWVSCZ5J9HAU8FP
+            <NAME>STATE FARM RO 27 DES:SFPP ID:7LD
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>CHECK
+            <DTPOSTED>20260108120000
+            <TRNAMT>-150.00
+            <FITID>3PVXHGKZVG0TWEEL
+            <CHECKNUM>1115
+            <NAME>Check 1115
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>ATM
+            <DTPOSTED>20260108120000
+            <TRNAMT>-100.00
+            <FITID>IHAMXPOFE7TTZOH2
+            <NAME>BKOFAMERICA ATM 01/08 #257954244
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260110120000
+            <TRNAMT>-53.18
+            <FITID>01HI8ZCZOIR6C34H
+            <NAME>CHECKCARD 0110 SHELL SERVICE STA
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEBIT
+            <DTPOSTED>20260112120000
+            <TRNAMT>-225.00
+            <FITID>NS97CK27HIXTTELG
+            <NAME>MAPLE RIDGE HOA DES:HOA DUES ID:
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEBIT
+            <DTPOSTED>20260112120000
+            <TRNAMT>-157.69
+            <FITID>5TJEXUCZAA3VE8X7
+            <NAME>AEP OHIO DES:BILL PAY ID:XATJC5L
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEP
+            <DTPOSTED>20260115120000
+            <TRNAMT>2168.49
+            <FITID>QQI432X5Q44ZOSX2
+            <NAME>FABRIKAM ISD DES:PAYROLL ID:9CKC
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEP
+            <DTPOSTED>20260116120000
+            <TRNAMT>2890.10
+            <FITID>9P5UDU98LQT08ENZ
+            <NAME>CONTOSO HEALTH SYS DES:DIR DEP I
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEBIT
+            <DTPOSTED>20260116120000
+            <TRNAMT>-250.00
+            <FITID>ZGESDP2J6BSOD35T
+            <NAME>OHIO TOS-529 DES:CONTRIB ID:T1UR
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>PAYMENT
+            <DTPOSTED>20260116120000
+            <TRNAMT>-3235.56
+            <FITID>3AHU2Y6X966JPMCL
+            <NAME>CAPITAL ONE DES:MOBILE PMT ID:0J
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260119120000
+            <TRNAMT>-65.63
+            <FITID>BJYTSESQ6N5ZWTA0
+            <NAME>CHECKCARD 0118 COSTCO GAS #3090
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEBIT
+            <DTPOSTED>20260120120000
+            <TRNAMT>-216.92
+            <FITID>GYTRDX1IG2ETI2W4
+            <NAME>COLUMBIA GAS OH DES:UTIL PYMT ID
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260121120000
+            <TRNAMT>-21.91
+            <FITID>5E92KKXUBGYFLJHK
+            <NAME>CHECKCARD 0121 PANERA BREAD 0089
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260122120000
+            <TRNAMT>-60.67
+            <FITID>QV7AJ2NFV069G0CD
+            <NAME>CHECKCARD 0120 SPEEDWAY 67499 DU
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEBIT
+            <DTPOSTED>20260126120000
+            <TRNAMT>-74.39
+            <FITID>FPNNKZIM05QW6Z98
+            <NAME>CITY OF COLUMBUS DES:UTILITIES I
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEBIT
+            <DTPOSTED>20260128120000
+            <TRNAMT>-38.50
+            <FITID>UUY0QLXA5MD1O7RG
+            <NAME>HAVEN LIFE INS DES:PREMIUM ID:UE
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260130120000
+            <TRNAMT>-50.18
+            <FITID>ESCWO5UCF2PJD023
+            <NAME>CHECKCARD 0129 SPEEDWAY 67499 DU
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEP
+            <DTPOSTED>20260130120000
+            <TRNAMT>2890.10
+            <FITID>IFP09GYDEXYLTIPF
+            <NAME>CONTOSO HEALTH SYS DES:DIR DEP I
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEP
+            <DTPOSTED>20260130120000
+            <TRNAMT>2168.49
+            <FITID>TXMH9ZZ7A09L6ELW
+            <NAME>FABRIKAM ISD DES:PAYROLL ID:ER3U
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEBIT
+            <DTPOSTED>20260202120000
+            <TRNAMT>-2488.21
+            <FITID>UV7S70BZ3TW9SJFH
+            <NAME>ROCKET MORTGAGE DES:MTG PYMT ID:
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEBIT
+            <DTPOSTED>20260202120000
+            <TRNAMT>-89.00
+            <FITID>BFX1H8WSBC3UNRLM
+            <NAME>YMCA CENTRAL OHIO DES:MEMBERSHIP
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEBIT
+            <DTPOSTED>20260202120000
+            <TRNAMT>-640.00
+            <FITID>3RR7EK5C0582M4YL
+            <NAME>LITTLE ACORNS LLC DES:TUITION ID
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>XFER
+            <DTPOSTED>20260202120000
+            <TRNAMT>-400.00
+            <FITID>D84EILZJP4V4AVCP
+            <NAME>Online Banking transfer to SAV 2
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>PAYMENT
+            <DTPOSTED>20260202120000
+            <TRNAMT>-2151.57
+            <FITID>6UDOYCS89DSRNJML
+            <NAME>CHASE CREDIT CRD DES:EPAY ID:Q5N
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>CHECK
+            <DTPOSTED>20260205120000
+            <TRNAMT>-150.00
+            <FITID>QVY6WOKDJOQVTA1V
+            <CHECKNUM>1116
+            <NAME>Check 1116
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260207120000
+            <TRNAMT>-184.06
+            <FITID>6ZH6B38S1XTKK26F
+            <NAME>CHECKCARD 0206 KROGER #771 COLUM
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260207120000
+            <TRNAMT>-28.15
+            <FITID>FS7FNLPV24M09348
+            <NAME>CHECKCARD 0206 CHICK-FIL-A #0653
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>CHECK
+            <DTPOSTED>20260209120000
+            <TRNAMT>-160.00
+            <FITID>NCHE7HB5S1632IXD
+            <CHECKNUM>1061
+            <NAME>Check 1061
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEBIT
+            <DTPOSTED>20260209120000
+            <TRNAMT>-171.22
+            <FITID>PMFSN41A6FBYSAS1
+            <NAME>STATE FARM RO 27 DES:SFPP ID:CHT
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEBIT
+            <DTPOSTED>20260212120000
+            <TRNAMT>-136.99
+            <FITID>R8Z8YXFI4Z2YUCTO
+            <NAME>AEP OHIO DES:BILL PAY ID:9GQ6UHV
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEP
+            <DTPOSTED>20260213120000
+            <TRNAMT>2890.10
+            <FITID>PSTI8Y03QAHNWP9U
+            <NAME>CONTOSO HEALTH SYS DES:DIR DEP I
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEP
+            <DTPOSTED>20260213120000
+            <TRNAMT>2168.49
+            <FITID>HF5KF29UKZDPN9T1
+            <NAME>FABRIKAM ISD DES:PAYROLL ID:XLFX
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260214120000
+            <TRNAMT>-98.14
+            <FITID>DNBBSFP2IZDYIRST
+            <NAME>Zelle payment to Harper Pretendl
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260216120000
+            <TRNAMT>-17.33
+            <FITID>NPXXNFND5TL3I2XQ
+            <NAME>CHECKCARD 0215 PANERA BREAD 0089
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEBIT
+            <DTPOSTED>20260216120000
+            <TRNAMT>-250.00
+            <FITID>XH5VF3Y9XNZI4DXX
+            <NAME>OHIO TOS-529 DES:CONTRIB ID:RRXZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>PAYMENT
+            <DTPOSTED>20260216120000
+            <TRNAMT>-2197.52
+            <FITID>EH243FPDHMCU5AOP
+            <NAME>CAPITAL ONE DES:MOBILE PMT ID:MW
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260218120000
+            <TRNAMT>-46.97
+            <FITID>XDXKL39N1FDLDP66
+            <NAME>CHECKCARD 0217 SPEEDWAY 67499 DU
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEBIT
+            <DTPOSTED>20260220120000
+            <TRNAMT>-198.59
+            <FITID>CWEEBPB402GQ0387
+            <NAME>COLUMBIA GAS OH DES:UTIL PYMT ID
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260220120000
+            <TRNAMT>-99.62
+            <FITID>VO2P44JU05CXDG5S
+            <NAME>Zelle payment to Taylor Sampleby
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEBIT
+            <DTPOSTED>20260225120000
+            <TRNAMT>-104.14
+            <FITID>CQZ19ZD9HT5P827I
+            <NAME>CITY OF COLUMBUS DES:UTILITIES I
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEP
+            <DTPOSTED>20260227120000
+            <TRNAMT>2890.10
+            <FITID>9HKDRL5KAU087Z8Z
+            <NAME>CONTOSO HEALTH SYS DES:DIR DEP I
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEP
+            <DTPOSTED>20260227120000
+            <TRNAMT>2168.49
+            <FITID>3YQ9WYA7SRGS8NPT
+            <NAME>FABRIKAM ISD DES:PAYROLL ID:NPXP
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260302120000
+            <TRNAMT>-55.13
+            <FITID>GCEO2H703WK5VD7O
+            <NAME>CHECKCARD 0301 COSTCO GAS 3090 D
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEBIT
+            <DTPOSTED>20260302120000
+            <TRNAMT>-2488.21
+            <FITID>SOJ9T6U7UBP85YUX
+            <NAME>ROCKET MORTGAGE DES:MTG PYMT ID:
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEBIT
+            <DTPOSTED>20260302120000
+            <TRNAMT>-38.50
+            <FITID>9OL1O1WF5J44O0CG
+            <NAME>HAVEN LIFE INS DES:PREMIUM ID:5H
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEBIT
+            <DTPOSTED>20260302120000
+            <TRNAMT>-89.00
+            <FITID>A3OL775DQ5W0SK3W
+            <NAME>YMCA CENTRAL OHIO DES:MEMBERSHIP
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEBIT
+            <DTPOSTED>20260302120000
+            <TRNAMT>-640.00
+            <FITID>A28HDKZ3JEL08DW6
+            <NAME>LITTLE ACORNS LLC DES:TUITION ID
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>XFER
+            <DTPOSTED>20260302120000
+            <TRNAMT>-400.00
+            <FITID>CNRJWIHJLIZ9BYI4
+            <NAME>Online Banking transfer to SAV 2
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>CHECK
+            <DTPOSTED>20260303120000
+            <TRNAMT>-150.00
+            <FITID>PSA4AV9PKJ3LLVZ9
+            <CHECKNUM>1117
+            <NAME>Check 1117
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>PAYMENT
+            <DTPOSTED>20260305120000
+            <TRNAMT>-1626.67
+            <FITID>YBI5AFRF8LY1OHZU
+            <NAME>CHASE CREDIT CRD DES:EPAY ID:BUY
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260306120000
+            <TRNAMT>-54.21
+            <FITID>GWZUT6Q3O9OOP77R
+            <NAME>CHECKCARD 0304 COSTCO GAS #3090
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>CHECK
+            <DTPOSTED>20260309120000
+            <TRNAMT>-160.00
+            <FITID>PL1PBONFH747RU4F
+            <CHECKNUM>1062
+            <NAME>Check 1062
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEBIT
+            <DTPOSTED>20260309120000
+            <TRNAMT>-171.22
+            <FITID>WQETKQZ9HVC2CPJY
+            <NAME>STATE FARM RO 27 DES:SFPP ID:OA1
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEP
+            <DTPOSTED>20260310120000
+            <TRNAMT>2980.00
+            <FITID>QTSPEFVFTT963L46
+            <NAME>IRS TREAS 310 DES:TAX REF ID:X1X
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEBIT
+            <DTPOSTED>20260312120000
+            <TRNAMT>-128.62
+            <FITID>0M98RVZWR2WT0BOX
+            <NAME>AEP OHIO DES:BILL PAY ID:FD4CZXD
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEP
+            <DTPOSTED>20260313120000
+            <TRNAMT>2890.10
+            <FITID>0MVB9OWIO2LXVRBB
+            <NAME>CONTOSO HEALTH SYS DES:DIR DEP I
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEP
+            <DTPOSTED>20260313120000
+            <TRNAMT>2168.49
+            <FITID>RC6249DXMEMT7N6N
+            <NAME>FABRIKAM ISD DES:PAYROLL ID:32UA
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260314120000
+            <TRNAMT>-13.97
+            <FITID>PS08WPAAH990TRZO
+            <NAME>CHECKCARD 0313 MCDONALDS F10081
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260315120000
+            <TRNAMT>-102.54
+            <FITID>0OB1J3GL6IIURZZ5
+            <NAME>Zelle payment to Harper Pretendl
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEBIT
+            <DTPOSTED>20260316120000
+            <TRNAMT>-250.00
+            <FITID>55T6HFBXQ0FVPCRT
+            <NAME>OHIO TOS-529 DES:CONTRIB ID:SBRX
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260319120000
+            <TRNAMT>-70.03
+            <FITID>X2HRC9DW6CDO0JF6
+            <NAME>CHECKCARD 0319 ALDI 97517 COLUMB
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEP
+            <DTPOSTED>20260319120000
+            <TRNAMT>240.00
+            <FITID>8Q6XCX6YEPYBOZ20
+            <NAME>STATE OF OHIO DES:TAX REFUND ID:
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>PAYMENT
+            <DTPOSTED>20260319120000
+            <TRNAMT>-4052.21
+            <FITID>2NX16WI1DTT5ALZV
+            <NAME>CAPITAL ONE DES:MOBILE PMT ID:RA
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEBIT
+            <DTPOSTED>20260320120000
+            <TRNAMT>-143.25
+            <FITID>EP5OQ6B8JC0LWL12
+            <NAME>COLUMBIA GAS OH DES:UTIL PYMT ID
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEBIT
+            <DTPOSTED>20260325120000
+            <TRNAMT>-105.46
+            <FITID>DEPCK11U5XUT3URJ
+            <NAME>CITY OF COLUMBUS DES:UTILITIES I
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEP
+            <DTPOSTED>20260327120000
+            <TRNAMT>2890.10
+            <FITID>2DSMP5O480D3G3EO
+            <NAME>CONTOSO HEALTH SYS DES:DIR DEP I
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEBIT
+            <DTPOSTED>20260330120000
+            <TRNAMT>-38.50
+            <FITID>R23XZO2PEIQ3GXPG
+            <NAME>HAVEN LIFE INS DES:PREMIUM ID:61
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260331120000
+            <TRNAMT>-37.71
+            <FITID>OO12Z8C7EM227SP7
+            <NAME>CHECKCARD 0329 SPEEDWAY 67499 DU
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEP
+            <DTPOSTED>20260331120000
+            <TRNAMT>2168.49
+            <FITID>2VEZ0GVYV61QE5MN
+            <NAME>FABRIKAM ISD DES:PAYROLL ID:ZUJD
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>ATM
+            <DTPOSTED>20260331120000
+            <TRNAMT>-100.00
+            <FITID>8UNUG0DBWI7FGQ6X
+            <NAME>BKOFAMERICA ATM 03/31 #796055341
+          </STMTTRN>
+        </BANKTRANLIST>
+        <LEDGERBAL>
+          <BALAMT>8324.63
+          <DTASOF>20260402120000
+        </LEDGERBAL>
+      </STMTRS>
+    </STMTTRNRS>
+  </BANKMSGSRSV1>
+</OFX>

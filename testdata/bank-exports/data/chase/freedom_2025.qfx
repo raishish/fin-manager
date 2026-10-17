@@ -1,0 +1,3313 @@
+
+OFXHEADER:100
+DATA:OFXSGML
+VERSION:102
+SECURITY:NONE
+ENCODING:USASCII
+CHARSET:1252
+COMPRESSION:NONE
+OLDFILEUID:NONE
+NEWFILEUID:NONE
+
+<OFX>
+  <SIGNONMSGSRSV1>
+    <SONRS>
+      <STATUS>
+        <CODE>0
+        <SEVERITY>INFO
+      </STATUS>
+      <DTSERVER>20260104120000.000[0:GMT]
+      <LANGUAGE>ENG
+      <FI>
+        <ORG>B1
+        <FID>10898
+      </FI>
+      <INTU.BID>10898
+    </SONRS>
+  </SIGNONMSGSRSV1>
+  <CREDITCARDMSGSRSV1>
+    <CCSTMTTRNRS>
+      <TRNUID>1
+      <STATUS>
+        <CODE>0
+        <SEVERITY>INFO
+      </STATUS>
+      <CCSTMTRS>
+        <CURDEF>USD
+        <CCACCTFROM>
+          <ACCTID>9999000000009014
+        </CCACCTFROM>
+        <BANKTRANLIST>
+          <DTSTART>20250101120000.000[0:GMT]
+          <DTEND>20251231120000.000[0:GMT]
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250103120000.000[0:GMT]
+            <TRNAMT>-67.79
+            <FITID>O7IBO3LLV28K2VIR
+            <NAME>TRADER JOE S #243
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250103120000.000[0:GMT]
+            <TRNAMT>-63.27
+            <FITID>D0WVEK23Z620EC75
+            <NAME>AMZN Mktp US*2ZFV41Q48
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>CREDIT
+            <DTPOSTED>20250106120000.000[0:GMT]
+            <TRNAMT>1312.32
+            <FITID>IR658RGRPX2WZ9RO
+            <NAME>AUTOMATIC PAYMENT - THANK
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250108120000.000[0:GMT]
+            <TRNAMT>-14.00
+            <FITID>2GUNVNOV0MOVVTSC
+            <NAME>LEMONADE I* RENTERS
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250108120000.000[0:GMT]
+            <TRNAMT>-36.77
+            <FITID>307EOUZPMSUXUR5E
+            <NAME>CLIPPER SYSTEMS
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250109120000.000[0:GMT]
+            <TRNAMT>-57.04
+            <FITID>TZ2CZNV3A8XMVWQ8
+            <NAME>SAFEWAY STORE 4623
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250109120000.000[0:GMT]
+            <TRNAMT>-14.60
+            <FITID>FSQL2QK009Z4GR57
+            <NAME>SUBWAY #68865
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250110120000.000[0:GMT]
+            <TRNAMT>-45.32
+            <FITID>15QRQTIR2AZA257X
+            <NAME>DD *DOORDASH PAPA JOHNS
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250110120000.000[0:GMT]
+            <TRNAMT>-66.72
+            <FITID>ERWJA82AR9R9PIDS
+            <NAME>UNIQLO USA
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250110120000.000[0:GMT]
+            <TRNAMT>-46.26
+            <FITID>PVPICRAOSOXSTBHI
+            <NAME>WALGREENS #1286
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250111120000.000[0:GMT]
+            <TRNAMT>-70.00
+            <FITID>I2DJCYNMI8L3LLBL
+            <NAME>COMCAST CALIFORNIA
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250111120000.000[0:GMT]
+            <TRNAMT>-33.99
+            <FITID>HPR590W11N4KVLPT
+            <NAME>UBER   *TRIP 4I67
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250111120000.000[0:GMT]
+            <TRNAMT>-201.37
+            <FITID>8F38RHPRNK6WY5PF
+            <NAME>TM *TICKETMASTER
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250111120000.000[0:GMT]
+            <TRNAMT>-41.58
+            <FITID>2S77YEVS7P2SURPR
+            <NAME>UBER *EATS
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250112120000.000[0:GMT]
+            <TRNAMT>-24.23
+            <FITID>1X2D96GM6Y4QPHJ5
+            <NAME>DOORDASH*THAI BASIL
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250112120000.000[0:GMT]
+            <TRNAMT>-15.27
+            <FITID>TF1W2O3EEPXX9PWH
+            <NAME>LYFT   *RIDE
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250115120000.000[0:GMT]
+            <TRNAMT>-15.49
+            <FITID>58VHR7LP8P918IV0
+            <NAME>NETFLIX.COM 539
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250116120000.000[0:GMT]
+            <TRNAMT>-21.16
+            <FITID>YTOYC8HK06CRRMHQ
+            <NAME>SAFEWAY STORE 4623
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250117120000.000[0:GMT]
+            <TRNAMT>-42.07
+            <FITID>KI0252ZYAF16BQ46
+            <NAME>TRADER JOE S #243
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250118120000.000[0:GMT]
+            <TRNAMT>-19.37
+            <FITID>MS14ZOMH39KOGMHA
+            <NAME>UBER   *TRIP L66F
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250119120000.000[0:GMT]
+            <TRNAMT>-42.28
+            <FITID>OI68D7OXXZ2XUTOH
+            <NAME>UBER *EATS
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250119120000.000[0:GMT]
+            <TRNAMT>-48.17
+            <FITID>TC1MRRGG5832679R
+            <NAME>AMZN Mktp US*B0RUI8GFZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250120120000.000[0:GMT]
+            <TRNAMT>-24.50
+            <FITID>H0XIQ2FRHQ9CAHJC
+            <NAME>UBER* TRIP
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250120120000.000[0:GMT]
+            <TRNAMT>-10.40
+            <FITID>8AGT1ZCYKZJR3LAK
+            <NAME>SFMTA PAYBYPHONE
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250120120000.000[0:GMT]
+            <TRNAMT>-87.02
+            <FITID>OO2YSDDWD9KGUOC3
+            <NAME>PAYPAL *LOGANMOCKRIDGE
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250121120000.000[0:GMT]
+            <TRNAMT>-2.99
+            <FITID>9O5UVCCWIBWPWFM0
+            <NAME>APPLE.COM/BILL
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250122120000.000[0:GMT]
+            <TRNAMT>-20.58
+            <FITID>6PGHS11K31SX4LC8
+            <NAME>LYFT *RIDE 5L3
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250123120000.000[0:GMT]
+            <TRNAMT>-11.99
+            <FITID>X72BT3Y1GOCEM0Z1
+            <NAME>SPOTIFY USA
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250125120000.000[0:GMT]
+            <TRNAMT>-15.69
+            <FITID>EXB71D61HK4OGLSS
+            <NAME>IN N OUT BURGER 592
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250126120000.000[0:GMT]
+            <TRNAMT>-23.92
+            <FITID>656PXGQDGLOUDXPQ
+            <NAME>LYFT *RIDE GBM
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250126120000.000[0:GMT]
+            <TRNAMT>-71.65
+            <FITID>KT304GB91JN6JOJY
+            <NAME>SQ *LUXE HAIR
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250126120000.000[0:GMT]
+            <TRNAMT>-57.67
+            <FITID>T3B1RSE7AU6MHT7M
+            <NAME>DOORDASH*HALAL GUYS
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250127120000.000[0:GMT]
+            <TRNAMT>-33.73
+            <FITID>62AV1LNO4KVKK0TK
+            <NAME>DD *DOORDASH SHAKE SHACK
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250128120000.000[0:GMT]
+            <TRNAMT>-91.26
+            <FITID>FHU65ZTD8M8F9Q9X
+            <NAME>WHOLEFDS MKT #70358
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250129120000.000[0:GMT]
+            <TRNAMT>-39.11
+            <FITID>ECLEB87HU0TG6KVW
+            <NAME>CLIPPER SYSTEMS
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250129120000.000[0:GMT]
+            <TRNAMT>-40.14
+            <FITID>CARKFJRX5VTTAR7I
+            <NAME>Amazon.com*0YJ2CY988
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250129120000.000[0:GMT]
+            <TRNAMT>-33.06
+            <FITID>3XUWPYO0QQPPNKXJ
+            <NAME>BAYSIDE MEDICAL GRP
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250131120000.000[0:GMT]
+            <TRNAMT>-24.56
+            <FITID>HCROW2G6ZD9QTN1F
+            <NAME>UBER *TRIP
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250202120000.000[0:GMT]
+            <TRNAMT>-78.23
+            <FITID>ZT9C1UZ97Z430D52
+            <NAME>WHOLEFDS MKT #70358
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250203120000.000[0:GMT]
+            <TRNAMT>-19.88
+            <FITID>WVLORSQCYOTWA1TG
+            <NAME>UBER *TRIP
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250203120000.000[0:GMT]
+            <TRNAMT>-19.05
+            <FITID>ACUMZWD5MNJQABWM
+            <NAME>UBER *TRIP
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250206120000.000[0:GMT]
+            <TRNAMT>-33.65
+            <FITID>9ADI3UZB9VZGF7Q4
+            <NAME>CLIPPER CARD AUTOLOAD
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>CREDIT
+            <DTPOSTED>20250206120000.000[0:GMT]
+            <TRNAMT>1688.04
+            <FITID>B462L4CSBGJ3I8T1
+            <NAME>Payment Thank You-Mobile
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250208120000.000[0:GMT]
+            <TRNAMT>-14.00
+            <FITID>59KMXK5CWE49OS09
+            <NAME>LEMONADE I* RENTERS
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250208120000.000[0:GMT]
+            <TRNAMT>-25.28
+            <FITID>T05ZDDTPKDDCQPO2
+            <NAME>UBER   *TRIP TFPC
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250208120000.000[0:GMT]
+            <TRNAMT>-47.74
+            <FITID>FL6LG8OZ5G5LDF1S
+            <NAME>CLIPPER SYSTEMS
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250208120000.000[0:GMT]
+            <TRNAMT>-47.52
+            <FITID>NB4WUT04V9ZU6SUC
+            <NAME>AMZN Mktp US*K8UNMDES0
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250208120000.000[0:GMT]
+            <TRNAMT>-108.95
+            <FITID>U4I5BO403HD8EA55
+            <NAME>MASSAGE ENVY - SAN FRANCISCO
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250209120000.000[0:GMT]
+            <TRNAMT>-20.89
+            <FITID>U0652J2WOLC26F0S
+            <NAME>LYFT *RIDE LOT
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250209120000.000[0:GMT]
+            <TRNAMT>-25.14
+            <FITID>JRJ1OKEES2O70FBA
+            <NAME>CHIPOTLE 1605
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250209120000.000[0:GMT]
+            <TRNAMT>-14.37
+            <FITID>S3UTNH6UDKKWRFIN
+            <NAME>SFMTA METER
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250210120000.000[0:GMT]
+            <TRNAMT>-2199.00
+            <FITID>V51L3A4D5SGSN1AU
+            <NAME>APPLE STORE #R379
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250211120000.000[0:GMT]
+            <TRNAMT>-70.00
+            <FITID>M55TLF6AN5JKYATX
+            <NAME>COMCAST XFINITY
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250211120000.000[0:GMT]
+            <TRNAMT>-31.86
+            <FITID>52RNN8CAA0KAE00V
+            <NAME>TARGET        0009613
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250212120000.000[0:GMT]
+            <TRNAMT>-90.44
+            <FITID>6NFMWSHA3FDZF3X2
+            <NAME>1800FLOWERS*07773034
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250213120000.000[0:GMT]
+            <TRNAMT>-42.58
+            <FITID>UDDYA1QEA9HFRGH5
+            <NAME>SAFEWAY STORE 4623
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250214120000.000[0:GMT]
+            <TRNAMT>-36.81
+            <FITID>J2OQTLEKYYNX39IQ
+            <NAME>TRADER JOE S #243
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250215120000.000[0:GMT]
+            <TRNAMT>-17.93
+            <FITID>ARUB453SK88967YH
+            <NAME>IN N OUT BURGER 592
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250215120000.000[0:GMT]
+            <TRNAMT>-17.99
+            <FITID>ICZFGW7N13FULEJ3
+            <NAME>NETFLIX.COM 102
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250217120000.000[0:GMT]
+            <TRNAMT>-49.56
+            <FITID>Z97TYEIEIF1Y9C0M
+            <NAME>Amazon.com*78YNE6O73
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250217120000.000[0:GMT]
+            <TRNAMT>-121.73
+            <FITID>S9AOLH604IWNZEKF
+            <NAME>MASSAGE ENVY 0651
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250222120000.000[0:GMT]
+            <TRNAMT>-2.99
+            <FITID>CT0OSGJO8AXF6DLT
+            <NAME>APPLE.COM/BILL
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250222120000.000[0:GMT]
+            <TRNAMT>-27.11
+            <FITID>XKSTRKLXPQEDA9OA
+            <NAME>TRADER JOE S #243
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250223120000.000[0:GMT]
+            <TRNAMT>-93.04
+            <FITID>GLWTCEZULWFNPTN4
+            <NAME>SQ *LUXE HAIR STUDIO
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250223120000.000[0:GMT]
+            <TRNAMT>-114.51
+            <FITID>33ZQ7F2UW4XFZL96
+            <NAME>MASSAGE ENVY - SAN FRANCISCO
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250224120000.000[0:GMT]
+            <TRNAMT>-11.99
+            <FITID>CTQEMDHZUVP40BWQ
+            <NAME>Spotify USA
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250224120000.000[0:GMT]
+            <TRNAMT>-40.51
+            <FITID>F18XQIK5JEVKWVFY
+            <NAME>UBER* EATS PENDING
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250224120000.000[0:GMT]
+            <TRNAMT>-79.90
+            <FITID>R55EFFNH46RPFS1Z
+            <NAME>AMZN Mktp US*9AEJWYWWC
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250225120000.000[0:GMT]
+            <TRNAMT>-8.31
+            <FITID>U65GH3IU5DJHRE10
+            <NAME>SFMTA METER
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250227120000.000[0:GMT]
+            <TRNAMT>-84.64
+            <FITID>AKC3P7WPLKWC1FIZ
+            <NAME>AMAZON MKTPL*I7BX79OSG
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250301120000.000[0:GMT]
+            <TRNAMT>-41.25
+            <FITID>IBSVQNSZC6DRHE1J
+            <NAME>UBER *EATS
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250302120000.000[0:GMT]
+            <TRNAMT>-57.29
+            <FITID>JURUIUQHBVNTOLMX
+            <NAME>DOORDASH*WINGSTOP
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250306120000.000[0:GMT]
+            <TRNAMT>-28.18
+            <FITID>49JD50AB9R6SJBO9
+            <NAME>UBER* EATS PENDING
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250307120000.000[0:GMT]
+            <TRNAMT>-14.00
+            <FITID>EYRQBGGBEJOD51XF
+            <NAME>LEMONADE I* RENTERS
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250308120000.000[0:GMT]
+            <TRNAMT>-36.36
+            <FITID>BMT3AOZHD3GN8JK8
+            <NAME>UBER* EATS PENDING
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250309120000.000[0:GMT]
+            <TRNAMT>-46.64
+            <FITID>G5ON6LU91PDAEMVT
+            <NAME>TRADER JOE S #243
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250309120000.000[0:GMT]
+            <TRNAMT>-46.90
+            <FITID>VXP8JNO8XMUUE7G9
+            <NAME>DD *DOORDASH HALAL GUYS
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250310120000.000[0:GMT]
+            <TRNAMT>-62.72
+            <FITID>OCCUHHDDOLY0JWCR
+            <NAME>UNIQLO SAN FRANCISCO
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250310120000.000[0:GMT]
+            <TRNAMT>-70.00
+            <FITID>9AXHNUOKI58K1VR0
+            <NAME>COMCAST XFINITY
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250310120000.000[0:GMT]
+            <TRNAMT>-112.90
+            <FITID>SZUJM6JGAQFL97QT
+            <NAME>TARGET.COM  *
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>CREDIT
+            <DTPOSTED>20250310120000.000[0:GMT]
+            <TRNAMT>3622.81
+            <FITID>R8DGB7HJNVPN04TX
+            <NAME>Payment Thank You-Mobile
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250311120000.000[0:GMT]
+            <TRNAMT>-35.33
+            <FITID>I0YUR0UYLW24F3VK
+            <NAME>UBER *EATS
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250312120000.000[0:GMT]
+            <TRNAMT>-33.71
+            <FITID>CUQZXIR560U5H896
+            <NAME>CLIPPER CARD AUTOLOAD
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250312120000.000[0:GMT]
+            <TRNAMT>-70.84
+            <FITID>OA53BUOUP16CIVP9
+            <NAME>AMAZON MKTPL*BCBNCZIXC
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250313120000.000[0:GMT]
+            <TRNAMT>-38.37
+            <FITID>BRCNG48V7CV5VY26
+            <NAME>TRADER JOE S #243
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250314120000.000[0:GMT]
+            <TRNAMT>-55.38
+            <FITID>7GLP8K5OXDDDZXAY
+            <NAME>DOORDASH*CHIPOTLE
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250314120000.000[0:GMT]
+            <TRNAMT>-18.63
+            <FITID>KYWL6PDW0NNQ7JAZ
+            <NAME>UBER *TRIP
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250315120000.000[0:GMT]
+            <TRNAMT>-18.55
+            <FITID>ZC4RF7CCWYSNQQKZ
+            <NAME>CHIPOTLE ONLINE
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250315120000.000[0:GMT]
+            <TRNAMT>-17.99
+            <FITID>UQ74S6HY3335TJAI
+            <NAME>NETFLIX.COM 531
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250315120000.000[0:GMT]
+            <TRNAMT>-74.55
+            <FITID>P10WYGHX112HYPTE
+            <NAME>SAFEWAY #4623
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250315120000.000[0:GMT]
+            <TRNAMT>-25.80
+            <FITID>411042SHNVMVXMDP
+            <NAME>CHIPOTLE 1262
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250315120000.000[0:GMT]
+            <TRNAMT>-42.11
+            <FITID>IMMDPQCO4IUPVVG2
+            <NAME>CLIPPER CARD AUTOLOAD
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250316120000.000[0:GMT]
+            <TRNAMT>-45.32
+            <FITID>2FU530G51MMVK8HO
+            <NAME>DOORDASH*SHAKE SHACK
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250316120000.000[0:GMT]
+            <TRNAMT>-53.75
+            <FITID>NUDN69QJ43HSKLEG
+            <NAME>DD *DOORDASH SHAKE SHACK
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250317120000.000[0:GMT]
+            <TRNAMT>-35.79
+            <FITID>L7S7BNKMXLSMNSMB
+            <NAME>AMZN Mktp US*EO1L00PKN
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250319120000.000[0:GMT]
+            <TRNAMT>-58.30
+            <FITID>FAV6LWJHGD0RZYG2
+            <NAME>AMZN Mktp US*RIQVIJFOQ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250320120000.000[0:GMT]
+            <TRNAMT>-57.22
+            <FITID>ZHLHBYHYORZVLCJA
+            <NAME>SAFEWAY #4623
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250321120000.000[0:GMT]
+            <TRNAMT>-30.11
+            <FITID>MP4MDJLVL353XJB8
+            <NAME>UBER   *TRIP JX2J
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250322120000.000[0:GMT]
+            <TRNAMT>-2.99
+            <FITID>1V941G4DKSTH4WVT
+            <NAME>APPLE.COM/BILL
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250323120000.000[0:GMT]
+            <TRNAMT>-166.71
+            <FITID>ORF57WHJQPSN9LD5
+            <NAME>TM *TICKETMASTER
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250323120000.000[0:GMT]
+            <TRNAMT>-11.99
+            <FITID>8IIJUEII2TCHBSE9
+            <NAME>SPOTIFY USA
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250324120000.000[0:GMT]
+            <TRNAMT>-48.05
+            <FITID>54FXARWMIJ0L27U9
+            <NAME>AMZN Mktp US*2DSGKYZGO
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250325120000.000[0:GMT]
+            <TRNAMT>-37.01
+            <FITID>SI3TH900B2AVLCQ2
+            <NAME>DOORDASH*CURRY UP NOW
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>CREDIT
+            <DTPOSTED>20250327120000.000[0:GMT]
+            <TRNAMT>62.72
+            <FITID>8D082UPSIGO1MVPB
+            <NAME>UNIQLO SAN FRANCISCO
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250329120000.000[0:GMT]
+            <TRNAMT>-37.31
+            <FITID>K93CEW2GP7YDP9DE
+            <NAME>DD *DOORDASH WINGSTOP
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250329120000.000[0:GMT]
+            <TRNAMT>-33.93
+            <FITID>BO3JW74QXP746ZM3
+            <NAME>LYFT *RIDE ZLG
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250329120000.000[0:GMT]
+            <TRNAMT>-70.16
+            <FITID>Z4OVSEZW7208595G
+            <NAME>AMAZON MKTPL*LBE7X27VI
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250330120000.000[0:GMT]
+            <TRNAMT>-51.13
+            <FITID>3YRDARZ8Q1KM8CWF
+            <NAME>DD *DOORDASH CHIPOTLE
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250330120000.000[0:GMT]
+            <TRNAMT>-13.45
+            <FITID>T63X4T6UB170M8IB
+            <NAME>SFMTA METER
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250330120000.000[0:GMT]
+            <TRNAMT>-26.13
+            <FITID>IND6FS47EH992TW5
+            <NAME>LYFT *RIDE 0MW
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250330120000.000[0:GMT]
+            <TRNAMT>-14.47
+            <FITID>LJYTTH4WWYL98Z97
+            <NAME>B&amp;N.COM
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250331120000.000[0:GMT]
+            <TRNAMT>-130.83
+            <FITID>8M2DS9IJQEBYHZAP
+            <NAME>SQ *LUXE HAIR STUDIO
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250331120000.000[0:GMT]
+            <TRNAMT>-93.77
+            <FITID>XA7GVI1DY7RWF9NX
+            <NAME>MASSAGE ENVY - SAN FRANCISCO
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250401120000.000[0:GMT]
+            <TRNAMT>-17.62
+            <FITID>IDYEZUZXEF8QGILQ
+            <NAME>CHIPOTLE 1262
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250403120000.000[0:GMT]
+            <TRNAMT>-72.70
+            <FITID>OCC31BCDY4FJXKLR
+            <NAME>TARGET 0000590
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250404120000.000[0:GMT]
+            <TRNAMT>-41.53
+            <FITID>MXM07FYTZQN57NQ6
+            <NAME>CLIPPER SYSTEMS
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>CREDIT
+            <DTPOSTED>20250404120000.000[0:GMT]
+            <TRNAMT>58.30
+            <FITID>1BFSAKH1FEP64SR2
+            <NAME>AMZN Mktp US*RIQVIJFOQ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250406120000.000[0:GMT]
+            <TRNAMT>-83.93
+            <FITID>K8WKCM1YAWV2LLKD
+            <NAME>AMAZON MKTPL*LXRGIALJP
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250407120000.000[0:GMT]
+            <TRNAMT>-48.85
+            <FITID>4GCC1CZQDL75NWOQ
+            <NAME>DD *DOORDASH PHO HOA
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>CREDIT
+            <DTPOSTED>20250407120000.000[0:GMT]
+            <TRNAMT>1405.72
+            <FITID>ESHJ9RRFBNUUCG3Y
+            <NAME>Payment Thank You-Mobile
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250408120000.000[0:GMT]
+            <TRNAMT>-14.00
+            <FITID>67GSFUT2H3OCWEGJ
+            <NAME>LEMONADE INSURANCE CO
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250408120000.000[0:GMT]
+            <TRNAMT>-40.34
+            <FITID>75TFHWNRIGI7BXKB
+            <NAME>CVS/PHARM 24746
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250411120000.000[0:GMT]
+            <TRNAMT>-70.00
+            <FITID>FC0O12MIXORE2A1K
+            <NAME>COMCAST CALIFORNIA
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250411120000.000[0:GMT]
+            <TRNAMT>-53.82
+            <FITID>ZUTQDIAVYPPANJK6
+            <NAME>UBER* EATS PENDING
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250412120000.000[0:GMT]
+            <TRNAMT>-26.89
+            <FITID>MWW8VUOX23SWIKAY
+            <NAME>LYFT   *RIDE
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250412120000.000[0:GMT]
+            <TRNAMT>-73.09
+            <FITID>UXZVVK1AMRMRTKCQ
+            <NAME>AMAZON MKTPL*UWIPPBDBV
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250414120000.000[0:GMT]
+            <TRNAMT>-39.61
+            <FITID>NCJR3B9021WH3RLQ
+            <NAME>UBER* EATS PENDING
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250415120000.000[0:GMT]
+            <TRNAMT>-15.34
+            <FITID>04W66NQ74JHMDL5A
+            <NAME>LYFT *RIDE IR4
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250415120000.000[0:GMT]
+            <TRNAMT>-17.99
+            <FITID>HMYTJYDX0GOJ15BX
+            <NAME>NETFLIX.COM
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250415120000.000[0:GMT]
+            <TRNAMT>-31.83
+            <FITID>LW8VRQ1J4737C42C
+            <NAME>CLIPPER CARD AUTOLOAD
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250416120000.000[0:GMT]
+            <TRNAMT>-31.33
+            <FITID>PDTXU5BZW7JVGVYE
+            <NAME>DOORDASH*CURRY UP NOW
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250418120000.000[0:GMT]
+            <TRNAMT>-61.41
+            <FITID>IAMUENDOSOS6RKPQ
+            <NAME>AMAZON MKTPL*96M0YH1VU
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250419120000.000[0:GMT]
+            <TRNAMT>-41.47
+            <FITID>D1J61Z51GMGXBO5E
+            <NAME>UBER *EATS
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250419120000.000[0:GMT]
+            <TRNAMT>-35.71
+            <FITID>KVXSZJI8JTT4X52A
+            <NAME>UBER* TRIP
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250420120000.000[0:GMT]
+            <TRNAMT>-101.12
+            <FITID>0NSK7TU0PDZ230RI
+            <NAME>UNIQLO SAN FRANCISCO
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250421120000.000[0:GMT]
+            <TRNAMT>-47.86
+            <FITID>SXYA931DYFLN02X7
+            <NAME>DOORDASH*SHAKE SHACK
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250421120000.000[0:GMT]
+            <TRNAMT>-33.73
+            <FITID>ER4ZZYG1NXWNKNPD
+            <NAME>UBER* TRIP
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250422120000.000[0:GMT]
+            <TRNAMT>-2.99
+            <FITID>KXAMS2K23KKR2YWT
+            <NAME>APPLE.COM/BILL
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250423120000.000[0:GMT]
+            <TRNAMT>-11.99
+            <FITID>9GCB6Z1NXWTP2LE8
+            <NAME>Spotify USA
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250424120000.000[0:GMT]
+            <TRNAMT>-57.59
+            <FITID>8GA305JJM2RGRB7D
+            <NAME>DOORDASH*THAI BASIL
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250426120000.000[0:GMT]
+            <TRNAMT>-13.49
+            <FITID>ASSVAXZIFW5Q1L3Q
+            <NAME>UBER *TRIP
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250426120000.000[0:GMT]
+            <TRNAMT>-98.72
+            <FITID>K2XCGYS5GN71YH4O
+            <NAME>IC* INSTACART
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>CREDIT
+            <DTPOSTED>20250426120000.000[0:GMT]
+            <TRNAMT>52.58
+            <FITID>5O3T9X332PO8NLBY
+            <NAME>UNIQLO SAN FRANCISCO
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250427120000.000[0:GMT]
+            <TRNAMT>-20.01
+            <FITID>19YU3EQSHMPY7JV6
+            <NAME>CHIPOTLE ONLINE
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250427120000.000[0:GMT]
+            <TRNAMT>-135.11
+            <FITID>X2NR3B2BA7W8B5QG
+            <NAME>TICKETMASTER
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250428120000.000[0:GMT]
+            <TRNAMT>-38.63
+            <FITID>8WWWU7Y8V42WCA7W
+            <NAME>AMZN Mktp US*VJ3LQ28QP
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250429120000.000[0:GMT]
+            <TRNAMT>-56.00
+            <FITID>DQVGBQLCD91A0M41
+            <NAME>SAFEWAY #4623
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250503120000.000[0:GMT]
+            <TRNAMT>-12.93
+            <FITID>2MCLWK0904NOHKW3
+            <NAME>LYFT   *RIDE
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250503120000.000[0:GMT]
+            <TRNAMT>-66.84
+            <FITID>FNTZPNASISXAU930
+            <NAME>AMZN Mktp US*BG3PME7KS
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250504120000.000[0:GMT]
+            <TRNAMT>-39.97
+            <FITID>AMFFPVHOETR7K2EO
+            <NAME>UBER* EATS PENDING
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250504120000.000[0:GMT]
+            <TRNAMT>-108.41
+            <FITID>U4P7CEUVBI1Y2DP8
+            <NAME>NORDSTROM RACK #7472
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250505120000.000[0:GMT]
+            <TRNAMT>-10.75
+            <FITID>9JGGRSTS55DRVCUT
+            <NAME>SFMTA PAYBYPHONE
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250505120000.000[0:GMT]
+            <TRNAMT>-44.23
+            <FITID>Z4BC8QQYRRXD8TRV
+            <NAME>SAFEWAY STORE 4623
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250507120000.000[0:GMT]
+            <TRNAMT>-14.00
+            <FITID>Y9L951QD4E35TQGG
+            <NAME>LEMONADE INSURANCE CO
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>CREDIT
+            <DTPOSTED>20250507120000.000[0:GMT]
+            <TRNAMT>1731.55
+            <FITID>MAZICRGERN2WSAFE
+            <NAME>AUTOMATIC PAYMENT - THANK
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250508120000.000[0:GMT]
+            <TRNAMT>-50.06
+            <FITID>BIIY3SBX1H2JYN8G
+            <NAME>CVS/PHARMACY #24746
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250509120000.000[0:GMT]
+            <TRNAMT>-69.51
+            <FITID>8EMHYRO1576QRVQ3
+            <NAME>SAFEWAY #4623
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250509120000.000[0:GMT]
+            <TRNAMT>-25.15
+            <FITID>H7ZQMFN06LFHPTFS
+            <NAME>CHIPOTLE 1262
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250509120000.000[0:GMT]
+            <TRNAMT>-51.73
+            <FITID>3DK468YA3NS6NPBX
+            <NAME>DOORDASH*THAI BASIL
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250509120000.000[0:GMT]
+            <TRNAMT>-82.87
+            <FITID>CNK3LNSOPLVBEUTO
+            <NAME>1800FLOWERS*34040717
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250510120000.000[0:GMT]
+            <TRNAMT>-112.41
+            <FITID>BQY4MFELV6AXM1UO
+            <NAME>TARGET.COM  *
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250510120000.000[0:GMT]
+            <TRNAMT>-15.80
+            <FITID>0OXL01958N80KNIY
+            <NAME>SFMTA PAYBYPHONE
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250511120000.000[0:GMT]
+            <TRNAMT>-70.00
+            <FITID>2AYKDL96JXG85V9E
+            <NAME>COMCAST CALIFORNIA
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250511120000.000[0:GMT]
+            <TRNAMT>-73.18
+            <FITID>OJ4BTM0CZO4QF62V
+            <NAME>WHOLE FOODS MARKET #92939
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250514120000.000[0:GMT]
+            <TRNAMT>-44.61
+            <FITID>D1OE65G068XD4VXF
+            <NAME>AMAZON MKTPL*931MB6A67
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250516120000.000[0:GMT]
+            <TRNAMT>-17.99
+            <FITID>XQZOHHL7WGJD4UZ4
+            <NAME>NETFLIX.COM
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250517120000.000[0:GMT]
+            <TRNAMT>-34.87
+            <FITID>C2X10ZEZXEECKWI8
+            <NAME>UBER* EATS PENDING
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250518120000.000[0:GMT]
+            <TRNAMT>-94.46
+            <FITID>YH36I9NT60SCVDS8
+            <NAME>TARGET 0000590
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250518120000.000[0:GMT]
+            <TRNAMT>-19.98
+            <FITID>SHKKZGT2CBC8D207
+            <NAME>UBER *TRIP
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250518120000.000[0:GMT]
+            <TRNAMT>-97.75
+            <FITID>PNRCKD1431JSLLNG
+            <NAME>MASSAGE ENVY - SAN FRANCISCO
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250519120000.000[0:GMT]
+            <TRNAMT>-58.21
+            <FITID>S2I4ARN6868ZDCAG
+            <NAME>AMZN Mktp US*QA3FAFL82
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250521120000.000[0:GMT]
+            <TRNAMT>-2.99
+            <FITID>NFKK0KWBJ0HL0L9S
+            <NAME>APPLE.COM/BILL
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250524120000.000[0:GMT]
+            <TRNAMT>-11.99
+            <FITID>M1XO4N0O72SGOPCN
+            <NAME>Spotify USA
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250525120000.000[0:GMT]
+            <TRNAMT>-11.05
+            <FITID>YSHV6BLSEIZAWSKD
+            <NAME>SFMTA PAYBYPHONE
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250525120000.000[0:GMT]
+            <TRNAMT>-87.71
+            <FITID>BK3YLF8NC2PJPFMM
+            <NAME>WHOLEFDS MKT #70358
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250526120000.000[0:GMT]
+            <TRNAMT>-41.19
+            <FITID>0MLEE8GSRL3CM9WD
+            <NAME>DOORDASH*PANDA EXPRESS
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250526120000.000[0:GMT]
+            <TRNAMT>-19.44
+            <FITID>JJSHB7XEVADEON4W
+            <NAME>CVS/PHARMACY #24746
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250529120000.000[0:GMT]
+            <TRNAMT>-16.79
+            <FITID>LUFKQUMRSYMMW77L
+            <NAME>CHIPOTLE 1262
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250531120000.000[0:GMT]
+            <TRNAMT>-27.11
+            <FITID>XWPL61XZOMSUXT4B
+            <NAME>UBER   *TRIP O94T
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250602120000.000[0:GMT]
+            <TRNAMT>-45.99
+            <FITID>FEXNCH9REO83D7OR
+            <NAME>TRADER JOE S #243
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250603120000.000[0:GMT]
+            <TRNAMT>-20.30
+            <FITID>P77A4BJ9F508T4ZQ
+            <NAME>IN N OUT BURGER 592
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250603120000.000[0:GMT]
+            <TRNAMT>-22.21
+            <FITID>F6JFNCYXYXVP2XAD
+            <NAME>UBER   *TRIP KHN5
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250604120000.000[0:GMT]
+            <TRNAMT>-14.96
+            <FITID>9E257DHO7Z2PQ6R4
+            <NAME>CHIPOTLE 8800
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250606120000.000[0:GMT]
+            <TRNAMT>-104.58
+            <FITID>EHZUAZKKFAPP3TD3
+            <NAME>WHOLE FOODS MARKET #70358
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250606120000.000[0:GMT]
+            <TRNAMT>-26.13
+            <FITID>98CLJT4W8UHBIX00
+            <NAME>CHIPOTLE ONLINE
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>CREDIT
+            <DTPOSTED>20250606120000.000[0:GMT]
+            <TRNAMT>1687.19
+            <FITID>P20F34Q4VO92AD6P
+            <NAME>AUTOMATIC PAYMENT - THANK
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250607120000.000[0:GMT]
+            <TRNAMT>-42.41
+            <FITID>V47OKZBN023GGXB7
+            <NAME>SAFEWAY STORE 4623
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250607120000.000[0:GMT]
+            <TRNAMT>-33.11
+            <FITID>Z38XBDWEPB5IDVTB
+            <NAME>LYFT   *RIDE
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250608120000.000[0:GMT]
+            <TRNAMT>-14.00
+            <FITID>YRTM6P5VTUNZQGB0
+            <NAME>LEMONADE INSURANCE CO
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250608120000.000[0:GMT]
+            <TRNAMT>-55.17
+            <FITID>H57T7BZ86NWQMYTJ
+            <NAME>DOORDASH*CHIPOTLE
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250608120000.000[0:GMT]
+            <TRNAMT>-40.58
+            <FITID>06FOT1S7WE5ZDPJI
+            <NAME>AMC 6761 ONLINE
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250609120000.000[0:GMT]
+            <TRNAMT>-82.03
+            <FITID>7SQ0AIEM2NJLFWHT
+            <NAME>SQ *LUXE HAIR STUDIO
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250610120000.000[0:GMT]
+            <TRNAMT>-70.00
+            <FITID>UABC7VHUFRUCYE0Z
+            <NAME>COMCAST XFINITY
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250610120000.000[0:GMT]
+            <TRNAMT>-55.68
+            <FITID>PTLARFTLWLWV20E2
+            <NAME>SAFEWAY #4623
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250612120000.000[0:GMT]
+            <TRNAMT>-33.66
+            <FITID>CEU1DDKHAVB0QDPI
+            <NAME>UBER* EATS PENDING
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250613120000.000[0:GMT]
+            <TRNAMT>-68.77
+            <FITID>J5H7RPDN2AXSX95I
+            <NAME>Amazon.com*ZQQ267GFQ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250615120000.000[0:GMT]
+            <TRNAMT>-16.44
+            <FITID>KTOCCAME5V6I7PVN
+            <NAME>UBER* TRIP
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250616120000.000[0:GMT]
+            <TRNAMT>-17.99
+            <FITID>854N2OZ9IX1HP5EC
+            <NAME>NETFLIX.COM 947
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250616120000.000[0:GMT]
+            <TRNAMT>-1240.37
+            <FITID>T67C1767IQ6YBWZH
+            <NAME>IKEA SAN FRANCISCO
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250617120000.000[0:GMT]
+            <TRNAMT>-46.40
+            <FITID>NPU84MP8WIWZZ9J7
+            <NAME>DOORDASH*WINGSTOP
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250617120000.000[0:GMT]
+            <TRNAMT>-57.21
+            <FITID>NBEUSCYBGVT91GSU
+            <NAME>AMZN Mktp US*S7V9AIUX6
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250618120000.000[0:GMT]
+            <TRNAMT>-28.26
+            <FITID>H82A0FOS75GGYSP1
+            <NAME>CHIPOTLE 1262
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250618120000.000[0:GMT]
+            <TRNAMT>-9.99
+            <FITID>HGBTWN77CW50DFG7
+            <NAME>HBO MAX
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250619120000.000[0:GMT]
+            <TRNAMT>-27.12
+            <FITID>6RG3BJBVHVAL5QKD
+            <NAME>LYFT   *RIDE
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250620120000.000[0:GMT]
+            <TRNAMT>-11.10
+            <FITID>L2JW7U807ZVG17HR
+            <NAME>SUBWAY 40980981
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250620120000.000[0:GMT]
+            <TRNAMT>-30.47
+            <FITID>6Q0HQNYUI6GDP075
+            <NAME>Amazon.com*WILQJ0DX7
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250620120000.000[0:GMT]
+            <TRNAMT>-108.83
+            <FITID>IQDCKGNTG2Y4JCPV
+            <NAME>WHOLE FOODS MARKET #70358
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250621120000.000[0:GMT]
+            <TRNAMT>-26.75
+            <FITID>AMI7T5QTJ44AV5QK
+            <NAME>UBER* TRIP
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250621120000.000[0:GMT]
+            <TRNAMT>-2.99
+            <FITID>J8N7HTI1LF14107R
+            <NAME>APPLE.COM/BILL
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250622120000.000[0:GMT]
+            <TRNAMT>-46.35
+            <FITID>90ZL0USP22HWTKDV
+            <NAME>SAFEWAY #4623
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250622120000.000[0:GMT]
+            <TRNAMT>-46.86
+            <FITID>SH5Q0GOGT1O9FHEA
+            <NAME>DD *DOORDASH PHO HOA
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250623120000.000[0:GMT]
+            <TRNAMT>-11.99
+            <FITID>APWK7YIHJ0KZ9D6C
+            <NAME>Spotify USA
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250623120000.000[0:GMT]
+            <TRNAMT>-10.06
+            <FITID>5F9HEBBTUNTTVBYN
+            <NAME>IN-N-OUT 592
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250625120000.000[0:GMT]
+            <TRNAMT>-53.64
+            <FITID>D82JD15QK76FVLHD
+            <NAME>TARGET        0000590
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250627120000.000[0:GMT]
+            <TRNAMT>-36.43
+            <FITID>RED4TWC3WQEMGI62
+            <NAME>UBER* EATS PENDING
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250628120000.000[0:GMT]
+            <TRNAMT>-30.83
+            <FITID>RI9FOVBEAC69F4SF
+            <NAME>UBER* TRIP
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250629120000.000[0:GMT]
+            <TRNAMT>-35.79
+            <FITID>1W6BMBS5VW91LCQQ
+            <NAME>AMZN Mktp US*L8FZ341DU
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250630120000.000[0:GMT]
+            <TRNAMT>-55.28
+            <FITID>0J4FHRY6OM2QM1SK
+            <NAME>DOORDASH*CHIPOTLE
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250630120000.000[0:GMT]
+            <TRNAMT>-5.07
+            <FITID>QQ0A87GYN6S8MWG5
+            <NAME>SFMTA METER
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250630120000.000[0:GMT]
+            <TRNAMT>-70.34
+            <FITID>VB4CJ18KG2YFAW08
+            <NAME>TARGET.COM  *
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250702120000.000[0:GMT]
+            <TRNAMT>-37.79
+            <FITID>MGDOFAJNUKXCU0CI
+            <NAME>BAYSIDE MEDICAL GRP
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250704120000.000[0:GMT]
+            <TRNAMT>-70.25
+            <FITID>7TTS9RGS50JPHCVO
+            <NAME>TRADER JOE S #243
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250706120000.000[0:GMT]
+            <TRNAMT>-12.32
+            <FITID>37AM25SHZ7K5IU5T
+            <NAME>SFMTA METER
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250707120000.000[0:GMT]
+            <TRNAMT>-45.61
+            <FITID>L1SXHUCX8HT8BU3T
+            <NAME>DD *DOORDASH HALAL GUYS
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250707120000.000[0:GMT]
+            <TRNAMT>-38.86
+            <FITID>2VFRY9GBUNDN65ZE
+            <NAME>UBER *TRIP
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>CREDIT
+            <DTPOSTED>20250707120000.000[0:GMT]
+            <TRNAMT>1246.95
+            <FITID>KFWBBMD0PAJK0X5F
+            <NAME>AUTOMATIC PAYMENT - THANK
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250708120000.000[0:GMT]
+            <TRNAMT>-14.00
+            <FITID>0DQIELYE4CUWWUJB
+            <NAME>LEMONADE INSURANCE CO
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250708120000.000[0:GMT]
+            <TRNAMT>-24.12
+            <FITID>2NRSJ4OXSSWP6IUO
+            <NAME>TARGET        0008814
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250710120000.000[0:GMT]
+            <TRNAMT>-60.92
+            <FITID>TJ245LCDI68M7IEV
+            <NAME>PAYPAL *PARKERSAMPLEBY
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250711120000.000[0:GMT]
+            <TRNAMT>-70.00
+            <FITID>VI2F2NPPZW587F6E
+            <NAME>COMCAST XFINITY
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250711120000.000[0:GMT]
+            <TRNAMT>-23.16
+            <FITID>JBG3QRZY5LI7QN82
+            <NAME>TRADER JOE S #243
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250712120000.000[0:GMT]
+            <TRNAMT>-27.66
+            <FITID>NA7QSPZL4QCIT6LS
+            <NAME>UBER *TRIP
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250712120000.000[0:GMT]
+            <TRNAMT>-65.53
+            <FITID>CWFALYHRMBMD6TT9
+            <NAME>AMAZON MKTPL*IGTYIP346
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250712120000.000[0:GMT]
+            <TRNAMT>-55.68
+            <FITID>6UXA3BKE28LXDGTT
+            <NAME>SAFEWAY STORE 5639
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250713120000.000[0:GMT]
+            <TRNAMT>-28.87
+            <FITID>3GVG0MD7PGB02LJJ
+            <NAME>UBER* TRIP
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250713120000.000[0:GMT]
+            <TRNAMT>-40.81
+            <FITID>NF4GEUPKZCCDJP66
+            <NAME>Amazon.com*4X32M9C5F
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250714120000.000[0:GMT]
+            <TRNAMT>-95.64
+            <FITID>SBX7BN3G14L8MOWE
+            <NAME>TARGET.COM  *
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250716120000.000[0:GMT]
+            <TRNAMT>-17.99
+            <FITID>3LS7FYA8F3IYMLDU
+            <NAME>NETFLIX.COM
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250716120000.000[0:GMT]
+            <TRNAMT>-21.45
+            <FITID>3Z25FAOBKAXF1TS5
+            <NAME>CHIPOTLE 1262
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250716120000.000[0:GMT]
+            <TRNAMT>-17.59
+            <FITID>DQTA4HCTVZI5J6Z8
+            <NAME>SUBWAY #40980
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250718120000.000[0:GMT]
+            <TRNAMT>-9.99
+            <FITID>ZVV54VWJUS6BM8NE
+            <NAME>MAX.COM
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250718120000.000[0:GMT]
+            <TRNAMT>-38.70
+            <FITID>PAJO4Z3M6Q64AST5
+            <NAME>DD *DOORDASH PHO HOA
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250719120000.000[0:GMT]
+            <TRNAMT>-8.20
+            <FITID>WAEDPVES1EOSV3V0
+            <NAME>IN N OUT BURGER 592
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250721120000.000[0:GMT]
+            <TRNAMT>-60.75
+            <FITID>ELKQZJ3R4QVL5SFY
+            <NAME>TRADER JOE S #243
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250721120000.000[0:GMT]
+            <TRNAMT>-36.70
+            <FITID>YPO6BNFYJH5A58LN
+            <NAME>UBER* TRIP
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250721120000.000[0:GMT]
+            <TRNAMT>-10.24
+            <FITID>6AIKF80YM0XOHS7V
+            <NAME>SFMTA PAYBYPHONE
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250722120000.000[0:GMT]
+            <TRNAMT>-2.99
+            <FITID>SJ5RIGQYFHZAZQ92
+            <NAME>APPLE.COM/BILL
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250723120000.000[0:GMT]
+            <TRNAMT>-12.99
+            <FITID>BN2XU5OIREXBP1OX
+            <NAME>SPOTIFY USA
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250724120000.000[0:GMT]
+            <TRNAMT>-49.83
+            <FITID>S19W2ZGSUZ54GHWC
+            <NAME>DOORDASH*CURRY UP NOW
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250724120000.000[0:GMT]
+            <TRNAMT>-11.22
+            <FITID>FMXAJL9KGKS83EH3
+            <NAME>IN-N-OUT 019
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250725120000.000[0:GMT]
+            <TRNAMT>-37.48
+            <FITID>EOKCI7NGM1A0UJAD
+            <NAME>CLIPPER SYSTEMS
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250726120000.000[0:GMT]
+            <TRNAMT>-74.75
+            <FITID>VXEWM6UEOG155CDH
+            <NAME>AMAZON MKTPL*1S1H06K4C
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250726120000.000[0:GMT]
+            <TRNAMT>-69.80
+            <FITID>G9AP1A4XCBMTQPWU
+            <NAME>Amazon.com*9EY9780AE
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250728120000.000[0:GMT]
+            <TRNAMT>-74.00
+            <FITID>9B7QETO0UE8G7OKC
+            <NAME>Amazon.com*G9V7BLZE1
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250802120000.000[0:GMT]
+            <TRNAMT>-112.59
+            <FITID>M292BEB8UCJCZ67O
+            <NAME>IC* INSTACART
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250802120000.000[0:GMT]
+            <TRNAMT>-20.91
+            <FITID>CA34RVR1MKXF6PD0
+            <NAME>CHIPOTLE ONLINE
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250802120000.000[0:GMT]
+            <TRNAMT>-38.48
+            <FITID>3RES1Y1PRMQK0DP4
+            <NAME>DD *DOORDASH HALAL GUYS
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250802120000.000[0:GMT]
+            <TRNAMT>-49.43
+            <FITID>RNC2TJL32GSQD9IR
+            <NAME>AMAZON MKTPL*NHKMTBJC3
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250804120000.000[0:GMT]
+            <TRNAMT>-24.39
+            <FITID>LBUHVAPOR633Z40Q
+            <NAME>LYFT   *RIDE
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250804120000.000[0:GMT]
+            <TRNAMT>-19.10
+            <FITID>RDRVGTZ8RTX25QEE
+            <NAME>CHIPOTLE ONLINE
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250806120000.000[0:GMT]
+            <TRNAMT>-59.74
+            <FITID>2FCJOATDQB7L505H
+            <NAME>TRADER JOE S #651
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250806120000.000[0:GMT]
+            <TRNAMT>-18.70
+            <FITID>2D7USMTCDIA74EAR
+            <NAME>LYFT *RIDE O49
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>CREDIT
+            <DTPOSTED>20250806120000.000[0:GMT]
+            <TRNAMT>2641.23
+            <FITID>F1JJILLVBPU1ZTWF
+            <NAME>Payment Thank You-Mobile
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250807120000.000[0:GMT]
+            <TRNAMT>-14.00
+            <FITID>0RH60JCVP56VQ11H
+            <NAME>LEMONADE I* RENTERS
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250807120000.000[0:GMT]
+            <TRNAMT>-31.63
+            <FITID>NHFWGMWPILWI4K2E
+            <NAME>BARNES &amp; NOBLE #1598
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250808120000.000[0:GMT]
+            <TRNAMT>-121.87
+            <FITID>D90ERW9NJ8XVJPXT
+            <NAME>WHOLE FOODS MARKET #70358
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250809120000.000[0:GMT]
+            <TRNAMT>-49.49
+            <FITID>BYUNLV8EKYKW41SE
+            <NAME>AMC THEATRES 0736
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250810120000.000[0:GMT]
+            <TRNAMT>-34.84
+            <FITID>43G94661Q4QR38BB
+            <NAME>UBER   *TRIP RQPA
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250810120000.000[0:GMT]
+            <TRNAMT>-70.00
+            <FITID>9YXLJV3JHOK0TKU1
+            <NAME>COMCAST CALIFORNIA
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250811120000.000[0:GMT]
+            <TRNAMT>-64.65
+            <FITID>YSNPNIHLLPY6PHJN
+            <NAME>TRADER JOE S #243
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250811120000.000[0:GMT]
+            <TRNAMT>-29.13
+            <FITID>BHOKMI262C0COSVB
+            <NAME>DD *DOORDASH THAI BASIL
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250811120000.000[0:GMT]
+            <TRNAMT>-110.24
+            <FITID>185NJMIOBJFR20AG
+            <NAME>MASSAGE ENVY 1660
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250812120000.000[0:GMT]
+            <TRNAMT>-42.71
+            <FITID>XQEGEBRT5IGI3KU9
+            <NAME>AMAZON MKTPL*8A663RF71
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250814120000.000[0:GMT]
+            <TRNAMT>-26.18
+            <FITID>NLB1EXBWFH59I0PD
+            <NAME>WALGREENS STORE 1286
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250815120000.000[0:GMT]
+            <TRNAMT>-20.62
+            <FITID>UBV7EGGXGJLNJTWV
+            <NAME>SUBWAY 40980981
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250816120000.000[0:GMT]
+            <TRNAMT>-17.99
+            <FITID>5I8NQDJ0Z3M6RCXQ
+            <NAME>NETFLIX.COM 058
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250816120000.000[0:GMT]
+            <TRNAMT>-38.90
+            <FITID>PSW6OTX70H0A8XA9
+            <NAME>CLIPPER SYSTEMS
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250816120000.000[0:GMT]
+            <TRNAMT>-44.38
+            <FITID>PBMQYOZE05YLKDSW
+            <NAME>UBER *EATS
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250817120000.000[0:GMT]
+            <TRNAMT>-50.41
+            <FITID>312IGO012H45BMCJ
+            <NAME>UBER* EATS PENDING
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250817120000.000[0:GMT]
+            <TRNAMT>-25.40
+            <FITID>2YFJ2UINKCT4WJFI
+            <NAME>LYFT *RIDE 5HE
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250818120000.000[0:GMT]
+            <TRNAMT>-99.53
+            <FITID>9132G7XO1U9P624A
+            <NAME>WHOLE FOODS MARKET #70358
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250818120000.000[0:GMT]
+            <TRNAMT>-32.57
+            <FITID>O9SS4OJUEB0KF00R
+            <NAME>LYFT   *RIDE
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250819120000.000[0:GMT]
+            <TRNAMT>-9.99
+            <FITID>YOQJKHV7JNJONU7Z
+            <NAME>MAX.COM
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250819120000.000[0:GMT]
+            <TRNAMT>-53.53
+            <FITID>VBDXYWDJ8YRY31QA
+            <NAME>AMZN Mktp US*CUQ07O6QU
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250820120000.000[0:GMT]
+            <TRNAMT>-13.97
+            <FITID>JJ9ILC04GD4J5IT6
+            <NAME>CHIPOTLE 1262
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250820120000.000[0:GMT]
+            <TRNAMT>-187.00
+            <FITID>XB7LLZN21PJ7TMUA
+            <NAME>DMV CA INTERNET
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250821120000.000[0:GMT]
+            <TRNAMT>-36.52
+            <FITID>JXMOA7HRC2CMDXYD
+            <NAME>UBER *TRIP
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250822120000.000[0:GMT]
+            <TRNAMT>-2.99
+            <FITID>QL60OX5OH5RZJWG5
+            <NAME>APPLE.COM/BILL
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250823120000.000[0:GMT]
+            <TRNAMT>-12.99
+            <FITID>KLHIFZX8HR16EPTC
+            <NAME>Spotify USA
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250824120000.000[0:GMT]
+            <TRNAMT>-38.33
+            <FITID>KDTRENRGZ0ZN7L2P
+            <NAME>AMC 6761 ONLINE
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250825120000.000[0:GMT]
+            <TRNAMT>-37.60
+            <FITID>YIIR7KCPP7ZFARNE
+            <NAME>SAFEWAY #4623
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250826120000.000[0:GMT]
+            <TRNAMT>-30.73
+            <FITID>VJMPGOF3QNG6QF78
+            <NAME>AMC THEATRES 6761
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250826120000.000[0:GMT]
+            <TRNAMT>-34.13
+            <FITID>D4QA892GZVXF4V3G
+            <NAME>B&amp;N.COM
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250828120000.000[0:GMT]
+            <TRNAMT>-13.50
+            <FITID>0DFYI9F77W7CB1VK
+            <NAME>IN N OUT BURGER 592
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250828120000.000[0:GMT]
+            <TRNAMT>-69.05
+            <FITID>2Y7H9BYCUOAXV3EC
+            <NAME>Amazon.com*ENSK4FACL
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250828120000.000[0:GMT]
+            <TRNAMT>-43.81
+            <FITID>7SJDGH30PMGYD9U9
+            <NAME>WALGREENS #1286
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250828120000.000[0:GMT]
+            <TRNAMT>-109.86
+            <FITID>01YFGUA4BJVM84F4
+            <NAME>NORDSTROM RACK #3977
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250830120000.000[0:GMT]
+            <TRNAMT>-39.43
+            <FITID>TWU5OFJ40EKZ707E
+            <NAME>STEAMGAMES.COM 6741
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250830120000.000[0:GMT]
+            <TRNAMT>-29.19
+            <FITID>BQX0DWJSLT2JWSK2
+            <NAME>UBER   *TRIP K0WO
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250831120000.000[0:GMT]
+            <TRNAMT>-62.30
+            <FITID>KLPJX8H933T640NR
+            <NAME>Amazon.com*IJ6KO70Y1
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250831120000.000[0:GMT]
+            <TRNAMT>-24.26
+            <FITID>7FKO1LJ0W7GMWBFD
+            <NAME>WALGREENS STORE 1286
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250903120000.000[0:GMT]
+            <TRNAMT>-21.60
+            <FITID>NCJ56XC1RFGGHZMR
+            <NAME>UBER   *TRIP 558J
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250905120000.000[0:GMT]
+            <TRNAMT>-28.80
+            <FITID>HYXG4SZHB9M3RGWL
+            <NAME>UBER   *TRIP 28VU
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250906120000.000[0:GMT]
+            <TRNAMT>-260.00
+            <FITID>48IX7H7O6LFJLC7S
+            <NAME>EQUINOX FITNESS CLUBS
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250907120000.000[0:GMT]
+            <TRNAMT>-47.61
+            <FITID>KQMFV585K72PLHTW
+            <NAME>DD *DOORDASH SHAKE SHACK
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250907120000.000[0:GMT]
+            <TRNAMT>-14.00
+            <FITID>EYJL0M19PL31BZYX
+            <NAME>LEMONADE INSURANCE CO
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>CREDIT
+            <DTPOSTED>20250908120000.000[0:GMT]
+            <TRNAMT>1631.89
+            <FITID>RXSIJ02MEMQGP4JP
+            <NAME>AUTOMATIC PAYMENT - THANK
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250910120000.000[0:GMT]
+            <TRNAMT>-70.00
+            <FITID>A27XF9WOTO8MXLYF
+            <NAME>COMCAST XFINITY
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250911120000.000[0:GMT]
+            <TRNAMT>-25.46
+            <FITID>DUSXZWNEKXCBHAEN
+            <NAME>CLIPPER SYSTEMS
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250912120000.000[0:GMT]
+            <TRNAMT>-36.50
+            <FITID>2IGBTNBTT3O8HAF6
+            <NAME>AMC THEATRES 6761
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250914120000.000[0:GMT]
+            <TRNAMT>-26.71
+            <FITID>OXK8KV078ZB4L0RQ
+            <NAME>DOORDASH*WINGSTOP
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250915120000.000[0:GMT]
+            <TRNAMT>-68.28
+            <FITID>6QRJNRNVYDRG735O
+            <NAME>SAFEWAY #4623
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250916120000.000[0:GMT]
+            <TRNAMT>-17.99
+            <FITID>PSMXO5JBAZV08FVI
+            <NAME>NETFLIX.COM 389
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250919120000.000[0:GMT]
+            <TRNAMT>-9.99
+            <FITID>2UWDHLTNV7TQIYI0
+            <NAME>HBO MAX
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250919120000.000[0:GMT]
+            <TRNAMT>-34.51
+            <FITID>5EZSHA6JMPEJPR81
+            <NAME>UBER *EATS
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250920120000.000[0:GMT]
+            <TRNAMT>-77.07
+            <FITID>C4UUCD0VX7VM5B1D
+            <NAME>TARGET.COM  *
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250921120000.000[0:GMT]
+            <TRNAMT>-31.11
+            <FITID>QQ0S6YO31WZO32O3
+            <NAME>CLIPPER CARD AUTOLOAD
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250921120000.000[0:GMT]
+            <TRNAMT>-70.19
+            <FITID>OA5506OR797K4VPA
+            <NAME>Amazon.com*IRERVYK11
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250922120000.000[0:GMT]
+            <TRNAMT>-2.99
+            <FITID>18MFBMJ3C7B32OQ2
+            <NAME>APPLE.COM/BILL
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250923120000.000[0:GMT]
+            <TRNAMT>-17.19
+            <FITID>3LVVT42K8TKJ1XTG
+            <NAME>CHIPOTLE ONLINE
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250923120000.000[0:GMT]
+            <TRNAMT>-12.99
+            <FITID>3IR5WM7QGPCJ7WS4
+            <NAME>SPOTIFY USA
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250924120000.000[0:GMT]
+            <TRNAMT>-30.92
+            <FITID>1GPX2S340RW8DG4P
+            <NAME>BAYSIDE MED GRP
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250925120000.000[0:GMT]
+            <TRNAMT>-63.22
+            <FITID>QYG113XTHEFE6IJU
+            <NAME>SAFEWAY STORE 0333
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250929120000.000[0:GMT]
+            <TRNAMT>-25.64
+            <FITID>LIBAAB899AJUXW9D
+            <NAME>UBER *TRIP
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250929120000.000[0:GMT]
+            <TRNAMT>-48.76
+            <FITID>I4D7ZN7EZ0CNGU75
+            <NAME>AMZN Mktp US*3PXVVPO13
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250930120000.000[0:GMT]
+            <TRNAMT>-6.59
+            <FITID>G3UL96JN3MC7UNWL
+            <NAME>SFMTA PAYBYPHONE
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251002120000.000[0:GMT]
+            <TRNAMT>-19.19
+            <FITID>4YQ4VZ1R3MBMXAV7
+            <NAME>WALGREENS STORE 1286
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251002120000.000[0:GMT]
+            <TRNAMT>-487.60
+            <FITID>HCSVPWQYKR4E4L3Y
+            <NAME>UNITED 2911558680670
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251005120000.000[0:GMT]
+            <TRNAMT>-23.02
+            <FITID>20DAHDYF6VMSPZRA
+            <NAME>UBER* TRIP
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251005120000.000[0:GMT]
+            <TRNAMT>-75.50
+            <FITID>5WCN0VO8Z6UVXRQP
+            <NAME>TRADER JOE S #243
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251006120000.000[0:GMT]
+            <TRNAMT>-43.76
+            <FITID>HJ4MTEO273W66UBL
+            <NAME>UBER* EATS PENDING
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251006120000.000[0:GMT]
+            <TRNAMT>-260.00
+            <FITID>2C3C4JLZ4LVUKUOY
+            <NAME>EQUINOX FITNESS CLUBS
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251007120000.000[0:GMT]
+            <TRNAMT>-14.00
+            <FITID>O9NKFJNML0NU91TE
+            <NAME>LEMONADE INSURANCE CO
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>CREDIT
+            <DTPOSTED>20251007120000.000[0:GMT]
+            <TRNAMT>1709.13
+            <FITID>D5EK7RMK5TVZFS50
+            <NAME>AUTOMATIC PAYMENT - THANK
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251010120000.000[0:GMT]
+            <TRNAMT>-85.00
+            <FITID>8A4ECGVFXV3P5O6F
+            <NAME>COMCAST CALIFORNIA
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251011120000.000[0:GMT]
+            <TRNAMT>-35.94
+            <FITID>0SIYSCI3H7RI52V0
+            <NAME>DD *DOORDASH PANDA EXPRESS
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251012120000.000[0:GMT]
+            <TRNAMT>-44.70
+            <FITID>UGYQKUXHCYG9EXAL
+            <NAME>SAFEWAY #9399
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251012120000.000[0:GMT]
+            <TRNAMT>-14.09
+            <FITID>3DT9LKKJO6PJ84BG
+            <NAME>IN-N-OUT 592
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251012120000.000[0:GMT]
+            <TRNAMT>-28.11
+            <FITID>8NTWENIVDZM3F18O
+            <NAME>AMC THEATRES 6761
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251012120000.000[0:GMT]
+            <TRNAMT>-107.25
+            <FITID>PEQOOW183Q46SL5F
+            <NAME>WHOLEFDS MKT #70358
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251012120000.000[0:GMT]
+            <TRNAMT>-49.58
+            <FITID>R66J14V83ODO6HZ8
+            <NAME>DD *DOORDASH CURRY UP NOW
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251015120000.000[0:GMT]
+            <TRNAMT>-17.99
+            <FITID>PS2YLAKNZ4488AWI
+            <NAME>NETFLIX.COM
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251015120000.000[0:GMT]
+            <TRNAMT>-8.90
+            <FITID>YI1XCSH11I1XELL7
+            <NAME>SUBWAY #40980
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251016120000.000[0:GMT]
+            <TRNAMT>-27.28
+            <FITID>4RVDMKLWCO5HZSE1
+            <NAME>LYFT *RIDE 7Q1
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251017120000.000[0:GMT]
+            <TRNAMT>-37.21
+            <FITID>YGWM4NYHOJ779XBH
+            <NAME>CLIPPER SYSTEMS
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251018120000.000[0:GMT]
+            <TRNAMT>-95.07
+            <FITID>2IEGI46RCMVF2887
+            <NAME>WHOLE FOODS MARKET #70358
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251018120000.000[0:GMT]
+            <TRNAMT>-28.56
+            <FITID>JYCASX6WWMCK0I2F
+            <NAME>LYFT *RIDE 3LG
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251018120000.000[0:GMT]
+            <TRNAMT>-9.99
+            <FITID>6475VFKE1PP5JM07
+            <NAME>HBO MAX
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251019120000.000[0:GMT]
+            <TRNAMT>-24.93
+            <FITID>BHR6HJLJIL0A10WS
+            <NAME>CHIPOTLE 1262
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251019120000.000[0:GMT]
+            <TRNAMT>-73.24
+            <FITID>1Y5WPXU3HHUY4TXM
+            <NAME>IC* INSTACART
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251019120000.000[0:GMT]
+            <TRNAMT>-64.14
+            <FITID>V8RQFVQ3AEFE2C64
+            <NAME>CVS/PHARMACY #24746
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251021120000.000[0:GMT]
+            <TRNAMT>-39.06
+            <FITID>EE4Q22BV266KF6X0
+            <NAME>CLIPPER SYSTEMS
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251022120000.000[0:GMT]
+            <TRNAMT>-2.99
+            <FITID>3823BUENGY09TUVJ
+            <NAME>APPLE.COM/BILL
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251024120000.000[0:GMT]
+            <TRNAMT>-12.99
+            <FITID>BMQO72TM9QN4JMAP
+            <NAME>SPOTIFY USA
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251026120000.000[0:GMT]
+            <TRNAMT>-27.18
+            <FITID>O78X6G2X0B9N7QJ6
+            <NAME>LYFT   *RIDE
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251026120000.000[0:GMT]
+            <TRNAMT>-85.93
+            <FITID>MJ5OLGP2NSM61LMX
+            <NAME>TARGET 0000590
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251026120000.000[0:GMT]
+            <TRNAMT>-7.34
+            <FITID>DAUP8277IZVW0X4E
+            <NAME>SFMTA PAYBYPHONE
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251027120000.000[0:GMT]
+            <TRNAMT>-47.61
+            <FITID>EWEZP2UTVEA9AG7U
+            <NAME>TRADER JOE S #243
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251027120000.000[0:GMT]
+            <TRNAMT>-27.06
+            <FITID>H9U80GW64W5BH48F
+            <NAME>UBER   *TRIP SZQH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251030120000.000[0:GMT]
+            <TRNAMT>-41.26
+            <FITID>86YM5PZOWGMVXJV6
+            <NAME>UBER *EATS
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251031120000.000[0:GMT]
+            <TRNAMT>-103.33
+            <FITID>1Z4NJPKIOWQTS4YG
+            <NAME>UNIQLO SAN FRANCISCO
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251102120000.000[0:GMT]
+            <TRNAMT>-32.79
+            <FITID>B17XNOS55234C1UH
+            <NAME>Amazon.com*QOTMDTFWF
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251102120000.000[0:GMT]
+            <TRNAMT>-37.74
+            <FITID>288VUTGLOKCLD1AZ
+            <NAME>UBER *EATS
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251104120000.000[0:GMT]
+            <TRNAMT>-72.57
+            <FITID>AQZYOF11F2H72KKT
+            <NAME>UNIQLO SAN FRANCISCO
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251104120000.000[0:GMT]
+            <TRNAMT>-31.44
+            <FITID>SLLSX8DKLIIKB83C
+            <NAME>CHIPOTLE ONLINE
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251106120000.000[0:GMT]
+            <TRNAMT>-38.71
+            <FITID>SU9NYTO9NBMEDC3K
+            <NAME>TRADER JOE S #243
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251106120000.000[0:GMT]
+            <TRNAMT>-22.09
+            <FITID>TIP6OL4LJDQNKIZL
+            <NAME>UBER* TRIP
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251106120000.000[0:GMT]
+            <TRNAMT>-22.88
+            <FITID>V7G1M4THCPLEEPJ8
+            <NAME>CHIPOTLE 1262
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>CREDIT
+            <DTPOSTED>20251106120000.000[0:GMT]
+            <TRNAMT>1831.89
+            <FITID>6ZTQ23D2PBL32WS1
+            <NAME>Payment Thank You-Mobile
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251107120000.000[0:GMT]
+            <TRNAMT>-260.00
+            <FITID>LW7PMKJI7BZ4Y515
+            <NAME>EQUINOX #108
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251107120000.000[0:GMT]
+            <TRNAMT>-26.65
+            <FITID>UKV5ZXO8NRVAD122
+            <NAME>UBER *TRIP
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251108120000.000[0:GMT]
+            <TRNAMT>-14.00
+            <FITID>JNCACDZSW2Q6QTY5
+            <NAME>LEMONADE INSURANCE CO
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251108120000.000[0:GMT]
+            <TRNAMT>-45.18
+            <FITID>WNKPPQU8QV3OYIXP
+            <NAME>DD *DOORDASH CHIPOTLE
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251108120000.000[0:GMT]
+            <TRNAMT>-62.79
+            <FITID>VZLZDNPP2RMESDBK
+            <NAME>Amazon.com*J09BNPKBZ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251110120000.000[0:GMT]
+            <TRNAMT>-25.71
+            <FITID>TPSF6O9HJV34A4ND
+            <NAME>UBER* TRIP
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251110120000.000[0:GMT]
+            <TRNAMT>-186.85
+            <FITID>CPQ3CLMWMH41BEM6
+            <NAME>TICKETMASTER
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251110120000.000[0:GMT]
+            <TRNAMT>-85.00
+            <FITID>T16067V6VTKZW3X7
+            <NAME>COMCAST CALIFORNIA
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251110120000.000[0:GMT]
+            <TRNAMT>-22.46
+            <FITID>FF71DK7ILTGUKAC0
+            <NAME>UBER   *TRIP HCF6
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251110120000.000[0:GMT]
+            <TRNAMT>-12.16
+            <FITID>FPHZZ6YGRYMX788Y
+            <NAME>SFMTA PAYBYPHONE
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251111120000.000[0:GMT]
+            <TRNAMT>-45.67
+            <FITID>4061ZM8XULQI65FN
+            <NAME>AMZN Mktp US*2WIXRHWM6
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251112120000.000[0:GMT]
+            <TRNAMT>-19.55
+            <FITID>F7IS6KPXYMD4L1Q1
+            <NAME>IN-N-OUT 592
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251113120000.000[0:GMT]
+            <TRNAMT>-62.82
+            <FITID>3KJU5OXGDMOB30ID
+            <NAME>INSTACART*WFO4NV
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251113120000.000[0:GMT]
+            <TRNAMT>-35.53
+            <FITID>MC2EBUSFOYG2OEO2
+            <NAME>BAYSIDE MED GRP
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251114120000.000[0:GMT]
+            <TRNAMT>-85.86
+            <FITID>9UM3DJFD31UMSACU
+            <NAME>AMAZON MKTPL*27DR7OKAX
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251116120000.000[0:GMT]
+            <TRNAMT>-17.99
+            <FITID>1YISLY8VFEHHEVME
+            <NAME>NETFLIX.COM 901
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251116120000.000[0:GMT]
+            <TRNAMT>-19.39
+            <FITID>DIO57CKNINJJBS9C
+            <NAME>UBER *TRIP
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251116120000.000[0:GMT]
+            <TRNAMT>-34.01
+            <FITID>0LZSUXJ5OC1K0Q00
+            <NAME>AMZN Mktp US*MU9NA6LB1
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251116120000.000[0:GMT]
+            <TRNAMT>-37.96
+            <FITID>5ZIC2PP73P3PR1CO
+            <NAME>TRADER JOE S #243
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251117120000.000[0:GMT]
+            <TRNAMT>-53.01
+            <FITID>GUMELZ4BEFNDUQ5Y
+            <NAME>Amazon.com*I7VGNOBPE
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251119120000.000[0:GMT]
+            <TRNAMT>-9.99
+            <FITID>36B3EGCCVC8SIY5N
+            <NAME>MAX.COM
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251119120000.000[0:GMT]
+            <TRNAMT>-38.07
+            <FITID>HWWGBKU173QMFLJJ
+            <NAME>CLIPPER CARD AUTOLOAD
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251119120000.000[0:GMT]
+            <TRNAMT>-40.68
+            <FITID>8EG1OV0SNELDNKVG
+            <NAME>Amazon.com*J4B30PZT8
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251120120000.000[0:GMT]
+            <TRNAMT>-109.92
+            <FITID>XYNN1TBNGG2QG3ME
+            <NAME>WHOLE FOODS MARKET #70358
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251120120000.000[0:GMT]
+            <TRNAMT>-29.19
+            <FITID>EQ2H148YEXWFYNHX
+            <NAME>CHIPOTLE ONLINE
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251120120000.000[0:GMT]
+            <TRNAMT>-47.80
+            <FITID>HWJ7VUEKA935AS9W
+            <NAME>DD *DOORDASH SHAKE SHACK
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251121120000.000[0:GMT]
+            <TRNAMT>-2.90
+            <FITID>J4WAGNYP0R4NFFUM
+            <NAME>MTA*NYCT PAYGO
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251121120000.000[0:GMT]
+            <TRNAMT>-2.90
+            <FITID>9UJYAEN87MRQ02Z6
+            <NAME>MTA*NYCT PAYGO
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251122120000.000[0:GMT]
+            <TRNAMT>-2.99
+            <FITID>JNJ38FA78VOCL2WP
+            <NAME>APPLE.COM/BILL
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251122120000.000[0:GMT]
+            <TRNAMT>-29.30
+            <FITID>N8OLY29WRFUK7FKU
+            <NAME>LYFT *RIDE ZW4
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251122120000.000[0:GMT]
+            <TRNAMT>-38.61
+            <FITID>97V0AUIT06A3LU0X
+            <NAME>AMC THEATRES 6761
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251122120000.000[0:GMT]
+            <TRNAMT>-2.90
+            <FITID>HU5NFJIKDA4VZHGH
+            <NAME>MTA*NYCT PAYGO
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251123120000.000[0:GMT]
+            <TRNAMT>-57.98
+            <FITID>MEG6AHY0WCLG7TUC
+            <NAME>DOORDASH*SWEETGREEN
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251123120000.000[0:GMT]
+            <TRNAMT>-50.49
+            <FITID>9LYSOIYCBK679SIA
+            <NAME>Amazon.com*702POM30D
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251123120000.000[0:GMT]
+            <TRNAMT>-2.90
+            <FITID>8LXDXU32JMA4I33L
+            <NAME>MTA*NYCT PAYGO
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251123120000.000[0:GMT]
+            <TRNAMT>-2.90
+            <FITID>1CSAWC3DWJQDFQC9
+            <NAME>MTA*NYCT PAYGO
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251123120000.000[0:GMT]
+            <TRNAMT>-30.38
+            <FITID>GRJ25V7YQA794U5Z
+            <NAME>UBER *EATS
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251123120000.000[0:GMT]
+            <TRNAMT>-2.90
+            <FITID>XEUS2O6BPSF427JS
+            <NAME>MTA*NYCT PAYGO
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251123120000.000[0:GMT]
+            <TRNAMT>-2.90
+            <FITID>6UK8CDP3SU079C7X
+            <NAME>MTA*NYCT PAYGO
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251123120000.000[0:GMT]
+            <TRNAMT>-2.90
+            <FITID>X38JIRNZEJUPDRZJ
+            <NAME>MTA*NYCT PAYGO
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251123120000.000[0:GMT]
+            <TRNAMT>-2.90
+            <FITID>9TK8PTC7MXX3RURJ
+            <NAME>MTA*NYCT PAYGO
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251124120000.000[0:GMT]
+            <TRNAMT>-12.99
+            <FITID>T5KJ0EOC95Z62C4K
+            <NAME>SPOTIFY USA
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251124120000.000[0:GMT]
+            <TRNAMT>-2.90
+            <FITID>SZ7V7YU88KPOVFAO
+            <NAME>MTA*NYCT PAYGO
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251124120000.000[0:GMT]
+            <TRNAMT>-2.90
+            <FITID>63ZMZUW260YGSA8L
+            <NAME>MTA*NYCT PAYGO
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251125120000.000[0:GMT]
+            <TRNAMT>-58.54
+            <FITID>L30LW6P1QXS2N47Y
+            <NAME>AMAZON MKTPL*VQCBXSY9B
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251125120000.000[0:GMT]
+            <TRNAMT>-2.90
+            <FITID>Z2MGJCJ8T856U9QC
+            <NAME>MTA*NYCT PAYGO
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251125120000.000[0:GMT]
+            <TRNAMT>-1045.32
+            <FITID>1LXKF9ZFHVQM9UDB
+            <NAME>HILTON GARDEN INN SAN FRANCISCO
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251126120000.000[0:GMT]
+            <TRNAMT>-39.19
+            <FITID>D4M0XQCR9X8C17GJ
+            <NAME>CLIPPER CARD AUTOLOAD
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251127120000.000[0:GMT]
+            <TRNAMT>-27.52
+            <FITID>DSEMLW7OU38REBZL
+            <NAME>AMC 6761 ONLINE
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251127120000.000[0:GMT]
+            <TRNAMT>-13.04
+            <FITID>5GU35SAAL9APZNTM
+            <NAME>LYFT   *RIDE
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251129120000.000[0:GMT]
+            <TRNAMT>-180.00
+            <FITID>HNJCMKKYFW5EZEHB
+            <NAME>MINT MOBILE
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251130120000.000[0:GMT]
+            <TRNAMT>-80.04
+            <FITID>L921DQRWBILION3B
+            <NAME>TRADER JOE S #630
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251130120000.000[0:GMT]
+            <TRNAMT>-47.72
+            <FITID>8LA80R9LO3GLJACF
+            <NAME>UBER *EATS
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251201120000.000[0:GMT]
+            <TRNAMT>-71.57
+            <FITID>FJ437UDVJA754U1W
+            <NAME>AMAZON MKTPL*3MVPNNYHX
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251202120000.000[0:GMT]
+            <TRNAMT>-28.82
+            <FITID>S6E19CI3ESXHFY1I
+            <NAME>UBER   *TRIP 802D
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251203120000.000[0:GMT]
+            <TRNAMT>-50.00
+            <FITID>OTNNXHVLL4BIUK3X
+            <NAME>WIKIMEDIA FOUNDATION
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251204120000.000[0:GMT]
+            <TRNAMT>-58.46
+            <FITID>F0AMLY0RKCN39Z1X
+            <NAME>TRADER JOE S #243
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251206120000.000[0:GMT]
+            <TRNAMT>-76.85
+            <FITID>7JV103LNUI2XGLZZ
+            <NAME>AMZN Mktp US*4WNGMVK58
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251207120000.000[0:GMT]
+            <TRNAMT>-260.00
+            <FITID>FZ8LF9IWF1N9F148
+            <NAME>EQUINOX FITNESS CLUBS
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251207120000.000[0:GMT]
+            <TRNAMT>-14.62
+            <FITID>29WJPF3XMGD1M4FN
+            <NAME>IN N OUT BURGER 592
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251207120000.000[0:GMT]
+            <TRNAMT>-29.01
+            <FITID>S0J5G7GUC6BCGLHW
+            <NAME>AMAZON MKTPL*E5I01AC5N
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251208120000.000[0:GMT]
+            <TRNAMT>-14.00
+            <FITID>05XR7KBUKB0IOV69
+            <NAME>LEMONADE I* RENTERS
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251208120000.000[0:GMT]
+            <TRNAMT>-28.59
+            <FITID>NABJH3TF6JW262HM
+            <NAME>DD *DOORDASH SWEETGREEN
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>CREDIT
+            <DTPOSTED>20251208120000.000[0:GMT]
+            <TRNAMT>1846.30
+            <FITID>R0OY35ENFD9202Q7
+            <NAME>Payment Thank You-Mobile
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251209120000.000[0:GMT]
+            <TRNAMT>-77.01
+            <FITID>AW5P2KBEDHE29VHG
+            <NAME>TARGET        0000590
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251210120000.000[0:GMT]
+            <TRNAMT>-19.31
+            <FITID>G50KWVABIUVCT90X
+            <NAME>SUBWAY 40980981
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251211120000.000[0:GMT]
+            <TRNAMT>-85.00
+            <FITID>A8DE6J36Z62JCIQO
+            <NAME>COMCAST CALIFORNIA
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251211120000.000[0:GMT]
+            <TRNAMT>-59.47
+            <FITID>B3DL3R2DV102Z5LT
+            <NAME>WHOLEFDS MKT #70358
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251211120000.000[0:GMT]
+            <TRNAMT>-54.28
+            <FITID>EXMEAPJD7YTHQLGF
+            <NAME>AMZN Mktp US*4O4HE4VV4
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251212120000.000[0:GMT]
+            <TRNAMT>-20.03
+            <FITID>9KEJGZFAKY4BTFKW
+            <NAME>CHIPOTLE ONLINE
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251213120000.000[0:GMT]
+            <TRNAMT>-28.34
+            <FITID>H3V4612MEKS7JCU6
+            <NAME>TRADER JOE S #243
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251213120000.000[0:GMT]
+            <TRNAMT>-61.04
+            <FITID>FUENTL0EXZBXUTXD
+            <NAME>AMAZON MKTPL*N0VFPJZP4
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251214120000.000[0:GMT]
+            <TRNAMT>-27.57
+            <FITID>X0JY20ZRO18N6K3N
+            <NAME>UBER   *TRIP U2XQ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251216120000.000[0:GMT]
+            <TRNAMT>-17.99
+            <FITID>FYEA5MQPNADNCF96
+            <NAME>NETFLIX.COM 128
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251216120000.000[0:GMT]
+            <TRNAMT>-39.02
+            <FITID>2WGAY8T5AKK56K0U
+            <NAME>SAFEWAY #4623
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251216120000.000[0:GMT]
+            <TRNAMT>-64.52
+            <FITID>I7CCLLKPCWXRCC91
+            <NAME>AMZN Mktp US*RLSWFOCQH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251218120000.000[0:GMT]
+            <TRNAMT>-9.99
+            <FITID>NUM0E5UTHJWWY947
+            <NAME>HBO MAX
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251218120000.000[0:GMT]
+            <TRNAMT>-74.26
+            <FITID>SI7VPNZN5NZ7S8YC
+            <NAME>TRADER JOE S #243
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251218120000.000[0:GMT]
+            <TRNAMT>-23.73
+            <FITID>TU3CF325STR72EFI
+            <NAME>UBER* TRIP
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251218120000.000[0:GMT]
+            <TRNAMT>-45.73
+            <FITID>0BAALHQHAK2I4JU3
+            <NAME>Amazon.com*FMAQMITVY
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251220120000.000[0:GMT]
+            <TRNAMT>-33.92
+            <FITID>DJ7KQWIW6NVTJMVQ
+            <NAME>DD *DOORDASH SWEETGREEN
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251221120000.000[0:GMT]
+            <TRNAMT>-13.96
+            <FITID>9HTHGG8LRDSLEV0L
+            <NAME>UBER   *TRIP IQ2S
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251221120000.000[0:GMT]
+            <TRNAMT>-2.99
+            <FITID>3PPT6X23IE6R4JQT
+            <NAME>APPLE.COM/BILL
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251221120000.000[0:GMT]
+            <TRNAMT>-19.21
+            <FITID>ORSKKK9CYMTQIB0H
+            <NAME>LYFT *RIDE X3Z
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251223120000.000[0:GMT]
+            <TRNAMT>-12.99
+            <FITID>OZQ0FJHOKKMPQXHO
+            <NAME>SPOTIFY USA
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251225120000.000[0:GMT]
+            <TRNAMT>-38.70
+            <FITID>PMUTQDV1IC3ZM0B4
+            <NAME>CLIPPER CARD AUTOLOAD
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251225120000.000[0:GMT]
+            <TRNAMT>-45.14
+            <FITID>CP2ANMQLP93OABB5
+            <NAME>Amazon.com*4NFZA68HM
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251225120000.000[0:GMT]
+            <TRNAMT>-104.36
+            <FITID>JSR8JBR2DDRH6BTX
+            <NAME>TARGET.COM  *
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251226120000.000[0:GMT]
+            <TRNAMT>-17.86
+            <FITID>12FO42YZ5XX9GJPW
+            <NAME>SUBWAY #26905
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251226120000.000[0:GMT]
+            <TRNAMT>-44.67
+            <FITID>D53CUNBYS6SGE1HO
+            <NAME>CVS/PHARM 24746
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251228120000.000[0:GMT]
+            <TRNAMT>-34.69
+            <FITID>2MI9Q6BCZUZXNSSB
+            <NAME>DOORDASH*HALAL GUYS
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251228120000.000[0:GMT]
+            <TRNAMT>-18.70
+            <FITID>15QZMBYPR60KNMU1
+            <NAME>LYFT   *RIDE
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251228120000.000[0:GMT]
+            <TRNAMT>-69.91
+            <FITID>OZLI21HRIKQO9JJU
+            <NAME>TARGET.COM  *
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251229120000.000[0:GMT]
+            <TRNAMT>-64.88
+            <FITID>UOWJDJ9D1SG0DMJL
+            <NAME>SQ *LUXE HAIR
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251230120000.000[0:GMT]
+            <TRNAMT>-5.64
+            <FITID>FS2NXNGRV4V74BB1
+            <NAME>SFMTA METER
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251230120000.000[0:GMT]
+            <TRNAMT>-9.02
+            <FITID>2PTJFQX955RSUP3E
+            <NAME>SUBWAY 40980981
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251231120000.000[0:GMT]
+            <TRNAMT>-103.71
+            <FITID>S94FH8LJTCPU1Q0F
+            <NAME>TARGET        0000590
+          </STMTTRN>
+        </BANKTRANLIST>
+        <LEDGERBAL>
+          <BALAMT>-4548.00
+          <DTASOF>20260104120000.000[0:GMT]
+        </LEDGERBAL>
+      </CCSTMTRS>
+    </CCSTMTTRNRS>
+  </CREDITCARDMSGSRSV1>
+</OFX>

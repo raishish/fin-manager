@@ -1,0 +1,13 @@
+Transaction Date,Clearing Date,Description,Merchant,Category,Type,Amount (USD),Purchased By
+10/27/2025,10/29/2025,"SQ *CASA VERDE TAQUERIA","Casa Verde Taqueria","Restaurants","Purchase","28.75","Sam Fakerson"
+10/25/2025,10/27/2025,"LONE STAR SMOKEHOUSE","Lone Star Smokehouse","Restaurants","Purchase","54.14","Sam Fakerson"
+10/25/2025,10/26/2025,"LUCKYS TAVERN","Lucky's Tavern","Restaurants","Purchase","26.12","Sam Fakerson"
+10/21/2025,10/21/2025,"Payment Thank You-Mobile","Payment Thank You","Payment","Payment","-377.30","Sam Fakerson"
+10/18/2025,10/20/2025,"TST* LONE STAR SMOKEHOU","Lone Star Smokehouse","Restaurants","Purchase","29.24","Sam Fakerson"
+10/17/2025,10/18/2025,"TST* LONE STAR SMOKEHOU","Lone Star Smokehouse","Restaurants","Purchase","34.27","Sam Fakerson"
+10/13/2025,10/14/2025,"NOTION LABS, INC.","Notion","Other","Purchase","10.00","Sam Fakerson"
+10/08/2025,10/09/2025,"SQ *CASA VERDE TAQUER","Casa Verde Taqueria","Restaurants","Purchase","36.17","Sam Fakerson"
+10/06/2025,10/07/2025,"ADOBE  *ADOBE","Adobe","Other","Purchase","69.99","Sam Fakerson"
+10/04/2025,10/06/2025,"SQ *CASA VERDE TAQUERIA","Casa Verde Taqueria","Restaurants","Purchase","29.62","Sam Fakerson"
+10/03/2025,10/05/2025,"TST* LONE STAR SMOKEHOU","Lone Star Smokehouse","Restaurants","Purchase","44.81","Sam Fakerson"
+10/01/2025,10/02/2025,"GOOGLE *GSUITE_samf","Google Workspace","Other","Purchase","8.40","Sam Fakerson"

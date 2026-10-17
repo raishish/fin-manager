@@ -1,0 +1,24 @@
+[package]
+name = "fm-bank-exports"
+description = "Bank export corpus (CSV, OFX, QFX) rendered from the synthetic ledgers (TD.2)."
+version = "0.0.0"
+edition = "2024"
+license = "AGPL-3.0-or-later"
+repository = "https://github.com/raishish/fin-manager"
+publish = false
+
+# A standalone workspace, like testdata/synthetic: test-data tooling kept out of the
+# app's build. Build and test it from this folder.
+[workspace]
+
+[dependencies]
+fm-core = { path = "../../crates/fm-core" }
+fm-synth = { path = "../synthetic" }
+serde = { version = "=1.0.229", default-features = false, features = ["derive", "std"] }
+serde_json = "=1.0.154"
+
+[lints.rust]
+unsafe_code = "deny"
+
+[lints.clippy]
+all = { level = "warn", priority = -1 }

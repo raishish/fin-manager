@@ -1,0 +1,51 @@
+{
+  "file": "citi/card_2025_06_16.csv",
+  "layout": "citi_card_csv",
+  "institution": "Citi",
+  "source": {
+    "persona": "renter",
+    "account_id": 4
+  },
+  "as_of": "2025-06-16",
+  "start": "2025-05-17",
+  "end": "2025-06-16",
+  "account": {
+    "kind": "credit_card",
+    "currency": "USD",
+    "number": null,
+    "routing": null,
+    "ledger_balance": null
+  },
+  "transactions": [
+    {"truth_id":739,"status":"pending","posted_date":"2025-06-16","transaction_date":"2025-06-16","amount":{"minor":-639,"currency":"USD"},"description":"SQ *DAILY GRIND      SAN FRANCISCO       CA","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":735,"status":"pending","posted_date":"2025-06-15","transaction_date":"2025-06-15","amount":{"minor":-2895,"currency":"USD"},"description":"SQ *SAKURA RAMEN     SAN FRANCISCO       CA","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":727,"status":"posted","posted_date":"2025-06-13","transaction_date":"2025-06-13","amount":{"minor":-3485,"currency":"USD"},"description":"TST*HOPWORKS TAPROOM SAN FRANCISCO       CA","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":725,"status":"posted","posted_date":"2025-06-13","transaction_date":"2025-06-13","amount":{"minor":-601,"currency":"USD"},"description":"SQ *BLUE BOTTLE COFF OAKLAND             CA","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":724,"status":"posted","posted_date":"2025-06-12","transaction_date":"2025-06-12","amount":{"minor":-872,"currency":"USD"},"description":"STARBUCKS #36898     SAN FRANCISCO       CA","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":720,"status":"posted","posted_date":"2025-06-10","transaction_date":"2025-06-10","amount":{"minor":-989,"currency":"USD"},"description":"SQ *THE DAILY GRIND  SAN FRANCISCO       CA","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":718,"status":"posted","posted_date":"2025-06-09","transaction_date":"2025-06-09","amount":{"minor":-1328,"currency":"USD"},"description":"BLUE BOTTLE COFFEE 1 SAN FRANCISCO       CA","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":715,"status":"posted","posted_date":"2025-06-07","transaction_date":"2025-06-07","amount":{"minor":-4156,"currency":"USD"},"description":"TST*BLUE HERON BISTR SAN FRANCISCO       CA","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":705,"status":"posted","posted_date":"2025-06-05","transaction_date":"2025-06-05","amount":{"minor":-635,"currency":"USD"},"description":"SQ *BLUE BOTTLE COFF OAKLAND             CA","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":704,"status":"posted","posted_date":"2025-06-04","transaction_date":"2025-06-04","amount":{"minor":-877,"currency":"USD"},"description":"SQ *THE DAILY GRIND  SAN FRANCISCO       CA","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":698,"status":"posted","posted_date":"2025-06-03","transaction_date":"2025-06-03","amount":{"minor":-2938,"currency":"USD"},"description":"SQ *CASA VERDE TAQUE SAN FRANCISCO       CA","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":697,"status":"posted","posted_date":"2025-06-03","transaction_date":"2025-06-03","amount":{"minor":-1194,"currency":"USD"},"description":"SQ *BLUE BOTTLE COFF SAN FRANCISCO       CA","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":696,"status":"posted","posted_date":"2025-06-02","transaction_date":"2025-06-02","amount":{"minor":-1000,"currency":"USD"},"description":"STARBUCKS STORE 3689 SAN FRANCISCO       CA","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":695,"status":"posted","posted_date":"2025-06-02","transaction_date":"2025-06-02","amount":{"minor":-4900,"currency":"USD"},"description":"CLASSPASS* MONTHLY   CLASSPASS.COM       NY","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":689,"status":"posted","posted_date":"2025-05-30","transaction_date":"2025-05-30","amount":{"minor":-8776,"currency":"USD"},"description":"TST*BLUE HERON BISTR BERKELEY            CA","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":688,"status":"posted","posted_date":"2025-05-30","transaction_date":"2025-05-30","amount":{"minor":-1034,"currency":"USD"},"description":"BLUE BOTTLE COFFEE 1 SAN FRANCISCO       CA","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":687,"status":"posted","posted_date":"2025-05-29","transaction_date":"2025-05-29","amount":{"minor":-883,"currency":"USD"},"description":"STARBUCKS #36898     SAN FRANCISCO       CA","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":682,"status":"posted","posted_date":"2025-05-28","transaction_date":"2025-05-28","amount":{"minor":-565,"currency":"USD"},"description":"SQ *DAILY GRIND      SAN FRANCISCO       CA","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":681,"status":"posted","posted_date":"2025-05-29","transaction_date":"2025-05-29","amount":{"minor":65996,"currency":"USD"},"description":"AUTOPAY PAYMENT - THANK YOU","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":680,"status":"posted","posted_date":"2025-05-27","transaction_date":"2025-05-27","amount":{"minor":-1212,"currency":"USD"},"description":"BLUE BOTTLE COFFEE 1 SAN FRANCISCO       CA","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":677,"status":"posted","posted_date":"2025-05-26","transaction_date":"2025-05-26","amount":{"minor":-871,"currency":"USD"},"description":"SQ *THE DAILY GRIND  OAKLAND             CA","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":671,"status":"posted","posted_date":"2025-05-23","transaction_date":"2025-05-23","amount":{"minor":-2695,"currency":"USD"},"description":"SQ *SAKURA RAMEN     SAN FRANCISCO       CA","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":668,"status":"posted","posted_date":"2025-05-22","transaction_date":"2025-05-22","amount":{"minor":-1183,"currency":"USD"},"description":"SQ *BLUE BOTTLE COFF OAKLAND             CA","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":664,"status":"posted","posted_date":"2025-05-21","transaction_date":"2025-05-21","amount":{"minor":-2297,"currency":"USD"},"description":"SQ *SAKURA RAMEN     BERKELEY            CA","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":663,"status":"posted","posted_date":"2025-05-21","transaction_date":"2025-05-21","amount":{"minor":-1426,"currency":"USD"},"description":"SQ *BLUE BOTTLE COFF SAN FRANCISCO       CA","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":662,"status":"posted","posted_date":"2025-05-20","transaction_date":"2025-05-20","amount":{"minor":-3493,"currency":"USD"},"description":"SQ *SAKURA RAMEN     SAN FRANCISCO       CA","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":661,"status":"posted","posted_date":"2025-05-20","transaction_date":"2025-05-20","amount":{"minor":-878,"currency":"USD"},"description":"SQ *THE DAILY GRIND  SAN FRANCISCO       CA","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":659,"status":"posted","posted_date":"2025-05-19","transaction_date":"2025-05-19","amount":{"minor":-889,"currency":"USD"},"description":"SQ *THE DAILY GRIND  SAN FRANCISCO       CA","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":655,"status":"posted","posted_date":"2025-05-16","transaction_date":"2025-05-16","amount":{"minor":-782,"currency":"USD"},"description":"SQ *BLUE BOTTLE COFF SAN FRANCISCO       CA","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":651,"status":"posted","posted_date":"2025-05-15","transaction_date":"2025-05-15","amount":{"minor":-6747,"currency":"USD"},"description":"GOLDEN LOTUS RESTAUR SAN FRANCISCO       CA","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":null,"bank_category":null}
+  ]
+}

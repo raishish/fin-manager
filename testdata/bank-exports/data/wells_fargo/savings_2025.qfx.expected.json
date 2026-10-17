@@ -1,0 +1,46 @@
+{
+  "file": "wells_fargo/savings_2025.qfx",
+  "layout": "wells_fargo_qfx",
+  "institution": "Wells Fargo",
+  "source": {
+    "persona": "retiree",
+    "account_id": 2
+  },
+  "as_of": "2026-01-04",
+  "start": "2025-01-01",
+  "end": "2025-12-31",
+  "account": {
+    "kind": "savings",
+    "currency": "USD",
+    "number": "999900006189",
+    "routing": "999999022",
+    "ledger_balance": {"minor":140772,"currency":"USD"}
+  },
+  "transactions": [
+    {"truth_id":182,"status":"posted","posted_date":"2025-01-20","transaction_date":null,"amount":{"minor":30000,"currency":"USD"},"description":"ONLINE TRANSFER FROM PAT EXAMPLE","payee":null,"memo":"ONLINE TRANSFER FROM PAT EXAMPLETON EVERYDAY CHECKING XXXXXX6170 REF #IB0ZPEPOW6 ON 01/20/25","external_id":"RIW36RS03X389TEW","check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":199,"status":"posted","posted_date":"2025-01-31","transaction_date":null,"amount":{"minor":52,"currency":"USD"},"description":"INTEREST PAYMENT","payee":null,"memo":null,"external_id":"PHUQHTY7LUNQZVQJ","check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":234,"status":"posted","posted_date":"2025-02-20","transaction_date":null,"amount":{"minor":30000,"currency":"USD"},"description":"ONLINE TRANSFER FROM PAT EXAMPLE","payee":null,"memo":"ONLINE TRANSFER FROM PAT EXAMPLETON EVERYDAY CHECKING XXXXXX6170 REF #IB0GC3YRGK ON 02/20/25","external_id":"RF59F09SQ7XDNNOX","check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":250,"status":"posted","posted_date":"2025-02-28","transaction_date":null,"amount":{"minor":52,"currency":"USD"},"description":"INTEREST PAYMENT","payee":null,"memo":null,"external_id":"38T3UT7GENG5T2AL","check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":283,"status":"posted","posted_date":"2025-03-20","transaction_date":null,"amount":{"minor":30000,"currency":"USD"},"description":"ONLINE TRANSFER FROM PAT EXAMPLE","payee":null,"memo":"ONLINE TRANSFER FROM PAT EXAMPLETON EVERYDAY CHECKING XXXXXX6170 REF #IB0PKTKY40 ON 03/20/25","external_id":"CKLZYASFHLPV3WYQ","check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":298,"status":"posted","posted_date":"2025-03-31","transaction_date":null,"amount":{"minor":53,"currency":"USD"},"description":"INTEREST PAYMENT","payee":null,"memo":null,"external_id":"75HMEJ35PC604IR1","check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":383,"status":"posted","posted_date":"2025-04-21","transaction_date":null,"amount":{"minor":30000,"currency":"USD"},"description":"ONLINE TRANSFER FROM PAT EXAMPLE","payee":null,"memo":"ONLINE TRANSFER FROM PAT EXAMPLETON EVERYDAY CHECKING XXXXXX6170 REF #IB05YED893 ON 04/21/25","external_id":"VIQK48JWKKQKP12D","check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":394,"status":"posted","posted_date":"2025-04-30","transaction_date":null,"amount":{"minor":53,"currency":"USD"},"description":"INTEREST PAYMENT","payee":null,"memo":null,"external_id":"Z74NHGY310K4K7HQ","check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":425,"status":"posted","posted_date":"2025-05-20","transaction_date":null,"amount":{"minor":30000,"currency":"USD"},"description":"ONLINE TRANSFER FROM PAT EXAMPLE","payee":null,"memo":"ONLINE TRANSFER FROM PAT EXAMPLETON EVERYDAY CHECKING XXXXXX6170 REF #IB0C3PVVV8 ON 05/20/25","external_id":"VN14F0C0IO1CPCMQ","check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":452,"status":"posted","posted_date":"2025-05-31","transaction_date":null,"amount":{"minor":53,"currency":"USD"},"description":"INTEREST PAYMENT","payee":null,"memo":null,"external_id":"ORQHT8CIQOFM82A6","check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":484,"status":"posted","posted_date":"2025-06-20","transaction_date":null,"amount":{"minor":30000,"currency":"USD"},"description":"ONLINE TRANSFER FROM PAT EXAMPLE","payee":null,"memo":"ONLINE TRANSFER FROM PAT EXAMPLETON EVERYDAY CHECKING XXXXXX6170 REF #IB05O2FC1O ON 06/20/25","external_id":"8CNMV32YQ4Z2CDBO","check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":501,"status":"posted","posted_date":"2025-06-30","transaction_date":null,"amount":{"minor":53,"currency":"USD"},"description":"INTEREST PAYMENT","payee":null,"memo":null,"external_id":"2TPPRZQ6UQWK0Z1E","check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":545,"status":"posted","posted_date":"2025-07-21","transaction_date":null,"amount":{"minor":30000,"currency":"USD"},"description":"ONLINE TRANSFER FROM PAT EXAMPLE","payee":null,"memo":"ONLINE TRANSFER FROM PAT EXAMPLETON EVERYDAY CHECKING XXXXXX6170 REF #IB02K55YXN ON 07/21/25","external_id":"IY7XHT9BN98X6C55","check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":559,"status":"posted","posted_date":"2025-07-31","transaction_date":null,"amount":{"minor":54,"currency":"USD"},"description":"INTEREST PAYMENT","payee":null,"memo":null,"external_id":"A8Y4GBG41IG0MODW","check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":598,"status":"posted","posted_date":"2025-08-20","transaction_date":null,"amount":{"minor":30000,"currency":"USD"},"description":"ONLINE TRANSFER FROM PAT EXAMPLE","payee":null,"memo":"ONLINE TRANSFER FROM PAT EXAMPLETON EVERYDAY CHECKING XXXXXX6170 REF #IB0OY6VHO7 ON 08/20/25","external_id":"KB49E3SMZSZEYJVA","check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":617,"status":"posted","posted_date":"2025-08-31","transaction_date":null,"amount":{"minor":54,"currency":"USD"},"description":"INTEREST PAYMENT","payee":null,"memo":null,"external_id":"SNIHMBEKJ052I2YH","check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":660,"status":"posted","posted_date":"2025-09-22","transaction_date":null,"amount":{"minor":30000,"currency":"USD"},"description":"ONLINE TRANSFER FROM PAT EXAMPLE","payee":null,"memo":"ONLINE TRANSFER FROM PAT EXAMPLETON EVERYDAY CHECKING XXXXXX6170 REF #IB04IZKG4B ON 09/22/25","external_id":"ZY9P1OI9V21GYQQ6","check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":671,"status":"posted","posted_date":"2025-09-30","transaction_date":null,"amount":{"minor":54,"currency":"USD"},"description":"INTEREST PAYMENT","payee":null,"memo":null,"external_id":"Z32ETKCSORZT2AHA","check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":679,"status":"posted","posted_date":"2025-10-06","transaction_date":null,"amount":{"minor":-1000000,"currency":"USD"},"description":"ONLINE TRANSFER TO PAT EXAMPLETO","payee":null,"memo":"ONLINE TRANSFER TO PAT EXAMPLETON EVERYDAY CHECKING XXXXXX6170 REF #IB0VBNWI38 ON 10/06/25","external_id":"6YPB3KW7U7LYKBBW","check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":708,"status":"posted","posted_date":"2025-10-20","transaction_date":null,"amount":{"minor":30000,"currency":"USD"},"description":"ONLINE TRANSFER FROM PAT EXAMPLE","payee":null,"memo":"ONLINE TRANSFER FROM PAT EXAMPLETON EVERYDAY CHECKING XXXXXX6170 REF #IB03UX9EE8 ON 10/20/25","external_id":"DWM20F3Q01CQRLB2","check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":731,"status":"posted","posted_date":"2025-10-31","transaction_date":null,"amount":{"minor":46,"currency":"USD"},"description":"INTEREST PAYMENT","payee":null,"memo":null,"external_id":"2UPCWZCO3NGLU0Q7","check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":773,"status":"posted","posted_date":"2025-11-20","transaction_date":null,"amount":{"minor":30000,"currency":"USD"},"description":"ONLINE TRANSFER FROM PAT EXAMPLE","payee":null,"memo":"ONLINE TRANSFER FROM PAT EXAMPLETON EVERYDAY CHECKING XXXXXX6170 REF #IB0QYMF1DQ ON 11/20/25","external_id":"GBMWCAGK3MDAVFU2","check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":792,"status":"posted","posted_date":"2025-11-30","transaction_date":null,"amount":{"minor":46,"currency":"USD"},"description":"INTEREST PAYMENT","payee":null,"memo":null,"external_id":"BPB0YC0B66VE5IE7","check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":840,"status":"posted","posted_date":"2025-12-22","transaction_date":null,"amount":{"minor":30000,"currency":"USD"},"description":"ONLINE TRANSFER FROM PAT EXAMPLE","payee":null,"memo":"ONLINE TRANSFER FROM PAT EXAMPLETON EVERYDAY CHECKING XXXXXX6170 REF #IB0G7B88RY ON 12/22/25","external_id":"W9JLLM2E3ZIPL9AQ","check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":856,"status":"posted","posted_date":"2025-12-31","transaction_date":null,"amount":{"minor":47,"currency":"USD"},"description":"INTEREST PAYMENT","payee":null,"memo":null,"external_id":"T4Q6RWUQR3Z8LY22","check_number":null,"balance":null,"bank_category":null}
+  ]
+}

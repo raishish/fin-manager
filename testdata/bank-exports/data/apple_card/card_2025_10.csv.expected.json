@@ -1,0 +1,33 @@
+{
+  "file": "apple_card/card_2025_10.csv",
+  "layout": "apple_card_csv",
+  "institution": "Apple Card",
+  "source": {
+    "persona": "freelancer",
+    "account_id": 4
+  },
+  "as_of": "2025-11-01",
+  "start": "2025-10-01",
+  "end": "2025-10-31",
+  "account": {
+    "kind": "credit_card",
+    "currency": "USD",
+    "number": null,
+    "routing": null,
+    "ledger_balance": null
+  },
+  "transactions": [
+    {"truth_id":927,"status":"posted","posted_date":"2025-10-29","transaction_date":"2025-10-27","amount":{"minor":-2875,"currency":"USD"},"description":"SQ *CASA VERDE TAQUERIA","payee":"Casa Verde Taqueria","memo":null,"external_id":null,"check_number":null,"balance":null,"bank_category":"Restaurants"},
+    {"truth_id":926,"status":"posted","posted_date":"2025-10-27","transaction_date":"2025-10-25","amount":{"minor":-5414,"currency":"USD"},"description":"LONE STAR SMOKEHOUSE","payee":"Lone Star Smokehouse","memo":null,"external_id":null,"check_number":null,"balance":null,"bank_category":"Restaurants"},
+    {"truth_id":925,"status":"posted","posted_date":"2025-10-26","transaction_date":"2025-10-25","amount":{"minor":-2612,"currency":"USD"},"description":"LUCKYS TAVERN","payee":"Lucky's Tavern","memo":null,"external_id":null,"check_number":null,"balance":null,"bank_category":"Restaurants"},
+    {"truth_id":919,"status":"posted","posted_date":"2025-10-21","transaction_date":"2025-10-21","amount":{"minor":37730,"currency":"USD"},"description":"Payment Thank You-Mobile","payee":"Payment Thank You","memo":null,"external_id":null,"check_number":null,"balance":null,"bank_category":"Payment"},
+    {"truth_id":916,"status":"posted","posted_date":"2025-10-20","transaction_date":"2025-10-18","amount":{"minor":-2924,"currency":"USD"},"description":"TST* LONE STAR SMOKEHOU","payee":"Lone Star Smokehouse","memo":null,"external_id":null,"check_number":null,"balance":null,"bank_category":"Restaurants"},
+    {"truth_id":912,"status":"posted","posted_date":"2025-10-18","transaction_date":"2025-10-17","amount":{"minor":-3427,"currency":"USD"},"description":"TST* LONE STAR SMOKEHOU","payee":"Lone Star Smokehouse","memo":null,"external_id":null,"check_number":null,"balance":null,"bank_category":"Restaurants"},
+    {"truth_id":904,"status":"posted","posted_date":"2025-10-14","transaction_date":"2025-10-13","amount":{"minor":-1000,"currency":"USD"},"description":"NOTION LABS, INC.","payee":"Notion","memo":null,"external_id":null,"check_number":null,"balance":null,"bank_category":"Other"},
+    {"truth_id":895,"status":"posted","posted_date":"2025-10-09","transaction_date":"2025-10-08","amount":{"minor":-3617,"currency":"USD"},"description":"SQ *CASA VERDE TAQUER","payee":"Casa Verde Taqueria","memo":null,"external_id":null,"check_number":null,"balance":null,"bank_category":"Restaurants"},
+    {"truth_id":890,"status":"posted","posted_date":"2025-10-07","transaction_date":"2025-10-06","amount":{"minor":-6999,"currency":"USD"},"description":"ADOBE  *ADOBE","payee":"Adobe","memo":null,"external_id":null,"check_number":null,"balance":null,"bank_category":"Other"},
+    {"truth_id":887,"status":"posted","posted_date":"2025-10-06","transaction_date":"2025-10-04","amount":{"minor":-2962,"currency":"USD"},"description":"SQ *CASA VERDE TAQUERIA","payee":"Casa Verde Taqueria","memo":null,"external_id":null,"check_number":null,"balance":null,"bank_category":"Restaurants"},
+    {"truth_id":882,"status":"posted","posted_date":"2025-10-05","transaction_date":"2025-10-03","amount":{"minor":-4481,"currency":"USD"},"description":"TST* LONE STAR SMOKEHOU","payee":"Lone Star Smokehouse","memo":null,"external_id":null,"check_number":null,"balance":null,"bank_category":"Restaurants"},
+    {"truth_id":872,"status":"posted","posted_date":"2025-10-02","transaction_date":"2025-10-01","amount":{"minor":-840,"currency":"USD"},"description":"GOOGLE *GSUITE_samf","payee":"Google Workspace","memo":null,"external_id":null,"check_number":null,"balance":null,"bank_category":"Other"}
+  ]
+}

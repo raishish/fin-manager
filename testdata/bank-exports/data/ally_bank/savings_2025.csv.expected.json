@@ -1,0 +1,46 @@
+{
+  "file": "ally_bank/savings_2025.csv",
+  "layout": "ally_csv",
+  "institution": "Ally Bank",
+  "source": {
+    "persona": "renter",
+    "account_id": 2
+  },
+  "as_of": "2026-01-04",
+  "start": "2025-01-01",
+  "end": "2025-12-31",
+  "account": {
+    "kind": "savings",
+    "currency": "USD",
+    "number": null,
+    "routing": null,
+    "ledger_balance": null
+  },
+  "transactions": [
+    {"truth_id":1342,"status":"posted","posted_date":"2025-12-31","transaction_date":null,"amount":{"minor":4800,"currency":"USD"},"description":"Interest Paid","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":1260,"status":"posted","posted_date":"2025-12-07","transaction_date":null,"amount":{"minor":75000,"currency":"USD"},"description":"Requested transfer from Chase Total Checking *4821","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":1238,"status":"posted","posted_date":"2025-11-30","transaction_date":null,"amount":{"minor":4562,"currency":"USD"},"description":"Interest Paid","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":1141,"status":"posted","posted_date":"2025-11-07","transaction_date":null,"amount":{"minor":75000,"currency":"USD"},"description":"Requested transfer from Chase Total Checking *4821","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":1122,"status":"posted","posted_date":"2025-10-31","transaction_date":null,"amount":{"minor":4324,"currency":"USD"},"description":"Interest Paid","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":1054,"status":"posted","posted_date":"2025-10-07","transaction_date":null,"amount":{"minor":75000,"currency":"USD"},"description":"Requested transfer from Chase Total Checking *4821","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":1033,"status":"posted","posted_date":"2025-09-30","transaction_date":null,"amount":{"minor":4426,"currency":"USD"},"description":"Interest Paid","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":973,"status":"posted","posted_date":"2025-09-06","transaction_date":null,"amount":{"minor":75000,"currency":"USD"},"description":"Requested transfer from Chase Total Checking *4821","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":959,"status":"posted","posted_date":"2025-08-31","transaction_date":null,"amount":{"minor":4169,"currency":"USD"},"description":"Interest Paid","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":878,"status":"posted","posted_date":"2025-08-06","transaction_date":null,"amount":{"minor":75000,"currency":"USD"},"description":"Requested transfer from Chase Total Checking *4821","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":861,"status":"posted","posted_date":"2025-07-31","transaction_date":null,"amount":{"minor":3912,"currency":"USD"},"description":"Interest Paid","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":795,"status":"posted","posted_date":"2025-07-08","transaction_date":null,"amount":{"minor":75000,"currency":"USD"},"description":"Requested transfer from Chase Total Checking *4821","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":774,"status":"posted","posted_date":"2025-06-30","transaction_date":null,"amount":{"minor":3656,"currency":"USD"},"description":"Interest Paid","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":707,"status":"posted","posted_date":"2025-06-07","transaction_date":null,"amount":{"minor":75000,"currency":"USD"},"description":"Requested transfer from Chase Total Checking *4821","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":685,"status":"posted","posted_date":"2025-05-31","transaction_date":null,"amount":{"minor":3402,"currency":"USD"},"description":"Interest Paid","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":625,"status":"posted","posted_date":"2025-05-08","transaction_date":null,"amount":{"minor":75000,"currency":"USD"},"description":"Requested transfer from Chase Total Checking *4821","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":604,"status":"posted","posted_date":"2025-04-30","transaction_date":null,"amount":{"minor":3148,"currency":"USD"},"description":"Interest Paid","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":551,"status":"posted","posted_date":"2025-04-09","transaction_date":null,"amount":{"minor":50000,"currency":"USD"},"description":"Requested transfer from Chase Total Checking *4821","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":523,"status":"posted","posted_date":"2025-03-31","transaction_date":null,"amount":{"minor":2975,"currency":"USD"},"description":"Interest Paid","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":447,"status":"posted","posted_date":"2025-03-06","transaction_date":null,"amount":{"minor":50000,"currency":"USD"},"description":"Requested transfer from Chase Total Checking *4821","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":433,"status":"posted","posted_date":"2025-02-28","transaction_date":null,"amount":{"minor":2804,"currency":"USD"},"description":"Interest Paid","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":388,"status":"posted","posted_date":"2025-02-10","transaction_date":null,"amount":{"minor":-200000,"currency":"USD"},"description":"Requested transfer to Chase Total Checking *4821","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":370,"status":"posted","posted_date":"2025-02-06","transaction_date":null,"amount":{"minor":50000,"currency":"USD"},"description":"Requested transfer from Chase Total Checking *4821","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":356,"status":"posted","posted_date":"2025-01-31","transaction_date":null,"amount":{"minor":3281,"currency":"USD"},"description":"Interest Paid","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":290,"status":"posted","posted_date":"2025-01-09","transaction_date":null,"amount":{"minor":50000,"currency":"USD"},"description":"Requested transfer from Chase Total Checking *4821","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":null,"bank_category":null}
+  ]
+}

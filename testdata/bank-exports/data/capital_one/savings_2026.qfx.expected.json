@@ -1,0 +1,49 @@
+{
+  "file": "capital_one/savings_2026.qfx",
+  "layout": "capital_one_360_qfx",
+  "institution": "Capital One",
+  "source": {
+    "persona": "freelancer",
+    "account_id": 2
+  },
+  "as_of": "2026-09-30",
+  "start": "2026-01-01",
+  "end": "2026-09-30",
+  "account": {
+    "kind": "savings",
+    "currency": "USD",
+    "number": "999900000101",
+    "routing": "999999005",
+    "ledger_balance": {"minor":1687208,"currency":"USD"}
+  },
+  "transactions": [
+    {"truth_id":1094,"status":"posted","posted_date":"2026-01-07","transaction_date":null,"amount":{"minor":115000,"currency":"USD"},"description":"SHARE TRANSFER FROM 0193","payee":null,"memo":"SHARE TRANSFER FROM 0193","external_id":"Z2N9I98XUIKCWK7B","check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":1112,"status":"posted","posted_date":"2026-01-14","transaction_date":null,"amount":{"minor":-343100,"currency":"USD"},"description":"SHARE TRANSFER TO 0193","payee":null,"memo":"SHARE TRANSFER TO 0193","external_id":"TG80Y63J3FLMWXDC","check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":1147,"status":"posted","posted_date":"2026-01-31","transaction_date":null,"amount":{"minor":1216,"currency":"USD"},"description":"DIVIDEND EARNED","payee":null,"memo":"DIVIDEND EARNED","external_id":"807WB7GP970EX6N7","check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":1160,"status":"posted","posted_date":"2026-02-05","transaction_date":null,"amount":{"minor":115000,"currency":"USD"},"description":"SHARE TRANSFER FROM 0193","payee":null,"memo":"SHARE TRANSFER FROM 0193","external_id":"T0BLPQWFTRLR36NT","check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":1200,"status":"posted","posted_date":"2026-02-24","transaction_date":null,"amount":{"minor":79000,"currency":"USD"},"description":"SHARE TRANSFER FROM 0193","payee":null,"memo":"SHARE TRANSFER FROM 0193","external_id":"VX8F69SR3ZOEAESH","check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":1207,"status":"posted","posted_date":"2026-02-28","transaction_date":null,"amount":{"minor":1313,"currency":"USD"},"description":"DIVIDEND EARNED","payee":null,"memo":"DIVIDEND EARNED","external_id":"DG4SLT9VB24HWYBV","check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":1220,"status":"posted","posted_date":"2026-03-05","transaction_date":null,"amount":{"minor":115000,"currency":"USD"},"description":"SHARE TRANSFER FROM 0193","payee":null,"memo":"SHARE TRANSFER FROM 0193","external_id":"KK6ENB8SOBDQNMMP","check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":1259,"status":"posted","posted_date":"2026-03-25","transaction_date":null,"amount":{"minor":76100,"currency":"USD"},"description":"SHARE TRANSFER FROM 0193","payee":null,"memo":"SHARE TRANSFER FROM 0193","external_id":"CL6T521RFLOZEPSO","check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":1269,"status":"posted","posted_date":"2026-03-31","transaction_date":null,"amount":{"minor":1410,"currency":"USD"},"description":"DIVIDEND EARNED","payee":null,"memo":"DIVIDEND EARNED","external_id":"KYVZ1I0PU21UYV3V","check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":1287,"status":"posted","posted_date":"2026-04-05","transaction_date":null,"amount":{"minor":115000,"currency":"USD"},"description":"SHARE TRANSFER FROM 0193","payee":null,"memo":"SHARE TRANSFER FROM 0193","external_id":"UR0DSKPZ1P1RV9XY","check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":1306,"status":"posted","posted_date":"2026-04-14","transaction_date":null,"amount":{"minor":-436300,"currency":"USD"},"description":"SHARE TRANSFER TO 0193","payee":null,"memo":"SHARE TRANSFER TO 0193","external_id":"NG87WONZGY2E2D34","check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":1349,"status":"posted","posted_date":"2026-04-30","transaction_date":null,"amount":{"minor":1250,"currency":"USD"},"description":"DIVIDEND EARNED","payee":null,"memo":"DIVIDEND EARNED","external_id":"W2U12APU6V0N4X0S","check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":1373,"status":"posted","posted_date":"2026-05-06","transaction_date":null,"amount":{"minor":115000,"currency":"USD"},"description":"SHARE TRANSFER FROM 0193","payee":null,"memo":"SHARE TRANSFER FROM 0193","external_id":"Y62P5R917715JAE5","check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":1374,"status":"posted","posted_date":"2026-05-06","transaction_date":null,"amount":{"minor":123600,"currency":"USD"},"description":"SHARE TRANSFER FROM 0193","payee":null,"memo":"SHARE TRANSFER FROM 0193","external_id":"PM2H08U2QKCGWYVU","check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":1412,"status":"posted","posted_date":"2026-05-31","transaction_date":null,"amount":{"minor":1370,"currency":"USD"},"description":"DIVIDEND EARNED","payee":null,"memo":"DIVIDEND EARNED","external_id":"JXYUCXNPZ18JYXOG","check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":1423,"status":"posted","posted_date":"2026-06-05","transaction_date":null,"amount":{"minor":115000,"currency":"USD"},"description":"SHARE TRANSFER FROM 0193","payee":null,"memo":"SHARE TRANSFER FROM 0193","external_id":"Z60Z2ZLJ2Y913UVL","check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":1431,"status":"posted","posted_date":"2026-06-08","transaction_date":null,"amount":{"minor":85700,"currency":"USD"},"description":"SHARE TRANSFER FROM 0193","payee":null,"memo":"SHARE TRANSFER FROM 0193","external_id":"0D6NGA48Y6CPUN6M","check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":1442,"status":"posted","posted_date":"2026-06-14","transaction_date":null,"amount":{"minor":-323600,"currency":"USD"},"description":"SHARE TRANSFER TO 0193","payee":null,"memo":"SHARE TRANSFER TO 0193","external_id":"O68Y2E9AG4O7XHT2","check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":1471,"status":"posted","posted_date":"2026-06-30","transaction_date":null,"amount":{"minor":1309,"currency":"USD"},"description":"DIVIDEND EARNED","payee":null,"memo":"DIVIDEND EARNED","external_id":"TVGV4T6SD3PW6TJZ","check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":1484,"status":"posted","posted_date":"2026-07-05","transaction_date":null,"amount":{"minor":115000,"currency":"USD"},"description":"SHARE TRANSFER FROM 0193","payee":null,"memo":"SHARE TRANSFER FROM 0193","external_id":"3TE28SY63K3SSVDY","check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":1517,"status":"posted","posted_date":"2026-07-22","transaction_date":null,"amount":{"minor":83200,"currency":"USD"},"description":"SHARE TRANSFER FROM 0193","payee":null,"memo":"SHARE TRANSFER FROM 0193","external_id":"BKB93N7LAM4542K3","check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":1531,"status":"posted","posted_date":"2026-07-31","transaction_date":null,"amount":{"minor":1409,"currency":"USD"},"description":"DIVIDEND EARNED","payee":null,"memo":"DIVIDEND EARNED","external_id":"V13QJJEOGW4RC42D","check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":1545,"status":"posted","posted_date":"2026-08-06","transaction_date":null,"amount":{"minor":115000,"currency":"USD"},"description":"SHARE TRANSFER FROM 0193","payee":null,"memo":"SHARE TRANSFER FROM 0193","external_id":"BB4Y9OV2WOBXTZVP","check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":1574,"status":"posted","posted_date":"2026-08-19","transaction_date":null,"amount":{"minor":133400,"currency":"USD"},"description":"SHARE TRANSFER FROM 0193","payee":null,"memo":"SHARE TRANSFER FROM 0193","external_id":"VZ5QTUU1ECY0YC16","check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":1594,"status":"posted","posted_date":"2026-08-31","transaction_date":null,"amount":{"minor":1534,"currency":"USD"},"description":"DIVIDEND EARNED","payee":null,"memo":"DIVIDEND EARNED","external_id":"6YQ1L4QE9YQI7N2W","check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":1610,"status":"posted","posted_date":"2026-09-06","transaction_date":null,"amount":{"minor":115000,"currency":"USD"},"description":"SHARE TRANSFER FROM 0193","payee":null,"memo":"SHARE TRANSFER FROM 0193","external_id":"PC1MQIWXUHMZHGLF","check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":1643,"status":"posted","posted_date":"2026-09-14","transaction_date":null,"amount":{"minor":-348900,"currency":"USD"},"description":"SHARE TRANSFER TO 0193","payee":null,"memo":"SHARE TRANSFER TO 0193","external_id":"8DBTGP60BYMOH1YB","check_number":null,"balance":null,"bank_category":null},
+    {"truth_id":1671,"status":"posted","posted_date":"2026-09-30","transaction_date":null,"amount":{"minor":1417,"currency":"USD"},"description":"DIVIDEND EARNED","payee":null,"memo":"DIVIDEND EARNED","external_id":"SDLQKTUR0G72H7GS","check_number":null,"balance":null,"bank_category":null}
+  ]
+}

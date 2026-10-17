@@ -1,0 +1,53 @@
+{
+  "file": "charles_schwab_bank/checking_2025_10_15.csv",
+  "layout": "schwab_checking_csv",
+  "institution": "Charles Schwab Bank",
+  "source": {
+    "persona": "freelancer",
+    "account_id": 1
+  },
+  "as_of": "2025-10-15",
+  "start": "2025-09-01",
+  "end": "2025-10-15",
+  "account": {
+    "kind": "checking",
+    "currency": "USD",
+    "number": null,
+    "routing": null,
+    "ledger_balance": null
+  },
+  "transactions": [
+    {"truth_id":906,"status":"posted","posted_date":"2025-10-15","transaction_date":null,"amount":{"minor":-90100,"currency":"USD"},"description":"SHARE TRANSFER TO 0101","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":{"minor":1642759,"currency":"USD"},"bank_category":null},
+    {"truth_id":905,"status":"posted","posted_date":"2025-10-15","transaction_date":null,"amount":{"minor":360500,"currency":"USD"},"description":"ACH CREDIT WIDE WORLD IMPORTE VENDOR PMT","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":{"minor":1732859,"currency":"USD"},"bank_category":null},
+    {"truth_id":899,"status":"posted","posted_date":"2025-10-13","transaction_date":null,"amount":{"minor":-533181,"currency":"USD"},"description":"ACH DEBIT CAPITAL ONE MOBILE PMT","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":{"minor":1372359,"currency":"USD"},"bank_category":null},
+    {"truth_id":894,"status":"posted","posted_date":"2025-10-09","transaction_date":null,"amount":{"minor":-4876,"currency":"USD"},"description":"POS PURCHASE THE UPS STORE #8299 AUSTIN ","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":{"minor":1905540,"currency":"USD"},"bank_category":null},
+    {"truth_id":893,"status":"posted","posted_date":"2025-10-09","transaction_date":null,"amount":{"minor":-10344,"currency":"USD"},"description":"POS PURCHASE H-E-B #475 AUSTIN TX","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":{"minor":1910416,"currency":"USD"},"bank_category":null},
+    {"truth_id":891,"status":"posted","posted_date":"2025-10-08","transaction_date":null,"amount":{"minor":-17987,"currency":"USD"},"description":"ACH DEBIT CITY OF AUSTIN UTILITY","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":{"minor":1920760,"currency":"USD"},"bank_category":null},
+    {"truth_id":878,"status":"posted","posted_date":"2025-10-05","transaction_date":null,"amount":{"minor":-105000,"currency":"USD"},"description":"SHARE TRANSFER TO 0101","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":{"minor":1938747,"currency":"USD"},"bank_category":null},
+    {"truth_id":874,"status":"posted","posted_date":"2025-10-03","transaction_date":null,"amount":{"minor":420000,"currency":"USD"},"description":"ACH CREDIT TAILSPIN TOYS INC ACH PMT","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":{"minor":2043747,"currency":"USD"},"bank_category":null},
+    {"truth_id":873,"status":"posted","posted_date":"2025-10-03","transaction_date":null,"amount":{"minor":-8891,"currency":"USD"},"description":"POS PURCHASE HEB #475 AUSTIN TX","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":{"minor":1623747,"currency":"USD"},"bank_category":null},
+    {"truth_id":869,"status":"posted","posted_date":"2025-10-02","transaction_date":null,"amount":{"minor":-350,"currency":"USD"},"description":"ATM SURCHARGE FEE","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":{"minor":1632638,"currency":"USD"},"bank_category":null},
+    {"truth_id":868,"status":"posted","posted_date":"2025-10-02","transaction_date":null,"amount":{"minor":-8000,"currency":"USD"},"description":"ATM WITHDRAWAL 1418 HIGH ST AUSTIN","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":{"minor":1632988,"currency":"USD"},"bank_category":null},
+    {"truth_id":866,"status":"posted","posted_date":"2025-10-01","transaction_date":null,"amount":{"minor":-51240,"currency":"USD"},"description":"ACH DEBIT BCBSTX PREMIUM","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":{"minor":1640988,"currency":"USD"},"bank_category":null},
+    {"truth_id":865,"status":"posted","posted_date":"2025-10-01","transaction_date":null,"amount":{"minor":-194000,"currency":"USD"},"description":"ACH DEBIT APPFOLIO RIVERSIDE WEB PMTS","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":{"minor":1692228,"currency":"USD"},"bank_category":null},
+    {"truth_id":857,"status":"posted","posted_date":"2025-09-28","transaction_date":null,"amount":{"minor":-8000,"currency":"USD"},"description":"ATM WITHDRAWAL 865 OAK AVE AUSTIN","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":{"minor":1886228,"currency":"USD"},"bank_category":null},
+    {"truth_id":848,"status":"posted","posted_date":"2025-09-23","transaction_date":null,"amount":{"minor":-3425,"currency":"USD"},"description":"POS PURCHASE USPS.COM CLICKNSHIP AUSTIN ","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":{"minor":1894228,"currency":"USD"},"bank_category":null},
+    {"truth_id":841,"status":"posted","posted_date":"2025-09-20","transaction_date":null,"amount":{"minor":-6409,"currency":"USD"},"description":"POS PURCHASE HEB #475 AUSTIN TX","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":{"minor":1897653,"currency":"USD"},"bank_category":null},
+    {"truth_id":839,"status":"posted","posted_date":"2025-09-18","transaction_date":null,"amount":{"minor":-13441,"currency":"USD"},"description":"POS PURCHASE H-E-B #475 AUSTIN TX","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":{"minor":1904062,"currency":"USD"},"bank_category":null},
+    {"truth_id":836,"status":"posted","posted_date":"2025-09-17","transaction_date":null,"amount":{"minor":-29288,"currency":"USD"},"description":"ACH DEBIT CHASE CREDIT CRD EPAY","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":{"minor":1917503,"currency":"USD"},"bank_category":null},
+    {"truth_id":835,"status":"posted","posted_date":"2025-09-17","transaction_date":null,"amount":{"minor":292000,"currency":"USD"},"description":"ACH CREDIT WIDE WORLD IMPORTE VENDOR PMT","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":{"minor":1946791,"currency":"USD"},"bank_category":null},
+    {"truth_id":834,"status":"posted","posted_date":"2025-09-17","transaction_date":null,"amount":{"minor":-985,"currency":"USD"},"description":"POS PURCHASE SQ *COSMIC CUP COFFEE AUSTI","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":{"minor":1654791,"currency":"USD"},"bank_category":null},
+    {"truth_id":830,"status":"posted","posted_date":"2025-09-15","transaction_date":null,"amount":{"minor":-311800,"currency":"USD"},"description":"ACH DEBIT IRS USATAXPYMT","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":{"minor":1655776,"currency":"USD"},"bank_category":null},
+    {"truth_id":826,"status":"posted","posted_date":"2025-09-14","transaction_date":null,"amount":{"minor":311800,"currency":"USD"},"description":"SHARE TRANSFER FROM 0101","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":{"minor":1967576,"currency":"USD"},"bank_category":null},
+    {"truth_id":820,"status":"posted","posted_date":"2025-09-11","transaction_date":null,"amount":{"minor":-57732,"currency":"USD"},"description":"ACH DEBIT CAPITAL ONE MOBILE PMT","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":{"minor":1655776,"currency":"USD"},"bank_category":null},
+    {"truth_id":819,"status":"posted","posted_date":"2025-09-11","transaction_date":null,"amount":{"minor":232000,"currency":"USD"},"description":"ACH CREDIT WIDE WORLD IMPORTE VENDOR PMT","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":{"minor":1713508,"currency":"USD"},"bank_category":null},
+    {"truth_id":818,"status":"posted","posted_date":"2025-09-10","transaction_date":null,"amount":{"minor":-887,"currency":"USD"},"description":"POS PURCHASE SQ *COSMIC CUP CEDAR PARK T","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":{"minor":1481508,"currency":"USD"},"bank_category":null},
+    {"truth_id":815,"status":"posted","posted_date":"2025-09-08","transaction_date":null,"amount":{"minor":-23903,"currency":"USD"},"description":"ACH DEBIT CITY OF AUSTIN UTILITY","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":{"minor":1482395,"currency":"USD"},"bank_category":null},
+    {"truth_id":809,"status":"posted","posted_date":"2025-09-06","transaction_date":null,"amount":{"minor":-10499,"currency":"USD"},"description":"POS PURCHASE HEB #736 AUSTIN TX","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":{"minor":1506298,"currency":"USD"},"bank_category":null},
+    {"truth_id":807,"status":"posted","posted_date":"2025-09-05","transaction_date":null,"amount":{"minor":-105000,"currency":"USD"},"description":"SHARE TRANSFER TO 0101","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":{"minor":1516797,"currency":"USD"},"bank_category":null},
+    {"truth_id":806,"status":"posted","posted_date":"2025-09-05","transaction_date":null,"amount":{"minor":420000,"currency":"USD"},"description":"ACH CREDIT TAILSPIN TOYS INC ACH PMT","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":{"minor":1621797,"currency":"USD"},"bank_category":null},
+    {"truth_id":800,"status":"posted","posted_date":"2025-09-03","transaction_date":null,"amount":{"minor":-4715,"currency":"USD"},"description":"POS PURCHASE THE UPS STORE 8299 CEDAR PA","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":{"minor":1201797,"currency":"USD"},"bank_category":null},
+    {"truth_id":799,"status":"posted","posted_date":"2025-09-01","transaction_date":null,"amount":{"minor":-51240,"currency":"USD"},"description":"ACH DEBIT BCBSTX PREMIUM","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":{"minor":1206512,"currency":"USD"},"bank_category":null},
+    {"truth_id":798,"status":"posted","posted_date":"2025-09-01","transaction_date":null,"amount":{"minor":-194000,"currency":"USD"},"description":"ACH DEBIT APPFOLIO RIVERSIDE WEB PMTS","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":{"minor":1257752,"currency":"USD"},"bank_category":null}
+  ]
+}

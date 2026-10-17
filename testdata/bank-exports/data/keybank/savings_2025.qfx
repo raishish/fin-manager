@@ -1,0 +1,240 @@
+OFXHEADER:100
+DATA:OFXSGML
+VERSION:102
+SECURITY:NONE
+ENCODING:USASCII
+CHARSET:1252
+COMPRESSION:NONE
+OLDFILEUID:NONE
+NEWFILEUID:NONE
+
+<OFX>
+  <SIGNONMSGSRSV1>
+    <SONRS>
+      <STATUS>
+        <CODE>0
+        <SEVERITY>INFO
+      </STATUS>
+      <DTSERVER>20260104120000.000[-5:EST]
+      <LANGUAGE>ENG
+      <FI>
+        <ORG>KeyBank
+        <FID>5901
+      </FI>
+      <INTU.BID>12913
+    </SONRS>
+  </SIGNONMSGSRSV1>
+  <BANKMSGSRSV1>
+    <STMTTRNRS>
+      <TRNUID>1
+      <STATUS>
+        <CODE>0
+        <SEVERITY>INFO
+      </STATUS>
+      <STMTRS>
+        <CURDEF>USD
+        <BANKACCTFROM>
+          <BANKID>999999013
+          <ACCTID>999900002307
+          <ACCTTYPE>SAVINGS
+        </BANKACCTFROM>
+        <BANKTRANLIST>
+          <DTSTART>20250101120000.000[-5:EST]
+          <DTEND>20251231120000.000[-5:EST]
+          <STMTTRN>
+            <TRNTYPE>XFER
+            <DTPOSTED>20250102120000.000[-5:EST]
+            <TRNAMT>400.00
+            <FITID>FI01B7UDNFDS2MDV
+            <NAME>Online Banking transfer from CHK
+            <MEMO>Online Banking transfer from CHK 2290 Confirmation# JGA9S7J394
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>XFER
+            <DTPOSTED>20250115120000.000[-5:EST]
+            <TRNAMT>-5000.00
+            <FITID>TXJAIYLUY7V1500H
+            <NAME>Online Banking transfer to CHK 2
+            <MEMO>Online Banking transfer to CHK 2290 Confirmation# 1NFJKVW3L9
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>INT
+            <DTPOSTED>20250131120000.000[-5:EST]
+            <TRNAMT>0.09
+            <FITID>ZM8D4USXOJBWQW58
+            <NAME>Interest Earned
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>XFER
+            <DTPOSTED>20250203120000.000[-5:EST]
+            <TRNAMT>400.00
+            <FITID>385VH6KP520GAYQL
+            <NAME>Online Banking transfer from CHK
+            <MEMO>Online Banking transfer from CHK 2290 Confirmation# UMOAU9P0HN
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>INT
+            <DTPOSTED>20250228120000.000[-5:EST]
+            <TRNAMT>0.10
+            <FITID>53ZACZRKNCNKYE4W
+            <NAME>Interest Earned
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>XFER
+            <DTPOSTED>20250303120000.000[-5:EST]
+            <TRNAMT>400.00
+            <FITID>4Z5WBI8NK3ZQ5PZX
+            <NAME>Online Banking transfer from CHK
+            <MEMO>Online Banking transfer from CHK 2290 Confirmation# DMYFP9M523
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>INT
+            <DTPOSTED>20250331120000.000[-5:EST]
+            <TRNAMT>0.10
+            <FITID>2SQHYT6LVLAVCOZC
+            <NAME>Interest Earned
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>XFER
+            <DTPOSTED>20250402120000.000[-5:EST]
+            <TRNAMT>400.00
+            <FITID>YESB2K8S3VNXXJYM
+            <NAME>Online Banking transfer from CHK
+            <MEMO>Online Banking transfer from CHK 2290 Confirmation# K3PANDNMI5
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>INT
+            <DTPOSTED>20250430120000.000[-5:EST]
+            <TRNAMT>0.10
+            <FITID>BFTOYZFC4CO5BBNB
+            <NAME>Interest Earned
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>XFER
+            <DTPOSTED>20250502120000.000[-5:EST]
+            <TRNAMT>400.00
+            <FITID>IX4ID3AZIJ7RC02T
+            <NAME>Online Banking transfer from CHK
+            <MEMO>Online Banking transfer from CHK 2290 Confirmation# M9HA0DY3PX
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>INT
+            <DTPOSTED>20250531120000.000[-5:EST]
+            <TRNAMT>0.11
+            <FITID>DGKBYWFST53RQ8EF
+            <NAME>Interest Earned
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>XFER
+            <DTPOSTED>20250602120000.000[-5:EST]
+            <TRNAMT>400.00
+            <FITID>OXRBA6IKKU7XQGA2
+            <NAME>Online Banking transfer from CHK
+            <MEMO>Online Banking transfer from CHK 2290 Confirmation# 11S7FH1IXG
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>INT
+            <DTPOSTED>20250630120000.000[-5:EST]
+            <TRNAMT>0.11
+            <FITID>DGIPBWN8FQT74KIJ
+            <NAME>Interest Earned
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>XFER
+            <DTPOSTED>20250702120000.000[-5:EST]
+            <TRNAMT>400.00
+            <FITID>N6R2LF0D54FR6GV6
+            <NAME>Online Banking transfer from CHK
+            <MEMO>Online Banking transfer from CHK 2290 Confirmation# 6F16VQBP4D
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>INT
+            <DTPOSTED>20250731120000.000[-5:EST]
+            <TRNAMT>0.11
+            <FITID>LLYC50F2HH15YG6U
+            <NAME>Interest Earned
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>XFER
+            <DTPOSTED>20250804120000.000[-5:EST]
+            <TRNAMT>400.00
+            <FITID>GFLT1RV2RFH8F6X2
+            <NAME>Online Banking transfer from CHK
+            <MEMO>Online Banking transfer from CHK 2290 Confirmation# I1E43BEDAD
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>INT
+            <DTPOSTED>20250831120000.000[-5:EST]
+            <TRNAMT>0.12
+            <FITID>OYM5CJJ7CJI89ZNV
+            <NAME>Interest Earned
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>XFER
+            <DTPOSTED>20250902120000.000[-5:EST]
+            <TRNAMT>400.00
+            <FITID>S10T5B2A6XVJQ4IW
+            <NAME>Online Banking transfer from CHK
+            <MEMO>Online Banking transfer from CHK 2290 Confirmation# NH1M8ANTPH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>INT
+            <DTPOSTED>20250930120000.000[-5:EST]
+            <TRNAMT>0.12
+            <FITID>6LM7FQFPUX1MTFCF
+            <NAME>Interest Earned
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>XFER
+            <DTPOSTED>20251002120000.000[-5:EST]
+            <TRNAMT>400.00
+            <FITID>S0OBBFGAQCX95J4M
+            <NAME>Online Banking transfer from CHK
+            <MEMO>Online Banking transfer from CHK 2290 Confirmation# 68XORXKLH5
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>INT
+            <DTPOSTED>20251031120000.000[-5:EST]
+            <TRNAMT>0.12
+            <FITID>U1BY9ODGIK2AK7Z2
+            <NAME>Interest Earned
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>XFER
+            <DTPOSTED>20251103120000.000[-5:EST]
+            <TRNAMT>400.00
+            <FITID>3PUJISB8O2E2SXA3
+            <NAME>Online Banking transfer from CHK
+            <MEMO>Online Banking transfer from CHK 2290 Confirmation# YL89CLCYMK
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>INT
+            <DTPOSTED>20251130120000.000[-5:EST]
+            <TRNAMT>0.13
+            <FITID>DRIRC6DL8XAWA8AN
+            <NAME>Interest Earned
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>XFER
+            <DTPOSTED>20251202120000.000[-5:EST]
+            <TRNAMT>400.00
+            <FITID>JDMXJ3DKX448ZK3C
+            <NAME>Online Banking transfer from CHK
+            <MEMO>Online Banking transfer from CHK 2290 Confirmation# IE2LLY0ZPW
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>INT
+            <DTPOSTED>20251231120000.000[-5:EST]
+            <TRNAMT>0.13
+            <FITID>Q28NFP5QPV3RD7T3
+            <NAME>Interest Earned
+          </STMTTRN>
+        </BANKTRANLIST>
+        <LEDGERBAL>
+          <BALAMT>5301.72
+          <DTASOF>20260104120000.000[-5:EST]
+        </LEDGERBAL>
+      </STMTRS>
+    </STMTTRNRS>
+  </BANKMSGSRSV1>
+</OFX>

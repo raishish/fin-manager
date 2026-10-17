@@ -1,0 +1,1956 @@
+OFXHEADER:100
+DATA:OFXSGML
+VERSION:102
+SECURITY:NONE
+ENCODING:USASCII
+CHARSET:1252
+COMPRESSION:NONE
+OLDFILEUID:NONE
+NEWFILEUID:NONE
+
+<OFX>
+  <SIGNONMSGSRSV1>
+    <SONRS>
+      <STATUS>
+        <CODE>0
+        <SEVERITY>INFO
+      </STATUS>
+      <DTSERVER>20260703120000.000[-8:PST]
+      <LANGUAGE>ENG
+      <FI>
+        <ORG>SYNCB
+        <FID>4537
+      </FI>
+      <INTU.BID>4537
+    </SONRS>
+  </SIGNONMSGSRSV1>
+  <CREDITCARDMSGSRSV1>
+    <CCSTMTTRNRS>
+      <TRNUID>1
+      <STATUS>
+        <CODE>0
+        <SEVERITY>INFO
+      </STATUS>
+      <CCSTMTRS>
+        <CURDEF>USD
+        <CCACCTFROM>
+          <ACCTID>9999000000006612
+        </CCACCTFROM>
+        <BANKTRANLIST>
+          <DTSTART>20260101120000.000[-8:PST]
+          <DTEND>20260630120000.000[-8:PST]
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260102
+            <DTUSER>20251231
+            <TRNAMT>-23.90
+            <FITID>P20ZCE4ARFLLJOV6
+            <NAME>MCDONALDS F10081 COLUMBUSOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260102
+            <DTUSER>20260101
+            <TRNAMT>-50.82
+            <FITID>B4P1LUYOEY5S4BPC
+            <NAME>CVS/PHARMACY #92089 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260103
+            <DTUSER>20260101
+            <TRNAMT>-283.10
+            <FITID>O4L8TACWWA0W4T8R
+            <NAME>KROGER 724 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260103
+            <DTUSER>20260102
+            <TRNAMT>-11.46
+            <FITID>2PKD1UCL2RXI5JRE
+            <NAME>DUNKIN #652007 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260104
+            <DTUSER>20260103
+            <TRNAMT>-79.99
+            <FITID>VBMU9X22XMJYQVKZ
+            <NAME>CHARTER SPECTRUM
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260105
+            <DTUSER>20260104
+            <TRNAMT>-24.36
+            <FITID>OPR7LF9UEB4ZIWOK
+            <NAME>CHIPOTLE ONLINE DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260105
+            <DTUSER>20260104
+            <TRNAMT>-45.72
+            <FITID>LF0SUT14L36JLP5N
+            <NAME>DOORDASH*CHIPOTLE SAN FRANCISCOC
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260107
+            <DTUSER>20260105
+            <TRNAMT>-71.97
+            <FITID>SD8XUYCW16WMOBQN
+            <NAME>COSTCO GAS #7935 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260108
+            <DTUSER>20260107
+            <TRNAMT>-27.99
+            <FITID>8BZROP5870ZMVW4J
+            <NAME>CHICK-FIL-A #06535 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260110
+            <DTUSER>20260109
+            <TRNAMT>-59.07
+            <FITID>X428C3CTBQAWEB0G
+            <NAME>ALDI 97517 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260110
+            <DTUSER>20260109
+            <TRNAMT>-7.00
+            <FITID>91UOLR3FZUYPKT9J
+            <NAME>STARBUCKS STORE 61738 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260111
+            <DTUSER>20260109
+            <TRNAMT>-16.38
+            <FITID>WSWKUMI1SCWJJ95P
+            <NAME>PANERA BREAD 008913 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260113
+            <DTUSER>20260111
+            <TRNAMT>-226.25
+            <FITID>SE6IP3CXJJXLUYAQ
+            <NAME>KROGER #724 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260115
+            <DTUSER>20260114
+            <TRNAMT>-149.31
+            <FITID>FMUYPAORB589CE4B
+            <NAME>KROGER 724 HILLIARDOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260115
+            <DTUSER>20260114
+            <TRNAMT>-25.82
+            <FITID>L7ALA2M0M9TDNH9V
+            <NAME>CHIPOTLE 9093 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260115
+            <DTUSER>20260114
+            <TRNAMT>-8.51
+            <FITID>YU5LWLPE9WP3ZR7P
+            <NAME>STARBUCKS STORE 61738 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260117
+            <DTUSER>20260115
+            <TRNAMT>-199.64
+            <FITID>Q5M1KHHEL6LXMBDV
+            <NAME>KROGER 724 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>PAYMENT
+            <DTPOSTED>20260117
+            <TRNAMT>3235.56
+            <FITID>J7GIJL2HAX515QYH
+            <NAME>CAPITAL ONE MOBILE PYMT
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260118
+            <DTUSER>20260116
+            <TRNAMT>-75.31
+            <FITID>299F77A089EEMYJ4
+            <NAME>GOLDEN LOTUS RESTAURAN DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260118
+            <DTUSER>20260116
+            <TRNAMT>-48.22
+            <FITID>HWOH82PHVNAO4ITN
+            <NAME>CVS/PHARMACY #92089 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260119
+            <DTUSER>20260117
+            <TRNAMT>-108.94
+            <FITID>09L533W4WSVFLU2I
+            <NAME>KROGER 218 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260119
+            <DTUSER>20260118
+            <TRNAMT>-23.82
+            <FITID>CZKJT1COSQ0XMUY4
+            <NAME>CHICK-FIL-A #65356 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260120
+            <DTUSER>20260118
+            <TRNAMT>-50.31
+            <FITID>6F47F60JOL18MQZO
+            <NAME>CVS/PHARM 92089 COLUMBUSOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260120
+            <DTUSER>20260119
+            <TRNAMT>-22.78
+            <FITID>Y6M5AUJMRVB2U8F6
+            <NAME>PANERA BREAD #822944 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260121
+            <DTUSER>20260119
+            <TRNAMT>-192.12
+            <FITID>GVSPF7I4RFWPXXQU
+            <NAME>VZWRLSS*APOCC VISB
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260121
+            <DTUSER>20260119
+            <TRNAMT>-12.98
+            <FITID>02CRLAQGS4MOLZPN
+            <NAME>STARBUCKS STORE 61738 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260122
+            <DTUSER>20260120
+            <TRNAMT>-8.93
+            <FITID>R1GV6AQ8863MD5E2
+            <NAME>DUNKIN 652007 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260122
+            <DTUSER>20260121
+            <TRNAMT>-52.75
+            <FITID>T6QH5J6ONNGY7J2H
+            <NAME>DD *DOORDASH PHO HOA SAN FRANCIS
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260123
+            <DTUSER>20260121
+            <TRNAMT>-10.08
+            <FITID>P757FXTZ161GZ6I8
+            <NAME>DUNKIN 652007 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260123
+            <DTUSER>20260122
+            <TRNAMT>-8.76
+            <FITID>EHV9EX4W9FV08LZX
+            <NAME>DUNKIN 652007 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260123
+            <DTUSER>20260122
+            <TRNAMT>-63.06
+            <FITID>YTQVZQQWZ9F9ZJD2
+            <NAME>WALMART.COM COLUMBUSOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260124
+            <DTUSER>20260122
+            <TRNAMT>-15.28
+            <FITID>U1RRP7YQNY5PWAAE
+            <NAME>MCDONALD S F10081 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260126
+            <DTUSER>20260124
+            <TRNAMT>-72.10
+            <FITID>Y4X941JA0N6TQO3H
+            <NAME>CHEWY INC
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260126
+            <DTUSER>20260124
+            <TRNAMT>-26.88
+            <FITID>3TEXRDQVTQL7674R
+            <NAME>GREAT CLIPS 0912 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260127
+            <DTUSER>20260125
+            <TRNAMT>-61.82
+            <FITID>WZ8SZO7NRKP65742
+            <NAME>COSTCO GAS 3090 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260127
+            <DTUSER>20260126
+            <TRNAMT>-274.28
+            <FITID>2ATGW5TT71S2LUP5
+            <NAME>KROGER #724 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260129
+            <DTUSER>20260128
+            <TRNAMT>-256.48
+            <FITID>YXCZ0JJ2G0FTNJ2K
+            <NAME>KROGER #724 WORTHINGTONOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260130
+            <DTUSER>20260129
+            <TRNAMT>-50.39
+            <FITID>4C84O89TRB92HSOU
+            <NAME>DD *DOORDASH PANDA EXPRES SAN FR
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260131
+            <DTUSER>20260130
+            <TRNAMT>-42.63
+            <FITID>D72J849VAUHPRY33
+            <NAME>SHELL OIL 35293967077 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260131
+            <DTUSER>20260130
+            <TRNAMT>-30.36
+            <FITID>151DTZJT9Z1B0N1Z
+            <NAME>CHICK-FIL-A #65356 HILLIARDOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260131
+            <DTUSER>20260130
+            <TRNAMT>-5.71
+            <FITID>QAXUCW1P4UCVI1K9
+            <NAME>DUNKIN 652007 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260131
+            <DTUSER>20260130
+            <TRNAMT>-55.39
+            <FITID>L1NLBHPNT9PUK5SR
+            <NAME>DOORDASH*CHIPOTLE SAN FRANCISCOC
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260131
+            <DTUSER>20260130
+            <TRNAMT>-25.49
+            <FITID>K7GHNWCJ0ZKALTM9
+            <NAME>GREAT CLIPS 8084 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260204
+            <DTUSER>20260202
+            <TRNAMT>-30.15
+            <FITID>M2WQKI9ARKMDNTEQ
+            <NAME>CHIPOTLE 9093 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260204
+            <DTUSER>20260202
+            <TRNAMT>-9.56
+            <FITID>WYBB0PCN8ZO1TE42
+            <NAME>STARBUCKS #61738 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260204
+            <DTUSER>20260203
+            <TRNAMT>-79.99
+            <FITID>5YK6LI3LDLVQUBCT
+            <NAME>SPECTRUM
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260205
+            <DTUSER>20260204
+            <TRNAMT>-39.69
+            <FITID>T2958195YIRAAIA5
+            <NAME>DD *DOORDASH PHO HOA SAN FRANCIS
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260206
+            <DTUSER>20260205
+            <TRNAMT>-91.64
+            <FITID>ZUSXQ0GSWFJ0FRKX
+            <NAME>THE COPPER POT DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260206
+            <DTUSER>20260205
+            <TRNAMT>-6.26
+            <FITID>A275MFONFBFPAMRU
+            <NAME>DUNKIN 652007 HILLIARDOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260208
+            <DTUSER>20260206
+            <TRNAMT>-16.69
+            <FITID>E3TZZ4O3B9ZSX4YE
+            <NAME>DUNKIN #562944 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260208
+            <DTUSER>20260207
+            <TRNAMT>-92.75
+            <FITID>3CDQM6BO5OD6IM1D
+            <NAME>KROGER 724 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260210
+            <DTUSER>20260208
+            <TRNAMT>-72.05
+            <FITID>ZGWK6F941LMO32LP
+            <NAME>COSTCO GAS 3090 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260210
+            <DTUSER>20260209
+            <TRNAMT>-66.96
+            <FITID>WG2W29L90QA3QYBS
+            <NAME>SHELL OIL 35293967077 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260210
+            <DTUSER>20260209
+            <TRNAMT>-37.27
+            <FITID>JGK881KICVBFM5CK
+            <NAME>CVS/PHARMACY #92089 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260211
+            <DTUSER>20260210
+            <TRNAMT>-187.16
+            <FITID>8HMQW14WIM9N8TSV
+            <NAME>KROGER #112 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260212
+            <DTUSER>20260210
+            <TRNAMT>-53.01
+            <FITID>CIBMKAMPXJCJ5EUO
+            <NAME>COSTCO GAS 3090 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260212
+            <DTUSER>20260211
+            <TRNAMT>-139.00
+            <FITID>IC5EHO93HOV99XHL
+            <NAME>Amazon Prime*8IHLB8K6M
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260213
+            <DTUSER>20260211
+            <TRNAMT>-7.91
+            <FITID>ZUY7I3R8QY61LHAJ
+            <NAME>STARBUCKS STORE 61738 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260213
+            <DTUSER>20260212
+            <TRNAMT>-54.14
+            <FITID>XGZ5YDGCJSZXOHHP
+            <NAME>SPEEDWAY 67499 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260213
+            <DTUSER>20260212
+            <TRNAMT>-1240.18
+            <FITID>U1C2Z92RKQALOPBN
+            <NAME>FIRESTONE COMPLETE AUTO DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260215
+            <DTUSER>20260213
+            <TRNAMT>-51.76
+            <FITID>VOZPAUCPP3EGVR98
+            <NAME>SPEEDWAY 67499 DUBLIN DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260216
+            <DTUSER>20260215
+            <TRNAMT>-95.93
+            <FITID>CAQ4BPZ7QSK8X5CR
+            <NAME>ALDI 97517 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260216
+            <DTUSER>20260215
+            <TRNAMT>-80.10
+            <FITID>VLNVKBPLFGF4PXRH
+            <NAME>COPPER POT HILLIARDOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>PAYMENT
+            <DTPOSTED>20260217
+            <TRNAMT>2197.52
+            <FITID>P1W06G2X11N0U730
+            <NAME>CAPITAL ONE MOBILE PYMT
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260220
+            <DTUSER>20260219
+            <TRNAMT>-192.12
+            <FITID>P349JJBYWLY3TK3H
+            <NAME>VZWRLSS*APOCC VISB
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260221
+            <DTUSER>20260219
+            <TRNAMT>-44.22
+            <FITID>Y43XLIZ2252YLJ2W
+            <NAME>SPEEDWAY 67499 DUBLIN DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260221
+            <DTUSER>20260219
+            <TRNAMT>-130.14
+            <FITID>LGNH57KOMH8QOFG6
+            <NAME>TARGET 0003141 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260221
+            <DTUSER>20260220
+            <TRNAMT>-224.70
+            <FITID>JJ01JLFQ2E9AVVNZ
+            <NAME>KROGER 724 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260222
+            <DTUSER>20260220
+            <TRNAMT>-10.12
+            <FITID>8ZRPTQ61RHD6R6AW
+            <NAME>STARBUCKS #23891 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260223
+            <DTUSER>20260221
+            <TRNAMT>-161.37
+            <FITID>JA1MGTVKFY6TA6FA
+            <NAME>KROGER #841 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260223
+            <DTUSER>20260221
+            <TRNAMT>-28.34
+            <FITID>QZAU7SDKAFCUUOKW
+            <NAME>GREAT CLIPS #8084 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260225
+            <DTUSER>20260223
+            <TRNAMT>-117.81
+            <FITID>OGKWEPWTHRMWP9L8
+            <NAME>TARGET.COM  * DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260225
+            <DTUSER>20260223
+            <TRNAMT>-37.10
+            <FITID>3JWIGFF8RXQJR2ZU
+            <NAME>RIVERSIDE PEDIATRICS DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260225
+            <DTUSER>20260224
+            <TRNAMT>-72.10
+            <FITID>F6RV4GVLL4MIUEKN
+            <NAME>CHEWY INC
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260225
+            <DTUSER>20260224
+            <TRNAMT>-58.86
+            <FITID>USFYTXW08LRKVJ9B
+            <NAME>CVS/PHARM 92089 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260227
+            <DTUSER>20260225
+            <TRNAMT>-11.40
+            <FITID>RYL87G55ECOHD0G9
+            <NAME>DUNKIN #652007 COLUMBUSOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260301
+            <DTUSER>20260228
+            <TRNAMT>-139.52
+            <FITID>Q74CZGJ9J2UZVAKE
+            <NAME>TARGET        0003141 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260302
+            <DTUSER>20260228
+            <TRNAMT>-46.88
+            <FITID>A7DNYSSYN4PUYMOH
+            <NAME>SPEEDWAY 67499 DUBLIN DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260302
+            <DTUSER>20260228
+            <TRNAMT>-41.06
+            <FITID>TBGD405L9GWAXC7G
+            <NAME>GOLDEN LOTUS REST DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260303
+            <DTUSER>20260301
+            <TRNAMT>-156.81
+            <FITID>6F8YTIE4BRSRDLLP
+            <NAME>KROGER 724 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260303
+            <DTUSER>20260301
+            <TRNAMT>-23.35
+            <FITID>1FADM0HFRCI3WLPF
+            <NAME>CHIPOTLE ONLINE DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260303
+            <DTUSER>20260301
+            <TRNAMT>-33.70
+            <FITID>AWVZEF8MDX76IGTL
+            <NAME>GREAT CLIPS #8084 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260304
+            <DTUSER>20260303
+            <TRNAMT>-79.99
+            <FITID>BP2VNN941DGXODLG
+            <NAME>CHARTER SPECTRUM
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260304
+            <DTUSER>20260303
+            <TRNAMT>-8.31
+            <FITID>IJVBCAR5V8IHJC34
+            <NAME>DUNKIN 652007 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260305
+            <DTUSER>20260303
+            <TRNAMT>-19.15
+            <FITID>OPEDHPU6GCUDKR7Q
+            <NAME>MCDONALDS F10081 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260305
+            <DTUSER>20260304
+            <TRNAMT>-101.34
+            <FITID>N5FXCRJHO4V6OI72
+            <NAME>KROGER 724 COLUMBUSOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260305
+            <DTUSER>20260304
+            <TRNAMT>-11.06
+            <FITID>IBR7OEO44MNM7JMU
+            <NAME>DUNKIN 652007 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260306
+            <DTUSER>20260304
+            <TRNAMT>-21.47
+            <FITID>JWIAXACB1LRD9330
+            <NAME>MCDONALDS F10081 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260306
+            <DTUSER>20260305
+            <TRNAMT>-15.96
+            <FITID>PSGXUV57EIETG5H5
+            <NAME>DUNKIN 652007 COLUMBUSOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260307
+            <DTUSER>20260305
+            <TRNAMT>-212.92
+            <FITID>XTB7WPJ2JH5SPT3I
+            <NAME>BANFIELD PET HOSP #5926 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260307
+            <DTUSER>20260306
+            <TRNAMT>-10.28
+            <FITID>05U2GWL9EZ9DOOVY
+            <NAME>DUNKIN #652007 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260308
+            <DTUSER>20260306
+            <TRNAMT>-26.48
+            <FITID>RNCY0YHBRGP3ZIR8
+            <NAME>GREAT CLIPS #8084 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260310
+            <DTUSER>20260308
+            <TRNAMT>-36.64
+            <FITID>DU694HJ6ZFNWJI2L
+            <NAME>GOLDEN LOTUS REST DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260311
+            <DTUSER>20260310
+            <TRNAMT>-11.28
+            <FITID>6V4CZWX34TFBL9KI
+            <NAME>DUNKIN #652007 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260312
+            <DTUSER>20260310
+            <TRNAMT>-48.40
+            <FITID>JI81M8MCHJ6WMMW0
+            <NAME>SPEEDWAY 19287 DUBLIN DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260312
+            <DTUSER>20260310
+            <TRNAMT>-72.85
+            <FITID>2AW10TLYA6NMZBHQ
+            <NAME>Amazon.com*TUNT2G6HE
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260312
+            <DTUSER>20260311
+            <TRNAMT>-60.27
+            <FITID>MGWYVL14LEK4SLGW
+            <NAME>COSTCO GAS 3090 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260312
+            <DTUSER>20260311
+            <TRNAMT>-14.40
+            <FITID>ODAKNXQMH165KXCZ
+            <NAME>CHICK-FIL-A #06535 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260313
+            <DTUSER>20260311
+            <TRNAMT>-75.42
+            <FITID>B1L8Z0TZVOFQHSIU
+            <NAME>GOLDEN LOTUS REST DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260313
+            <DTUSER>20260312
+            <TRNAMT>-7.31
+            <FITID>SHJEWV4TXUSL2EJ8
+            <NAME>STARBUCKS STORE 61738 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260313
+            <DTUSER>20260312
+            <TRNAMT>-39.14
+            <FITID>9DONTW2GTOX6R6RL
+            <NAME>Amazon.com*JXYJOW3YC
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260313
+            <DTUSER>20260312
+            <TRNAMT>-41.54
+            <FITID>CS6PCYL3PH56E236
+            <NAME>CVS/PHARMACY #92089 HILLIARDOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260314
+            <DTUSER>20260313
+            <TRNAMT>-30.60
+            <FITID>H0YT5RW0DL6P9G81
+            <NAME>CVS/PHARMACY #92089 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260315
+            <DTUSER>20260314
+            <TRNAMT>-154.35
+            <FITID>0GA5J9E5PKJPBS4T
+            <NAME>KROGER #656 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260315
+            <DTUSER>20260314
+            <TRNAMT>-40.85
+            <FITID>0I6GK3L3TEO35DRE
+            <NAME>SPEEDWAY 90354 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260317
+            <DTUSER>20260316
+            <TRNAMT>-111.63
+            <FITID>3WRYDVV4YHC3Q949
+            <NAME>KROGER #724 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260317
+            <DTUSER>20260316
+            <TRNAMT>-7.68
+            <FITID>68MZRZYJP1CLZOSV
+            <NAME>DUNKIN #652007 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260318
+            <DTUSER>20260317
+            <TRNAMT>-187.18
+            <FITID>WTSTF5OIUZZ8R2WN
+            <NAME>KROGER 724 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260319
+            <DTUSER>20260317
+            <TRNAMT>-54.13
+            <FITID>ZRP9R7POD0YKP935
+            <NAME>SPEEDWAY 67499 DUBLIN HILLIARDOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260320
+            <DTUSER>20260319
+            <TRNAMT>-192.12
+            <FITID>EC625WLZVUWZ88PF
+            <NAME>VZWRLSS*APOCC VISB
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>PAYMENT
+            <DTPOSTED>20260320
+            <TRNAMT>4052.21
+            <FITID>IKVJJ6ZSYSP0LQ9L
+            <NAME>CAPITAL ONE MOBILE PYMT
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260321
+            <DTUSER>20260320
+            <TRNAMT>-58.47
+            <FITID>YSGMGLALGJJ2C3HO
+            <NAME>COSTCO GAS #3090 COLUMBUSOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260323
+            <DTUSER>20260321
+            <TRNAMT>-51.68
+            <FITID>WLYD51U03NQ2AI1A
+            <NAME>SHELL OIL 35293967077 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260323
+            <DTUSER>20260322
+            <TRNAMT>-96.56
+            <FITID>PAYKDXX582CK6FCH
+            <NAME>THE COPPER POT DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260324
+            <DTUSER>20260323
+            <TRNAMT>-49.38
+            <FITID>6F13ZHGT49M4WKVH
+            <NAME>SHELL SERVICE STATION DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260325
+            <DTUSER>20260324
+            <TRNAMT>-72.10
+            <FITID>XL8MTVV80RD6H6T4
+            <NAME>CHEWY.COM
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260326
+            <DTUSER>20260324
+            <TRNAMT>-21.55
+            <FITID>823S6JP69Q9ND0PG
+            <NAME>CHIPOTLE ONLINE DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260326
+            <DTUSER>20260324
+            <TRNAMT>-7.31
+            <FITID>H2WX3Y044B1JYAWE
+            <NAME>DUNKIN 652007 HILLIARDOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260327
+            <DTUSER>20260325
+            <TRNAMT>-8.58
+            <FITID>APJD6AEHAIXY050P
+            <NAME>DUNKIN #652007 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260327
+            <DTUSER>20260325
+            <TRNAMT>-31.13
+            <FITID>DXRSWXBYDBLS580K
+            <NAME>DOORDASH*SWEETGREEN SAN FRANCISC
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260327
+            <DTUSER>20260326
+            <TRNAMT>-219.52
+            <FITID>CTRAPROID38H6KUX
+            <NAME>KROGER #724 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260328
+            <DTUSER>20260326
+            <TRNAMT>-15.81
+            <FITID>MT9073JBSBHJAW7J
+            <NAME>DUNKIN #652007 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260328
+            <DTUSER>20260327
+            <TRNAMT>-7.84
+            <FITID>2PFNI3PVL4H1CSGA
+            <NAME>STARBUCKS #61738 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260329
+            <DTUSER>20260327
+            <TRNAMT>-86.00
+            <FITID>S2XVHOXCV5KQ0OBH
+            <NAME>THE COPPER POT DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260330
+            <DTUSER>20260329
+            <TRNAMT>-213.52
+            <FITID>GM0L7E5Q3QGV9COP
+            <NAME>KROGER 724 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260402
+            <DTUSER>20260331
+            <TRNAMT>-55.88
+            <FITID>IE41MCF37OO9TCGW
+            <NAME>CVS/PHARMACY #92089 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260403
+            <DTUSER>20260402
+            <TRNAMT>-158.48
+            <FITID>0J5XFM1YTGRWM532
+            <NAME>KROGER 724 COLUMBUSOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260403
+            <DTUSER>20260402
+            <TRNAMT>-21.34
+            <FITID>N7RT94RRMB9NV75N
+            <NAME>CVS/PHARM 92089 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260404
+            <DTUSER>20260403
+            <TRNAMT>-79.99
+            <FITID>ZGGCHV3LJNST4MFY
+            <NAME>SPECTRUM
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260407
+            <DTUSER>20260405
+            <TRNAMT>-192.72
+            <FITID>GV0GA075RYSVY5UG
+            <NAME>KROGER #724 HILLIARDOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260407
+            <DTUSER>20260405
+            <TRNAMT>-47.88
+            <FITID>WIHLA460M3CSM4IO
+            <NAME>GOLDEN LOTUS REST DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260407
+            <DTUSER>20260406
+            <TRNAMT>-12.32
+            <FITID>DJTJLZ6GQL0SRA87
+            <NAME>STARBUCKS #61738 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260408
+            <DTUSER>20260407
+            <TRNAMT>-44.02
+            <FITID>KJLONY907HYGG5ZE
+            <NAME>COSTCO GAS 3090 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260409
+            <DTUSER>20260408
+            <TRNAMT>-83.40
+            <FITID>IWV6T40U00P4DNMS
+            <NAME>AMAZON MKTPL*B8AIPDKO4
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260410
+            <DTUSER>20260409
+            <TRNAMT>-193.24
+            <FITID>N46MW5F6JQF7A7PU
+            <NAME>KROGER #724 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260410
+            <DTUSER>20260409
+            <TRNAMT>-113.43
+            <FITID>1OVP16S6YIL2ZP1V
+            <NAME>WM SUPERCENTER #7128 HILLIARDOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260411
+            <DTUSER>20260409
+            <TRNAMT>-36.83
+            <FITID>7KBQ7YOSOGA2YUWZ
+            <NAME>CVS/PHARM 33750 HILLIARDOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260411
+            <DTUSER>20260410
+            <TRNAMT>-19.22
+            <FITID>PECL84EZUTHJOWY6
+            <NAME>PANERA BREAD #008913 HILLIARDOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260411
+            <DTUSER>20260410
+            <TRNAMT>-13.52
+            <FITID>7TCQESHI3GNQPZQR
+            <NAME>DUNKIN 461982 WORTHINGTONOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260412
+            <DTUSER>20260411
+            <TRNAMT>-71.57
+            <FITID>6Q6MY0YM4KO7WEPD
+            <NAME>AMZN Mktp US*OFWHALKP8
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260414
+            <DTUSER>20260412
+            <TRNAMT>-29.07
+            <FITID>DBOAJMV4OVZVD2O7
+            <NAME>GREAT CLIPS #3611 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260415
+            <DTUSER>20260413
+            <TRNAMT>-179.29
+            <FITID>TRIFR1BUGTH93HJW
+            <NAME>KROGER #724 HILLIARDOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260415
+            <DTUSER>20260413
+            <TRNAMT>-29.78
+            <FITID>JCXGT4792R108QDD
+            <NAME>DD *DOORDASH CHIPOTLE SAN FRANCI
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260416
+            <DTUSER>20260414
+            <TRNAMT>-225.32
+            <FITID>PIHC9RD05JLD0A6R
+            <NAME>KROGER #724 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>PAYMENT
+            <DTPOSTED>20260416
+            <TRNAMT>2679.52
+            <FITID>ZT7KQFA35TDDU81M
+            <NAME>CAPITAL ONE AUTOPAY PYMT
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260420
+            <DTUSER>20260418
+            <TRNAMT>-59.16
+            <FITID>V15XM6DAGF0A05VH
+            <NAME>GOLDEN LOTUS REST HILLIARDOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260420
+            <DTUSER>20260419
+            <TRNAMT>-59.93
+            <FITID>3XOGWXPT80SNT9QF
+            <NAME>SPEEDWAY 67499 WORTHINGTONOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260420
+            <DTUSER>20260419
+            <TRNAMT>-61.11
+            <FITID>0FHEKFES6JNLZHD5
+            <NAME>CVS/PHARM 92089 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260420
+            <DTUSER>20260419
+            <TRNAMT>-23.82
+            <FITID>LOEKS93X89LLT4O9
+            <NAME>GREAT CLIPS 8084 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260421
+            <DTUSER>20260419
+            <TRNAMT>-192.12
+            <FITID>J25P0N7YAKC61LAH
+            <NAME>VZWRLSS*APOCC VISB
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260422
+            <DTUSER>20260420
+            <TRNAMT>-30.98
+            <FITID>4X7LC82NK7IKIJ8F
+            <NAME>GOLDEN LOTUS REST DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260422
+            <DTUSER>20260420
+            <TRNAMT>-79.32
+            <FITID>XVJNY3H7Z0U1R3K4
+            <NAME>TARGET        0000594 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260423
+            <DTUSER>20260421
+            <TRNAMT>-165.82
+            <FITID>AEHG33O6K720MS4L
+            <NAME>KROGER #724 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260424
+            <DTUSER>20260423
+            <TRNAMT>-59.99
+            <FITID>MBX8I1BS7X0XR6E6
+            <NAME>SPEEDWAY 67499 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260426
+            <DTUSER>20260424
+            <TRNAMT>-72.10
+            <FITID>U8VUR2ET0NP5D7PR
+            <NAME>CHEWY INC
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260426
+            <DTUSER>20260424
+            <TRNAMT>-75.92
+            <FITID>P64EN1B0RUDDL5Q6
+            <NAME>GOLDEN LOTUS RESTAURAN COLUMBUSO
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260426
+            <DTUSER>20260425
+            <TRNAMT>-24.86
+            <FITID>9M0VZFM6D3WAL7M8
+            <NAME>CHIPOTLE ONLINE DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260429
+            <DTUSER>20260427
+            <TRNAMT>-168.67
+            <FITID>S4495Q022W5OB2NV
+            <NAME>KROGER #724 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260502
+            <DTUSER>20260430
+            <TRNAMT>-55.28
+            <FITID>PCJ9DMZQO2O92W1N
+            <NAME>ALDI 97517 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260503
+            <DTUSER>20260501
+            <TRNAMT>-187.93
+            <FITID>MACVF73T5X6O1QR0
+            <NAME>KROGER 724 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260504
+            <DTUSER>20260503
+            <TRNAMT>-24.41
+            <FITID>3CB171HVVJ72K214
+            <NAME>CHICK-FIL-A #06535 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260505
+            <DTUSER>20260503
+            <TRNAMT>-79.99
+            <FITID>KK6QFYUK2M3M915L
+            <NAME>SPECTRUM
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260505
+            <DTUSER>20260503
+            <TRNAMT>-70.30
+            <FITID>BEETNKH2T6YLT8QT
+            <NAME>ALDI 97517 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260505
+            <DTUSER>20260504
+            <TRNAMT>-80.70
+            <FITID>06YQQ4NPACALQ27H
+            <NAME>ALDI 97517 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260505
+            <DTUSER>20260504
+            <TRNAMT>-58.51
+            <FITID>SG7IO8ID10N5M1OM
+            <NAME>SPEEDWAY 67499 WORTHINGTONOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260507
+            <DTUSER>20260505
+            <TRNAMT>-183.52
+            <FITID>JTD3UOB8CHCUE65N
+            <NAME>KROGER 724 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260507
+            <DTUSER>20260506
+            <TRNAMT>-6.64
+            <FITID>T25JG8XLMQAKH1AU
+            <NAME>STARBUCKS STORE 61738 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260508
+            <DTUSER>20260507
+            <TRNAMT>-200.27
+            <FITID>CVCFHEP56AWWP8LH
+            <NAME>KROGER 724 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260509
+            <DTUSER>20260508
+            <TRNAMT>-15.65
+            <FITID>S71BD90YR7JZHBYO
+            <NAME>DUNKIN 652007 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260510
+            <DTUSER>20260508
+            <TRNAMT>-113.52
+            <FITID>A8TMO7YC8Y8QPXG8
+            <NAME>TARGET 0003141 COLUMBUSOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260511
+            <DTUSER>20260509
+            <TRNAMT>-269.92
+            <FITID>DKRS0PT7Q4K480IC
+            <NAME>KROGER 724 WORTHINGTONOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260512
+            <DTUSER>20260511
+            <TRNAMT>-7.53
+            <FITID>U70GXMMSK1LFPION
+            <NAME>STARBUCKS STORE 61738 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260513
+            <DTUSER>20260512
+            <TRNAMT>-53.65
+            <FITID>JXL506SFCQ5T6AU3
+            <NAME>CVS/PHARMACY #92089 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260514
+            <DTUSER>20260512
+            <TRNAMT>-230.60
+            <FITID>9J88SVGQTXSAM42R
+            <NAME>KROGER 724 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260514
+            <DTUSER>20260513
+            <TRNAMT>-44.49
+            <FITID>NTF1JTO8WDECGBQ5
+            <NAME>SPEEDWAY 67499 DUBLIN DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260514
+            <DTUSER>20260513
+            <TRNAMT>-80.07
+            <FITID>YGD0IFTQHKDR7BN8
+            <NAME>OLIVE GARDEN #6816 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260515
+            <DTUSER>20260513
+            <TRNAMT>-20.95
+            <FITID>V49S38WIF1IMSZHG
+            <NAME>CHIPOTLE 9093 WORTHINGTONOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260516
+            <DTUSER>20260514
+            <TRNAMT>-56.00
+            <FITID>O8S1NYCDC7R42YI8
+            <NAME>SHELL SERVICE STATION DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260516
+            <DTUSER>20260515
+            <TRNAMT>-24.16
+            <FITID>TMLBQQR5ZF7VM6RF
+            <NAME>CHICK-FIL-A #06535 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260517
+            <DTUSER>20260515
+            <TRNAMT>-72.38
+            <FITID>19JLJ83RTKPEC3WL
+            <NAME>COSTCO GAS 3090 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260517
+            <DTUSER>20260515
+            <TRNAMT>-8.63
+            <FITID>2XYNQ69J6FJWMVSE
+            <NAME>STARBUCKS #61738 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260517
+            <DTUSER>20260516
+            <TRNAMT>-49.85
+            <FITID>V41SPXDOZ5NF350M
+            <NAME>GOLDEN LOTUS RESTAURAN DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>PAYMENT
+            <DTPOSTED>20260518
+            <TRNAMT>2994.72
+            <FITID>HTR3EY51MZZHSTB8
+            <NAME>CAPITAL ONE AUTOPAY PYMT
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260519
+            <DTUSER>20260517
+            <TRNAMT>-19.84
+            <FITID>1MLBO34UZ6WK0LP1
+            <NAME>CHICK-FIL-A #65356 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260519
+            <DTUSER>20260518
+            <TRNAMT>-7.23
+            <FITID>QUZ2BWORNVP27MOW
+            <NAME>DUNKIN 652007 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260520
+            <DTUSER>20260518
+            <TRNAMT>-17.19
+            <FITID>SHV4QVZ7EQNMB7PB
+            <NAME>MCDONALD S F10081 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260520
+            <DTUSER>20260519
+            <TRNAMT>-192.12
+            <FITID>OX84GKWQKAWY3U5Z
+            <NAME>VERIZON WRLS P11926-01
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260521
+            <DTUSER>20260519
+            <TRNAMT>-39.14
+            <FITID>028Y0LWCA4PES27B
+            <NAME>CVS/PHARMACY #92089 COLUMBUSOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260522
+            <DTUSER>20260521
+            <TRNAMT>-12.23
+            <FITID>TGDN57BTPUJK7JC6
+            <NAME>DUNKIN 652007 WORTHINGTONOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260523
+            <DTUSER>20260522
+            <TRNAMT>-20.50
+            <FITID>YGFG0DMJ3Z76WMF8
+            <NAME>GREAT CLIPS #2009 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260524
+            <DTUSER>20260522
+            <TRNAMT>-72.96
+            <FITID>SS0O9PIFC577OBID
+            <NAME>COSTCO GAS #3090 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260524
+            <DTUSER>20260522
+            <TRNAMT>-9.37
+            <FITID>69NAC741VV2CLSF9
+            <NAME>STARBUCKS STORE 61738 WORTHINGTO
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260525
+            <DTUSER>20260524
+            <TRNAMT>-72.10
+            <FITID>51RC5P60Y2YNJM1U
+            <NAME>CHEWY.COM
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260526
+            <DTUSER>20260525
+            <TRNAMT>-40.46
+            <FITID>I6K3P6DAF6RERLEU
+            <NAME>CVS/PHARMACY #92089 COLUMBUSOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260528
+            <DTUSER>20260526
+            <TRNAMT>-48.73
+            <FITID>WLGIFHRE8PE8XUM4
+            <NAME>COSTCO GAS #3090 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260528
+            <DTUSER>20260526
+            <TRNAMT>-21.08
+            <FITID>E3HBZCBKHWEG2F2R
+            <NAME>PANERA BREAD 008913 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260529
+            <DTUSER>20260527
+            <TRNAMT>-98.20
+            <FITID>5RJRDWJW3RS1G21V
+            <NAME>OLIVE GARDEN #6816 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260530
+            <DTUSER>20260529
+            <TRNAMT>-18.54
+            <FITID>JRFUYVHOGPFLH66M
+            <NAME>MCDONALD S F10081 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260531
+            <DTUSER>20260529
+            <TRNAMT>-57.83
+            <FITID>OB3PCWMBAD2UZJPW
+            <NAME>DD *DOORDASH PANDA EXPRES SAN FR
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260531
+            <DTUSER>20260530
+            <TRNAMT>-235.00
+            <FITID>MQTVR1YAT70NCW3C
+            <NAME>KROGER #473 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260602
+            <DTUSER>20260601
+            <TRNAMT>-45.37
+            <FITID>QQOTCZK780ZFJ82X
+            <NAME>SPEEDWAY 67499 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260604
+            <DTUSER>20260603
+            <TRNAMT>-79.99
+            <FITID>YKFF9512MCXQ6C66
+            <NAME>SPECTRUM
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260605
+            <DTUSER>20260603
+            <TRNAMT>-49.25
+            <FITID>7JYAN5ZC5WO20OWC
+            <NAME>COSTCO GAS #3090 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260605
+            <DTUSER>20260604
+            <TRNAMT>-28.29
+            <FITID>SKCGXR5V3EZ2OKKP
+            <NAME>DOORDASH*SWEETGREEN SAN FRANCISC
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260606
+            <DTUSER>20260604
+            <TRNAMT>-90.86
+            <FITID>ECEQKDZNUYKCLS60
+            <NAME>ALDI 97517 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260606
+            <DTUSER>20260604
+            <TRNAMT>-58.79
+            <FITID>Q12LB57M9NUTJ5LF
+            <NAME>Amazon.com*BIPWVLVJ1
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260606
+            <DTUSER>20260605
+            <TRNAMT>-26.57
+            <FITID>R4XK9HPLBAACQGQB
+            <NAME>GREAT CLIPS #8084 HILLIARDOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260608
+            <DTUSER>20260606
+            <TRNAMT>-251.56
+            <FITID>E6JBNOPPZUCV5KZN
+            <NAME>KROGER 724 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260608
+            <DTUSER>20260606
+            <TRNAMT>-76.37
+            <FITID>HHA4TEW2F3BNCGCZ
+            <NAME>OLIVE GARDEN #6816 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260609
+            <DTUSER>20260608
+            <TRNAMT>-325.00
+            <FITID>OIAV5VLG6SYED81V
+            <NAME>YMCA OF CENTRAL OHIO DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260611
+            <DTUSER>20260610
+            <TRNAMT>-28.87
+            <FITID>RLK0EQZ1E5MMKTBD
+            <NAME>CHIPOTLE ONLINE WORTHINGTONOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260612
+            <DTUSER>20260610
+            <TRNAMT>-10.06
+            <FITID>O3QP9IVF8SYUAKSH
+            <NAME>DUNKIN 652007 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260612
+            <DTUSER>20260610
+            <TRNAMT>-46.63
+            <FITID>S1Y7RJCNJ5MIRP16
+            <NAME>PETCO ANIMAL SUPPLIES 196 DUBLIN
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260614
+            <DTUSER>20260612
+            <TRNAMT>-45.05
+            <FITID>2FNBITEM2KI68QCV
+            <NAME>DD *DOORDASH PANDA EXPRES SAN FR
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260615
+            <DTUSER>20260613
+            <TRNAMT>-106.80
+            <FITID>J2D9CACEMSPT7W4L
+            <NAME>ALDI 97517 HILLIARDOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260615
+            <DTUSER>20260614
+            <TRNAMT>-17.92
+            <FITID>V0M8U7ZFVDJDRLVD
+            <NAME>MCDONALD S F76136 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260616
+            <DTUSER>20260614
+            <TRNAMT>-28.30
+            <FITID>8PW1JDXO380NADYP
+            <NAME>GREAT CLIPS #8084 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>PAYMENT
+            <DTPOSTED>20260616
+            <TRNAMT>2850.06
+            <FITID>GDZVVL2FE3PSEY8T
+            <NAME>CAPITAL ONE AUTOPAY PYMT
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260617
+            <DTUSER>20260615
+            <TRNAMT>-325.00
+            <FITID>QPX90ITD2DXD3D6B
+            <NAME>YMCA OF CENTRAL OHIO DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260617
+            <DTUSER>20260616
+            <TRNAMT>-27.90
+            <FITID>Z52A2OW8G13C6V0M
+            <NAME>CHICK-FIL-A #65356 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260618
+            <DTUSER>20260617
+            <TRNAMT>-88.17
+            <FITID>REML3I5PB2WUGCBF
+            <NAME>COPPER POT DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260619
+            <DTUSER>20260617
+            <TRNAMT>-88.64
+            <FITID>PSX0OFOF197MLR0B
+            <NAME>TARGET 0003141 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260619
+            <DTUSER>20260617
+            <TRNAMT>-34.09
+            <FITID>667KE39FIQRFEI4O
+            <NAME>CVS/PHARM 92089 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260620
+            <DTUSER>20260619
+            <TRNAMT>-97.52
+            <FITID>JTO4SRCMIQPBVZ6U
+            <NAME>TARGET 0002059 COLUMBUSOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260621
+            <DTUSER>20260619
+            <TRNAMT>-192.12
+            <FITID>65QVMEIFVU4E2B7O
+            <NAME>VERIZON WRLS P79199-01
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260621
+            <DTUSER>20260619
+            <TRNAMT>-278.14
+            <FITID>DQ1NMK7U1I360J5Y
+            <NAME>KROGER 724 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260621
+            <DTUSER>20260619
+            <TRNAMT>-26.52
+            <FITID>QC561QIL6IYJ2SY6
+            <NAME>GREAT CLIPS 8084 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260621
+            <DTUSER>20260620
+            <TRNAMT>-69.18
+            <FITID>KO8FJ9LPMGJIKUHI
+            <NAME>GOLDEN LOTUS REST DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260623
+            <DTUSER>20260621
+            <TRNAMT>-54.93
+            <FITID>TQRFHBPHRQI96GTF
+            <NAME>AMZN Mktp US*LSKWBHJRQ
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260623
+            <DTUSER>20260622
+            <TRNAMT>-11.56
+            <FITID>0V70SZATDM19GEQ7
+            <NAME>STARBUCKS STORE 61738 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260624
+            <DTUSER>20260622
+            <TRNAMT>-325.00
+            <FITID>5UJZH6SN15UC9A6S
+            <NAME>YMCA CAMP REGISTRATION DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260625
+            <DTUSER>20260623
+            <TRNAMT>-50.91
+            <FITID>XMSOBVFZ9SN2RUGC
+            <NAME>CVS/PHARMACY #92089 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260626
+            <DTUSER>20260624
+            <TRNAMT>-72.10
+            <FITID>5AO4NNPYWO1QUUIG
+            <NAME>CHEWY INC
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260626
+            <DTUSER>20260625
+            <TRNAMT>-56.89
+            <FITID>XZBPK7B66P90T0G3
+            <NAME>COSTCO GAS 3090 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260628
+            <DTUSER>20260627
+            <TRNAMT>-29.49
+            <FITID>EC5KEPHAXI8S2HYC
+            <NAME>PANERA BREAD 008913 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260628
+            <DTUSER>20260627
+            <TRNAMT>-33.59
+            <FITID>RV70J3E6LR71RZFC
+            <NAME>GREAT CLIPS #8084 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260629
+            <DTUSER>20260628
+            <TRNAMT>-123.56
+            <FITID>UWWS7HDKLVQRMXCX
+            <NAME>ALDI 97517 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260630
+            <DTUSER>20260628
+            <TRNAMT>-51.14
+            <FITID>HYH9SQ9DADLBV365
+            <NAME>PETCO 1963 DUBLINOH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20260630
+            <DTUSER>20260629
+            <TRNAMT>-325.00
+            <FITID>CX7QK0ZREUMY0JVU
+            <NAME>YMCA CAMP REGISTRATION DUBLINOH
+          </STMTTRN>
+        </BANKTRANLIST>
+        <LEDGERBAL>
+          <BALAMT>-4636.18
+          <DTASOF>20260703120000.000[-8:PST]
+        </LEDGERBAL>
+      </CCSTMTRS>
+    </CCSTMTTRNRS>
+  </CREDITCARDMSGSRSV1>
+</OFX>

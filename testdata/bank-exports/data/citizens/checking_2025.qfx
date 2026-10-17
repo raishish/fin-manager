@@ -1,0 +1,1673 @@
+OFXHEADER:100
+DATA:OFXSGML
+VERSION:102
+SECURITY:NONE
+ENCODING:USASCII
+CHARSET:1252
+COMPRESSION:NONE
+OLDFILEUID:NONE
+NEWFILEUID:NONE
+
+<OFX>
+  <SIGNONMSGSRSV1>
+    <SONRS>
+      <STATUS>
+        <CODE>0
+        <SEVERITY>INFO
+      </STATUS>
+      <DTSERVER>20260104120000.000[-5:EST]
+      <LANGUAGE>ENG
+      <FI>
+        <ORG>Citizens
+        <FID>118
+      </FI>
+      <INTU.BID>118
+    </SONRS>
+  </SIGNONMSGSRSV1>
+  <BANKMSGSRSV1>
+    <STMTTRNRS>
+      <TRNUID>1
+      <STATUS>
+        <CODE>0
+        <SEVERITY>INFO
+      </STATUS>
+      <STMTRS>
+        <CURDEF>USD
+        <BANKACCTFROM>
+          <BANKID>999999009
+          <ACCTID>999900004821
+          <ACCTTYPE>CHECKING
+        </BANKACCTFROM>
+        <BANKTRANLIST>
+          <DTSTART>20250101120000.000[-5:EST]
+          <DTEND>20251231120000.000[-5:EST]
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEBIT
+            <DTPOSTED>20250101120000.000[-5:EST]
+            <TRNAMT>-2850.00
+            <FITID>1HI2ZM4X6F8U723O
+            <NAME>BAYVIEW PROP MGMT RENT PMT WEB I
+            <MEMO>BAYVIEW PROP MGMT RENT PMT WEB ID: 7269832774
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250104120000.000[-5:EST]
+            <TRNAMT>-25.05
+            <FITID>F31UTY9D8YU8SFVP
+            <NAME>SQ *FLUFF N FOLD BERKELEY CA 01/
+            <MEMO>SQ *FLUFF N FOLD BERKELEY CA 01/03
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>XFER
+            <DTPOSTED>20250106120000.000[-5:EST]
+            <TRNAMT>-500.00
+            <FITID>R8LTD0DY3992O5FP
+            <NAME>ALLY BANK TRANSFER WEB ID: 28959
+            <MEMO>ALLY BANK TRANSFER WEB ID: 2895979325
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>PAYMENT
+            <DTPOSTED>20250106120000.000[-5:EST]
+            <TRNAMT>-1312.32
+            <FITID>8VZENZUEFXB543P2
+            <NAME>Payment to Chase card ending in
+            <MEMO>Payment to Chase card ending in 9014 01/06
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEP
+            <DTPOSTED>20250110120000.000[-5:EST]
+            <TRNAMT>3412.18
+            <FITID>L85UVB3SAPFUYFRP
+            <NAME>NORTHWIND ANALYT PAYROLL PPD ID:
+            <MEMO>NORTHWIND ANALYT PAYROLL PPD ID: 2409539493
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250113120000.000[-5:EST]
+            <TRNAMT>-28.34
+            <FITID>CNAP3XQ9V1YMMKWH
+            <NAME>VENMO PAYMENT 5087552139 WEB ID:
+            <MEMO>VENMO PAYMENT 5087552139 WEB ID: 3264681992
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEBIT
+            <DTPOSTED>20250115120000.000[-5:EST]
+            <TRNAMT>-312.50
+            <FITID>NU39PHY7P991FSMU
+            <NAME>NELNET STUDENT LN PPD ID: 076363
+            <MEMO>NELNET STUDENT LN PPD ID: 0763633375
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250119120000.000[-5:EST]
+            <TRNAMT>-34.78
+            <FITID>9VC1L7KUX6PVWKTA
+            <NAME>TRADER JOE S #243 SAN FRANCISCO
+            <MEMO>TRADER JOE S #243 SAN FRANCISCO CA 01/17
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEBIT
+            <DTPOSTED>20250120120000.000[-5:EST]
+            <TRNAMT>-113.97
+            <FITID>0JBL5CG74E50OD69
+            <NAME>PGANDE WEB ONLINE PPD ID: 288245
+            <MEMO>PGANDE WEB ONLINE PPD ID: 2882450678
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEBIT
+            <DTPOSTED>20250120120000.000[-5:EST]
+            <TRNAMT>-200.00
+            <FITID>C8ZH55VGDFVXGVTB
+            <NAME>ROBINHOOD FUNDS PPD ID: 72911426
+            <MEMO>ROBINHOOD FUNDS PPD ID: 7291142626
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250120120000.000[-5:EST]
+            <TRNAMT>-30.02
+            <FITID>34MJAOMLJ98N3R6H
+            <NAME>SAFEWAY #4623 SAN FRANCISCO CA 0
+            <MEMO>SAFEWAY #4623 SAN FRANCISCO CA 01/20
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEP
+            <DTPOSTED>20250124120000.000[-5:EST]
+            <TRNAMT>3412.18
+            <FITID>D9LRFIFV5YVETFB9
+            <NAME>NORTHWIND ANALYT PAYROLL PPD ID:
+            <MEMO>NORTHWIND ANALYT PAYROLL PPD ID: 3458417752
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>CREDIT
+            <DTPOSTED>20250124120000.000[-5:EST]
+            <TRNAMT>46.70
+            <FITID>9H5ELH5UOLI6Y89L
+            <NAME>Zelle payment from Parker Sample
+            <MEMO>Zelle payment from Parker Sampleby JPM99apabia
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>CREDIT
+            <DTPOSTED>20250125120000.000[-5:EST]
+            <TRNAMT>24.24
+            <FITID>17A3FVU9F5T01UOP
+            <NAME>Zelle payment from Parker Sample
+            <MEMO>Zelle payment from Parker Sampleby JPM99oqfxmb
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>PAYMENT
+            <DTPOSTED>20250127120000.000[-5:EST]
+            <TRNAMT>-1013.25
+            <FITID>Z3QZ4UUURQZB92MM
+            <NAME>AMERICAN EXPRESS ACH PMT WEB ID:
+            <MEMO>AMERICAN EXPRESS ACH PMT WEB ID: 7751160073
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEBIT
+            <DTPOSTED>20250203120000.000[-5:EST]
+            <TRNAMT>-2850.00
+            <FITID>M4WR7X2L93A8NEC8
+            <NAME>BAYVIEW PROP MGMT RENT PMT PPD I
+            <MEMO>BAYVIEW PROP MGMT RENT PMT PPD ID: 4374037333
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>XFER
+            <DTPOSTED>20250205120000.000[-5:EST]
+            <TRNAMT>-500.00
+            <FITID>SJV903PY3IT56KX7
+            <NAME>ALLY BANK TRANSFER PPD ID: 35769
+            <MEMO>ALLY BANK TRANSFER PPD ID: 3576969696
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250205120000.000[-5:EST]
+            <TRNAMT>-500.00
+            <FITID>A26S9UP68IEB08G1
+            <NAME>Zelle payment to Parker Lorem JP
+            <MEMO>Zelle payment to Parker Lorem JPM99jbhghn
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>PAYMENT
+            <DTPOSTED>20250206120000.000[-5:EST]
+            <TRNAMT>-1688.04
+            <FITID>QGGQKXK3IRQYGU4T
+            <NAME>Payment to Chase card ending in
+            <MEMO>Payment to Chase card ending in 9014 02/06
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEP
+            <DTPOSTED>20250207120000.000[-5:EST]
+            <TRNAMT>3412.18
+            <FITID>935HOD3Q9F4LJEQK
+            <NAME>NORTHWIND ANALYT PAYROLL PPD ID:
+            <MEMO>NORTHWIND ANALYT PAYROLL PPD ID: 0185122501
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>XFER
+            <DTPOSTED>20250212120000.000[-5:EST]
+            <TRNAMT>2000.00
+            <FITID>NIXZMQDQ7KYNHMQV
+            <NAME>ALLY BANK TRANSFER PPD ID: 44646
+            <MEMO>ALLY BANK TRANSFER PPD ID: 4464676321
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>CREDIT
+            <DTPOSTED>20250215120000.000[-5:EST]
+            <TRNAMT>22.11
+            <FITID>C47H24QZTL84VGEK
+            <NAME>Zelle payment from Parker Lorem
+            <MEMO>Zelle payment from Parker Lorem JPM998hyyie
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>CREDIT
+            <DTPOSTED>20250216120000.000[-5:EST]
+            <TRNAMT>34.27
+            <FITID>00M9NPMEML5JBJFF
+            <NAME>Zelle payment from Sage Fakerson
+            <MEMO>Zelle payment from Sage Fakerson JPM990w2s5p
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEBIT
+            <DTPOSTED>20250217120000.000[-5:EST]
+            <TRNAMT>-312.50
+            <FITID>7YF23RQV6QO9P09D
+            <NAME>NELNET STUDENT LN PPD ID: 603560
+            <MEMO>NELNET STUDENT LN PPD ID: 6035607143
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEBIT
+            <DTPOSTED>20250218120000.000[-5:EST]
+            <TRNAMT>-104.06
+            <FITID>AIGBKE6EIHWTA1MC
+            <NAME>PGANDE WEB ONLINE PPD ID: 452498
+            <MEMO>PGANDE WEB ONLINE PPD ID: 4524989966
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>CREDIT
+            <DTPOSTED>20250218120000.000[-5:EST]
+            <TRNAMT>47.45
+            <FITID>UPWZBMR2QZTYTDLE
+            <NAME>Zelle payment from Rowan Mockrid
+            <MEMO>Zelle payment from Rowan Mockridge JPM99o8wp8i
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEBIT
+            <DTPOSTED>20250220120000.000[-5:EST]
+            <TRNAMT>-200.00
+            <FITID>LHW2IMOQXWC26DGY
+            <NAME>ROBINHOOD FUNDS WEB ID: 93409828
+            <MEMO>ROBINHOOD FUNDS WEB ID: 9340982819
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEP
+            <DTPOSTED>20250221120000.000[-5:EST]
+            <TRNAMT>3412.18
+            <FITID>CAWQD4GJBM23VD38
+            <NAME>NORTHWIND ANALYT PAYROLL PPD ID:
+            <MEMO>NORTHWIND ANALYT PAYROLL PPD ID: 5869000077
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250224120000.000[-5:EST]
+            <TRNAMT>-57.16
+            <FITID>QGV812BM0O2FNDHE
+            <NAME>VENMO PAYMENT 0799274777 WEB ID:
+            <MEMO>VENMO PAYMENT 0799274777 WEB ID: 3264681992
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>CREDIT
+            <DTPOSTED>20250227120000.000[-5:EST]
+            <TRNAMT>33.36
+            <FITID>GWWS6DME2XJ0JYMM
+            <NAME>Zelle payment from Parker Lorem
+            <MEMO>Zelle payment from Parker Lorem JPM99bt1ydh
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>PAYMENT
+            <DTPOSTED>20250227120000.000[-5:EST]
+            <TRNAMT>-861.27
+            <FITID>BSMB73NK44G4OQC0
+            <NAME>AMERICAN EXPRESS ACH PMT PPD ID:
+            <MEMO>AMERICAN EXPRESS ACH PMT PPD ID: 8775063627
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250302120000.000[-5:EST]
+            <TRNAMT>-147.94
+            <FITID>0YMZCPPLYB64XKK0
+            <NAME>Zelle payment to Logan Ipsumwort
+            <MEMO>Zelle payment to Logan Ipsumworth JPM99pha0gh
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEBIT
+            <DTPOSTED>20250303120000.000[-5:EST]
+            <TRNAMT>-2850.00
+            <FITID>HLN8MC7I19CJ7ZYO
+            <NAME>BAYVIEW PROP MGMT RENT PMT PPD I
+            <MEMO>BAYVIEW PROP MGMT RENT PMT PPD ID: 7828552596
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250304120000.000[-5:EST]
+            <TRNAMT>-46.61
+            <FITID>7BQVAY9TPDH1SPWG
+            <NAME>TRADER JOE S #243 SAN FRANCISCO
+            <MEMO>TRADER JOE S #243 SAN FRANCISCO CA 03/03
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>XFER
+            <DTPOSTED>20250305120000.000[-5:EST]
+            <TRNAMT>-500.00
+            <FITID>RFBWVCZ4EJFZ028D
+            <NAME>ALLY BANK TRANSFER PPD ID: 14391
+            <MEMO>ALLY BANK TRANSFER PPD ID: 1439155633
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEP
+            <DTPOSTED>20250307120000.000[-5:EST]
+            <TRNAMT>3412.18
+            <FITID>ZOQM0OLHQHJU0BH9
+            <NAME>NORTHWIND ANALYT PAYROLL PPD ID:
+            <MEMO>NORTHWIND ANALYT PAYROLL PPD ID: 9259922719
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>PAYMENT
+            <DTPOSTED>20250310120000.000[-5:EST]
+            <TRNAMT>-3622.81
+            <FITID>CGWYUJU0BK8G0NMA
+            <NAME>Payment to Chase card ending in
+            <MEMO>Payment to Chase card ending in 9014 03/10
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250314120000.000[-5:EST]
+            <TRNAMT>-50.01
+            <FITID>81WA1NIEXIIOWUVO
+            <NAME>VENMO PAYMENT 0252207535 WEB ID:
+            <MEMO>VENMO PAYMENT 0252207535 WEB ID: 3264681992
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEP
+            <DTPOSTED>20250314120000.000[-5:EST]
+            <TRNAMT>6500.00
+            <FITID>OO2O452B4BD2E8VT
+            <NAME>NORTHWIND ANALYT PAYROLL PPD ID:
+            <MEMO>NORTHWIND ANALYT PAYROLL PPD ID: 5413176051
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250316120000.000[-5:EST]
+            <TRNAMT>-24.55
+            <FITID>4E11YWQZN3M738G1
+            <NAME>SQ *FLUFF AND FOLD SAN FRANCISCO
+            <MEMO>SQ *FLUFF AND FOLD SAN FRANCISCO CA 03/15
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250317120000.000[-5:EST]
+            <TRNAMT>-30.78
+            <FITID>6HH8O84CYQZLD4BG
+            <NAME>SQ *FLUFF N FOLD SAN FRANCISCO C
+            <MEMO>SQ *FLUFF N FOLD SAN FRANCISCO CA 03/16
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEBIT
+            <DTPOSTED>20250317120000.000[-5:EST]
+            <TRNAMT>-312.50
+            <FITID>HDFSGIPAJGOARTZ2
+            <NAME>NELNET STUDENT LN WEB ID: 304581
+            <MEMO>NELNET STUDENT LN WEB ID: 3045811819
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEBIT
+            <DTPOSTED>20250318120000.000[-5:EST]
+            <TRNAMT>-94.56
+            <FITID>GMPEVSSCUP3XWQ92
+            <NAME>PGANDE WEB ONLINE WEB ID: 796556
+            <MEMO>PGANDE WEB ONLINE WEB ID: 7965565008
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEBIT
+            <DTPOSTED>20250320120000.000[-5:EST]
+            <TRNAMT>-200.00
+            <FITID>5X95PKMJIS9HAS6G
+            <NAME>ROBINHOOD FUNDS PPD ID: 53875577
+            <MEMO>ROBINHOOD FUNDS PPD ID: 5387557767
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEP
+            <DTPOSTED>20250321120000.000[-5:EST]
+            <TRNAMT>3412.18
+            <FITID>G90Z3OEZC6851VJ2
+            <NAME>NORTHWIND ANALYT PAYROLL PPD ID:
+            <MEMO>NORTHWIND ANALYT PAYROLL PPD ID: 3647823525
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>PAYMENT
+            <DTPOSTED>20250327120000.000[-5:EST]
+            <TRNAMT>-447.18
+            <FITID>RXKPDCR8Q6F2KCKX
+            <NAME>AMERICAN EXPRESS ACH PMT WEB ID:
+            <MEMO>AMERICAN EXPRESS ACH PMT WEB ID: 8640064222
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250329120000.000[-5:EST]
+            <TRNAMT>-30.31
+            <FITID>4CUZQJVIUHWR6VOI
+            <NAME>SQ *FLUFF N FOLD SAN FRANCISCO C
+            <MEMO>SQ *FLUFF N FOLD SAN FRANCISCO CA 03/29
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEBIT
+            <DTPOSTED>20250401120000.000[-5:EST]
+            <TRNAMT>-2850.00
+            <FITID>TURDCPMILTUFJKS1
+            <NAME>BAYVIEW PROP MGMT RENT PMT WEB I
+            <MEMO>BAYVIEW PROP MGMT RENT PMT WEB ID: 6580754812
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEP
+            <DTPOSTED>20250402120000.000[-5:EST]
+            <TRNAMT>842.17
+            <FITID>7WN7Y19XO7M9QOA1
+            <NAME>IRS TREAS 310 TAX REF PPD ID: 89
+            <MEMO>IRS TREAS 310 TAX REF PPD ID: 8901717682
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEP
+            <DTPOSTED>20250404120000.000[-5:EST]
+            <TRNAMT>3655.40
+            <FITID>XYV25IK63BT9F9OE
+            <NAME>NORTHWIND ANALYT PAYROLL PPD ID:
+            <MEMO>NORTHWIND ANALYT PAYROLL PPD ID: 3171909141
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250406120000.000[-5:EST]
+            <TRNAMT>-31.63
+            <FITID>02ASC7CQRMSX131S
+            <NAME>SQ *FLUFF N FOLD SAN FRANCISCO C
+            <MEMO>SQ *FLUFF N FOLD SAN FRANCISCO CA 04/05
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250407120000.000[-5:EST]
+            <TRNAMT>-45.21
+            <FITID>6K07W0H6KOMMGI0G
+            <NAME>VENMO PAYMENT 2160835168 WEB ID:
+            <MEMO>VENMO PAYMENT 2160835168 WEB ID: 3264681992
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>XFER
+            <DTPOSTED>20250407120000.000[-5:EST]
+            <TRNAMT>-500.00
+            <FITID>I3U0XBFQXSZN2TP9
+            <NAME>ALLY BANK TRANSFER WEB ID: 00870
+            <MEMO>ALLY BANK TRANSFER WEB ID: 0087049921
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>PAYMENT
+            <DTPOSTED>20250407120000.000[-5:EST]
+            <TRNAMT>-1405.72
+            <FITID>BRJCWP9NRSSHDNAC
+            <NAME>Payment to Chase card ending in
+            <MEMO>Payment to Chase card ending in 9014 04/07
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>CREDIT
+            <DTPOSTED>20250409120000.000[-5:EST]
+            <TRNAMT>39.35
+            <FITID>2U26O3BAHZC2PX0E
+            <NAME>Zelle payment from Rowan Mockrid
+            <MEMO>Zelle payment from Rowan Mockridge JPM99rhabhd
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEBIT
+            <DTPOSTED>20250415120000.000[-5:EST]
+            <TRNAMT>-312.50
+            <FITID>C14FOLIVCP6ADGZ3
+            <NAME>NELNET STUDENT LN PPD ID: 360412
+            <MEMO>NELNET STUDENT LN PPD ID: 3604126462
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEP
+            <DTPOSTED>20250418120000.000[-5:EST]
+            <TRNAMT>3655.40
+            <FITID>9QC6B0WCT99T3H5W
+            <NAME>NORTHWIND ANALYT PAYROLL PPD ID:
+            <MEMO>NORTHWIND ANALYT PAYROLL PPD ID: 9437271036
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEBIT
+            <DTPOSTED>20250418120000.000[-5:EST]
+            <TRNAMT>-79.35
+            <FITID>48KYM9VZP6NR964J
+            <NAME>PGANDE WEB ONLINE WEB ID: 247355
+            <MEMO>PGANDE WEB ONLINE WEB ID: 2473558933
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250419120000.000[-5:EST]
+            <TRNAMT>-31.98
+            <FITID>UDBF6WCDT2X964D9
+            <NAME>SQ *FLUFF N FOLD SAN FRANCISCO C
+            <MEMO>SQ *FLUFF N FOLD SAN FRANCISCO CA 04/19
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEBIT
+            <DTPOSTED>20250421120000.000[-5:EST]
+            <TRNAMT>-200.00
+            <FITID>M5M6L5Y7Y0CQ07H2
+            <NAME>ROBINHOOD FUNDS PPD ID: 24745405
+            <MEMO>ROBINHOOD FUNDS PPD ID: 2474540540
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250427120000.000[-5:EST]
+            <TRNAMT>-31.09
+            <FITID>4N3SPBPO6X556PUE
+            <NAME>SQ *FLUFF N FOLD SAN FRANCISCO C
+            <MEMO>SQ *FLUFF N FOLD SAN FRANCISCO CA 04/27
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250428120000.000[-5:EST]
+            <TRNAMT>-31.31
+            <FITID>DUXL0MNEIX3JHT6O
+            <NAME>VENMO PAYMENT 1131926749 WEB ID:
+            <MEMO>VENMO PAYMENT 1131926749 WEB ID: 3264681992
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>PAYMENT
+            <DTPOSTED>20250428120000.000[-5:EST]
+            <TRNAMT>-766.06
+            <FITID>IJPKRRG04OXG7JG5
+            <NAME>AMERICAN EXPRESS ACH PMT PPD ID:
+            <MEMO>AMERICAN EXPRESS ACH PMT PPD ID: 1768481220
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEBIT
+            <DTPOSTED>20250501120000.000[-5:EST]
+            <TRNAMT>-2850.00
+            <FITID>D560J53ZOL64EQNX
+            <NAME>BAYVIEW PROP MGMT RENT PMT WEB I
+            <MEMO>BAYVIEW PROP MGMT RENT PMT WEB ID: 7420882780
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEP
+            <DTPOSTED>20250502120000.000[-5:EST]
+            <TRNAMT>3655.40
+            <FITID>RB8GY85VP3ID0HD2
+            <NAME>NORTHWIND ANALYT PAYROLL PPD ID:
+            <MEMO>NORTHWIND ANALYT PAYROLL PPD ID: 8508467915
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>XFER
+            <DTPOSTED>20250505120000.000[-5:EST]
+            <TRNAMT>-750.00
+            <FITID>5IQTA1668ZWJ7P3P
+            <NAME>ALLY BANK TRANSFER WEB ID: 53263
+            <MEMO>ALLY BANK TRANSFER WEB ID: 5326351595
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>PAYMENT
+            <DTPOSTED>20250507120000.000[-5:EST]
+            <TRNAMT>-1731.55
+            <FITID>12Y9YFHU4QVIW9VY
+            <NAME>Payment to Chase card ending in
+            <MEMO>Payment to Chase card ending in 9014 05/07
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250512120000.000[-5:EST]
+            <TRNAMT>-27.39
+            <FITID>KRLM8F9OD55FWMWB
+            <NAME>VENMO PAYMENT 1273666515 WEB ID:
+            <MEMO>VENMO PAYMENT 1273666515 WEB ID: 3264681992
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEBIT
+            <DTPOSTED>20250515120000.000[-5:EST]
+            <TRNAMT>-312.50
+            <FITID>189DIYHDKA4K9RRC
+            <NAME>NELNET STUDENT LN PPD ID: 699179
+            <MEMO>NELNET STUDENT LN PPD ID: 6991794029
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250515120000.000[-5:EST]
+            <TRNAMT>-56.79
+            <FITID>DNNNYCWRNM1ZNWEM
+            <NAME>TRADER JOE S #243 SAN FRANCISCO
+            <MEMO>TRADER JOE S #243 SAN FRANCISCO CA 05/15
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEP
+            <DTPOSTED>20250516120000.000[-5:EST]
+            <TRNAMT>3655.40
+            <FITID>ZU3R51MLUK7P2CXM
+            <NAME>NORTHWIND ANALYT PAYROLL PPD ID:
+            <MEMO>NORTHWIND ANALYT PAYROLL PPD ID: 6971240015
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250517120000.000[-5:EST]
+            <TRNAMT>-34.95
+            <FITID>XUKZPH9VD7O9T9BJ
+            <NAME>SQ *FLUFF AND FOLD SAN FRANCISCO
+            <MEMO>SQ *FLUFF AND FOLD SAN FRANCISCO CA 05/16
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEBIT
+            <DTPOSTED>20250519120000.000[-5:EST]
+            <TRNAMT>-64.86
+            <FITID>KL2DUTTH1VZJRF89
+            <NAME>PGANDE WEB ONLINE PPD ID: 106395
+            <MEMO>PGANDE WEB ONLINE PPD ID: 1063950123
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEBIT
+            <DTPOSTED>20250520120000.000[-5:EST]
+            <TRNAMT>-200.00
+            <FITID>S6F7NHH3A82IZ1L0
+            <NAME>ROBINHOOD FUNDS PPD ID: 90964994
+            <MEMO>ROBINHOOD FUNDS PPD ID: 9096499427
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>ATM
+            <DTPOSTED>20250524120000.000[-5:EST]
+            <TRNAMT>-60.00
+            <FITID>9HD8WQHD0LDTQ34P
+            <NAME>NON-CHASE ATM WITHDRAW 947588 05
+            <MEMO>NON-CHASE ATM WITHDRAW 947588 05/24 4175 OAK AVE SAN FRANCISCO CA
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>FEE
+            <DTPOSTED>20250524120000.000[-5:EST]
+            <TRNAMT>-3.00
+            <FITID>70Q0CTMO8SI8HFYW
+            <NAME>NON-CHASE ATM FEE-WITH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250526120000.000[-5:EST]
+            <TRNAMT>-31.03
+            <FITID>RT9Z3MS7QN2Q0Y7N
+            <NAME>VENMO PAYMENT 0438048923 WEB ID:
+            <MEMO>VENMO PAYMENT 0438048923 WEB ID: 3264681992
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250526120000.000[-5:EST]
+            <TRNAMT>-47.36
+            <FITID>0OKR2KFB24GAAGRO
+            <NAME>VENMO PAYMENT 8190876552 WEB ID:
+            <MEMO>VENMO PAYMENT 8190876552 WEB ID: 3264681992
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>PAYMENT
+            <DTPOSTED>20250527120000.000[-5:EST]
+            <TRNAMT>-659.96
+            <FITID>IIL761509NRK6KM8
+            <NAME>AMERICAN EXPRESS ACH PMT PPD ID:
+            <MEMO>AMERICAN EXPRESS ACH PMT PPD ID: 2389873252
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>CREDIT
+            <DTPOSTED>20250529120000.000[-5:EST]
+            <TRNAMT>30.99
+            <FITID>UB3P1POVD4HZL1JH
+            <NAME>Zelle payment from Rowan Mockrid
+            <MEMO>Zelle payment from Rowan Mockridge JPM99hwqrpc
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEP
+            <DTPOSTED>20250530120000.000[-5:EST]
+            <TRNAMT>3655.40
+            <FITID>DW07TNOJCSEG8G6K
+            <NAME>NORTHWIND ANALYT PAYROLL PPD ID:
+            <MEMO>NORTHWIND ANALYT PAYROLL PPD ID: 0947787292
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250531120000.000[-5:EST]
+            <TRNAMT>-23.50
+            <FITID>KYN4UMS9TUHTWMNR
+            <NAME>SQ *FLUFF AND FOLD OAKLAND CA 05
+            <MEMO>SQ *FLUFF AND FOLD OAKLAND CA 05/31
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEBIT
+            <DTPOSTED>20250602120000.000[-5:EST]
+            <TRNAMT>-2850.00
+            <FITID>BUI2LTOI7JOTQ6ZH
+            <NAME>BAYVIEW PROP MGMT RENT PMT PPD I
+            <MEMO>BAYVIEW PROP MGMT RENT PMT PPD ID: 1587277484
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>XFER
+            <DTPOSTED>20250605120000.000[-5:EST]
+            <TRNAMT>-750.00
+            <FITID>UQVEV3QNNZGY4TLE
+            <NAME>ALLY BANK TRANSFER PPD ID: 06962
+            <MEMO>ALLY BANK TRANSFER PPD ID: 0696221240
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>PAYMENT
+            <DTPOSTED>20250606120000.000[-5:EST]
+            <TRNAMT>-1687.19
+            <FITID>N6LBONIULIEKQFGZ
+            <NAME>Payment to Chase card ending in
+            <MEMO>Payment to Chase card ending in 9014 06/06
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250607120000.000[-5:EST]
+            <TRNAMT>-29.41
+            <FITID>EN5O9JLSH5N9FA30
+            <NAME>SQ *FLUFF AND FOLD SAN FRANCISCO
+            <MEMO>SQ *FLUFF AND FOLD SAN FRANCISCO CA 06/07
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250609120000.000[-5:EST]
+            <TRNAMT>-52.95
+            <FITID>C3R7SPCDWVXFMFLZ
+            <NAME>VENMO PAYMENT 4284566360 WEB ID:
+            <MEMO>VENMO PAYMENT 4284566360 WEB ID: 3264681992
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEP
+            <DTPOSTED>20250613120000.000[-5:EST]
+            <TRNAMT>3655.40
+            <FITID>UKC2YOILGVLFFIRH
+            <NAME>NORTHWIND ANALYT PAYROLL PPD ID:
+            <MEMO>NORTHWIND ANALYT PAYROLL PPD ID: 1504374009
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250614120000.000[-5:EST]
+            <TRNAMT>-55.07
+            <FITID>2G26MGLGQFOM6DH4
+            <NAME>WHOLEFDS MKT #70358 SAN FRANCISC
+            <MEMO>WHOLEFDS MKT #70358 SAN FRANCISCO CA 06/12
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250616120000.000[-5:EST]
+            <TRNAMT>-51.26
+            <FITID>06FVQFMRMA0MVPEX
+            <NAME>VENMO PAYMENT 9042542934 WEB ID:
+            <MEMO>VENMO PAYMENT 9042542934 WEB ID: 3264681992
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEBIT
+            <DTPOSTED>20250616120000.000[-5:EST]
+            <TRNAMT>-312.50
+            <FITID>FD4IFR78HXBQR0JF
+            <NAME>NELNET STUDENT LN PPD ID: 830675
+            <MEMO>NELNET STUDENT LN PPD ID: 8306757122
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>ATM
+            <DTPOSTED>20250617120000.000[-5:EST]
+            <TRNAMT>-40.00
+            <FITID>ITAODRA6XYCN28EE
+            <NAME>NON-CHASE ATM WITHDRAW 441460 06
+            <MEMO>NON-CHASE ATM WITHDRAW 441460 06/17 3560 CONGRESS AVE SAN FRANCISCO CA
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEBIT
+            <DTPOSTED>20250618120000.000[-5:EST]
+            <TRNAMT>-61.01
+            <FITID>IM3NDGKR8AKDSTWZ
+            <NAME>PGANDE WEB ONLINE PPD ID: 147547
+            <MEMO>PGANDE WEB ONLINE PPD ID: 1475478597
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>CREDIT
+            <DTPOSTED>20250619120000.000[-5:EST]
+            <TRNAMT>27.38
+            <FITID>98MZ7BI24TI9THHB
+            <NAME>Zelle payment from Sage Fakerson
+            <MEMO>Zelle payment from Sage Fakerson JPM99jz5cpr
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>ATM
+            <DTPOSTED>20250619120000.000[-5:EST]
+            <TRNAMT>-100.00
+            <FITID>B3T5H9CLTWAACUVS
+            <NAME>NON-CHASE ATM WITHDRAW 503953 06
+            <MEMO>NON-CHASE ATM WITHDRAW 503953 06/19 4715 SPEEDWAY BLVD SAN FRANCISCO CA
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEBIT
+            <DTPOSTED>20250620120000.000[-5:EST]
+            <TRNAMT>-200.00
+            <FITID>TLPRSHH4UM92RXAP
+            <NAME>ROBINHOOD FUNDS PPD ID: 62633375
+            <MEMO>ROBINHOOD FUNDS PPD ID: 6263337562
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250622120000.000[-5:EST]
+            <TRNAMT>-29.36
+            <FITID>RTJOFRGZRZUY1TOA
+            <NAME>SQ *FLUFF AND FOLD SAN FRANCISCO
+            <MEMO>SQ *FLUFF AND FOLD SAN FRANCISCO CA 06/22
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250623120000.000[-5:EST]
+            <TRNAMT>-35.90
+            <FITID>FS8LNNPU5CMD06RT
+            <NAME>VENMO PAYMENT 5292671400 WEB ID:
+            <MEMO>VENMO PAYMENT 5292671400 WEB ID: 3264681992
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEP
+            <DTPOSTED>20250627120000.000[-5:EST]
+            <TRNAMT>3655.40
+            <FITID>2Q5R235YB7AVH0WS
+            <NAME>NORTHWIND ANALYT PAYROLL PPD ID:
+            <MEMO>NORTHWIND ANALYT PAYROLL PPD ID: 1442245633
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>PAYMENT
+            <DTPOSTED>20250627120000.000[-5:EST]
+            <TRNAMT>-506.92
+            <FITID>GJXK3K9I7CRRAGUT
+            <NAME>AMERICAN EXPRESS ACH PMT PPD ID:
+            <MEMO>AMERICAN EXPRESS ACH PMT PPD ID: 1646216237
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEBIT
+            <DTPOSTED>20250701120000.000[-5:EST]
+            <TRNAMT>-2850.00
+            <FITID>KZW1DQQ55U0Y5BI9
+            <NAME>BAYVIEW PROP MGMT RENT PMT PPD I
+            <MEMO>BAYVIEW PROP MGMT RENT PMT PPD ID: 1930847430
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>XFER
+            <DTPOSTED>20250707120000.000[-5:EST]
+            <TRNAMT>-750.00
+            <FITID>Z2P8HUO5FIYUH44H
+            <NAME>ALLY BANK TRANSFER PPD ID: 07794
+            <MEMO>ALLY BANK TRANSFER PPD ID: 0779484304
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>PAYMENT
+            <DTPOSTED>20250707120000.000[-5:EST]
+            <TRNAMT>-1246.95
+            <FITID>MGFBO8A0M7P0Y0UT
+            <NAME>Payment to Chase card ending in
+            <MEMO>Payment to Chase card ending in 9014 07/07
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250708120000.000[-5:EST]
+            <TRNAMT>-36.93
+            <FITID>CQAOBIVK87X357TB
+            <NAME>TRADER JOE S #243 SAN FRANCISCO
+            <MEMO>TRADER JOE S #243 SAN FRANCISCO CA 07/07
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250709120000.000[-5:EST]
+            <TRNAMT>-34.81
+            <FITID>8JR7V69063NLKKO9
+            <NAME>VENMO PAYMENT 6873205236 WEB ID:
+            <MEMO>VENMO PAYMENT 6873205236 WEB ID: 3264681992
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEP
+            <DTPOSTED>20250711120000.000[-5:EST]
+            <TRNAMT>3655.40
+            <FITID>M381SMJ2DFF4LMBY
+            <NAME>NORTHWIND ANALYT PAYROLL PPD ID:
+            <MEMO>NORTHWIND ANALYT PAYROLL PPD ID: 0485594968
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250714120000.000[-5:EST]
+            <TRNAMT>-31.95
+            <FITID>IF7NGCB3UQKPZNZW
+            <NAME>VENMO PAYMENT 6355412141 WEB ID:
+            <MEMO>VENMO PAYMENT 6355412141 WEB ID: 3264681992
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEBIT
+            <DTPOSTED>20250715120000.000[-5:EST]
+            <TRNAMT>-312.50
+            <FITID>V67XKSO8JXRT2R5D
+            <NAME>NELNET STUDENT LN WEB ID: 726661
+            <MEMO>NELNET STUDENT LN WEB ID: 7266617563
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250716120000.000[-5:EST]
+            <TRNAMT>-87.39
+            <FITID>IUS8XCEHQYVM0R0C
+            <NAME>WHOLEFDS MKT #70358 SAN FRANCISC
+            <MEMO>WHOLEFDS MKT #70358 SAN FRANCISCO CA 07/14
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEBIT
+            <DTPOSTED>20250718120000.000[-5:EST]
+            <TRNAMT>-52.28
+            <FITID>AXOYAZ4872INCJY5
+            <NAME>PGANDE WEB ONLINE PPD ID: 797456
+            <MEMO>PGANDE WEB ONLINE PPD ID: 7974563862
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>CREDIT
+            <DTPOSTED>20250720120000.000[-5:EST]
+            <TRNAMT>31.85
+            <FITID>M24CBK7SPJZCG6WO
+            <NAME>Zelle payment from Logan Mockrid
+            <MEMO>Zelle payment from Logan Mockridge JPM99ia3l62
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEBIT
+            <DTPOSTED>20250721120000.000[-5:EST]
+            <TRNAMT>-200.00
+            <FITID>2J9JKF9HFJ4MR475
+            <NAME>ROBINHOOD FUNDS WEB ID: 61610248
+            <MEMO>ROBINHOOD FUNDS WEB ID: 6161024897
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEP
+            <DTPOSTED>20250725120000.000[-5:EST]
+            <TRNAMT>3655.40
+            <FITID>WVMBLE639VN85WM2
+            <NAME>NORTHWIND ANALYT PAYROLL PPD ID:
+            <MEMO>NORTHWIND ANALYT PAYROLL PPD ID: 8793188032
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>ATM
+            <DTPOSTED>20250726120000.000[-5:EST]
+            <TRNAMT>-40.00
+            <FITID>YXSLF0N029O7R4MD
+            <NAME>NON-CHASE ATM WITHDRAW 350999 07
+            <MEMO>NON-CHASE ATM WITHDRAW 350999 07/26 1943 BROADWAY SAN FRANCISCO CA
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>PAYMENT
+            <DTPOSTED>20250728120000.000[-5:EST]
+            <TRNAMT>-613.22
+            <FITID>KGBVVBDMN8OPJAAJ
+            <NAME>AMERICAN EXPRESS ACH PMT PPD ID:
+            <MEMO>AMERICAN EXPRESS ACH PMT PPD ID: 8741140909
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEBIT
+            <DTPOSTED>20250801120000.000[-5:EST]
+            <TRNAMT>-2850.00
+            <FITID>1I3JM18QH2C38CVA
+            <NAME>BAYVIEW PROP MGMT RENT PMT WEB I
+            <MEMO>BAYVIEW PROP MGMT RENT PMT WEB ID: 5332547936
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>CREDIT
+            <DTPOSTED>20250801120000.000[-5:EST]
+            <TRNAMT>30.65
+            <FITID>NQ67G9DSLE890V37
+            <NAME>Zelle payment from Parker Sample
+            <MEMO>Zelle payment from Parker Sampleby JPM99wryveg
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250804120000.000[-5:EST]
+            <TRNAMT>-32.83
+            <FITID>1CNWXUPJJQ6DWV4U
+            <NAME>SQ *FLUFF AND FOLD SAN FRANCISCO
+            <MEMO>SQ *FLUFF AND FOLD SAN FRANCISCO CA 08/03
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>XFER
+            <DTPOSTED>20250805120000.000[-5:EST]
+            <TRNAMT>-750.00
+            <FITID>NX8NJF7IEQJ5BEGY
+            <NAME>ALLY BANK TRANSFER WEB ID: 84046
+            <MEMO>ALLY BANK TRANSFER WEB ID: 8404611741
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>PAYMENT
+            <DTPOSTED>20250806120000.000[-5:EST]
+            <TRNAMT>-2641.23
+            <FITID>YBP7NT95EZM6HFQ9
+            <NAME>Payment to Chase card ending in
+            <MEMO>Payment to Chase card ending in 9014 08/06
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEP
+            <DTPOSTED>20250808120000.000[-5:EST]
+            <TRNAMT>3655.40
+            <FITID>JA52VXN086SIBDK4
+            <NAME>NORTHWIND ANALYT PAYROLL PPD ID:
+            <MEMO>NORTHWIND ANALYT PAYROLL PPD ID: 6962020142
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250812120000.000[-5:EST]
+            <TRNAMT>-69.66
+            <FITID>1YIVMF7QU6FFXYXQ
+            <NAME>TRADER JOE S #229 SAN FRANCISCO
+            <MEMO>TRADER JOE S #229 SAN FRANCISCO CA 08/11
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250814120000.000[-5:EST]
+            <TRNAMT>-36.79
+            <FITID>0O51U2K8O6W0YK85
+            <NAME>VENMO PAYMENT 6922815663 WEB ID:
+            <MEMO>VENMO PAYMENT 6922815663 WEB ID: 3264681992
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEBIT
+            <DTPOSTED>20250815120000.000[-5:EST]
+            <TRNAMT>-312.50
+            <FITID>75PLGDMN2UWVZTRU
+            <NAME>NELNET STUDENT LN PPD ID: 638953
+            <MEMO>NELNET STUDENT LN PPD ID: 6389536106
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEBIT
+            <DTPOSTED>20250818120000.000[-5:EST]
+            <TRNAMT>-54.32
+            <FITID>4UL4QODWIAEI9Y0I
+            <NAME>PGANDE WEB ONLINE PPD ID: 510354
+            <MEMO>PGANDE WEB ONLINE PPD ID: 5103546718
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEBIT
+            <DTPOSTED>20250820120000.000[-5:EST]
+            <TRNAMT>-200.00
+            <FITID>0L1V79ZYZ3M1A2SG
+            <NAME>ROBINHOOD FUNDS WEB ID: 95413567
+            <MEMO>ROBINHOOD FUNDS WEB ID: 9541356731
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>ATM
+            <DTPOSTED>20250821120000.000[-5:EST]
+            <TRNAMT>-100.00
+            <FITID>P478RQ91BYH1SGUC
+            <NAME>NON-CHASE ATM WITHDRAW 823955 08
+            <MEMO>NON-CHASE ATM WITHDRAW 823955 08/21 3073 MARKET ST SAN FRANCISCO CA
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEP
+            <DTPOSTED>20250822120000.000[-5:EST]
+            <TRNAMT>3655.40
+            <FITID>UVJIU8XY66VJKOAA
+            <NAME>NORTHWIND ANALYT PAYROLL PPD ID:
+            <MEMO>NORTHWIND ANALYT PAYROLL PPD ID: 4011701738
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250823120000.000[-5:EST]
+            <TRNAMT>-32.26
+            <FITID>J6HIPUWLJQH8X5U6
+            <NAME>SQ *FLUFF N FOLD OAKLAND CA 08/2
+            <MEMO>SQ *FLUFF N FOLD OAKLAND CA 08/23
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250824120000.000[-5:EST]
+            <TRNAMT>-23.23
+            <FITID>6PJBJPD4UZX1SSKF
+            <NAME>SQ *FLUFF AND FOLD SAN FRANCISCO
+            <MEMO>SQ *FLUFF AND FOLD SAN FRANCISCO CA 08/24
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>PAYMENT
+            <DTPOSTED>20250827120000.000[-5:EST]
+            <TRNAMT>-799.65
+            <FITID>PH0B5TYS394YNPKH
+            <NAME>AMERICAN EXPRESS ACH PMT PPD ID:
+            <MEMO>AMERICAN EXPRESS ACH PMT PPD ID: 7391583054
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>ATM
+            <DTPOSTED>20250828120000.000[-5:EST]
+            <TRNAMT>-40.00
+            <FITID>R97QGR2AN6TL68YE
+            <NAME>NON-CHASE ATM WITHDRAW 930853 08
+            <MEMO>NON-CHASE ATM WITHDRAW 930853 08/28 2562 OAK AVE SAN FRANCISCO CA
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEBIT
+            <DTPOSTED>20250901120000.000[-5:EST]
+            <TRNAMT>-2850.00
+            <FITID>E1P77JXJFVSCVNC8
+            <NAME>BAYVIEW PROP MGMT RENT PMT WEB I
+            <MEMO>BAYVIEW PROP MGMT RENT PMT WEB ID: 2005315939
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>ATM
+            <DTPOSTED>20250901120000.000[-5:EST]
+            <TRNAMT>-40.00
+            <FITID>155VFU9H6J3V5GC2
+            <NAME>NON-CHASE ATM WITHDRAW 854745 09
+            <MEMO>NON-CHASE ATM WITHDRAW 854745 09/01 723 OAK AVE SAN FRANCISCO CA
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>FEE
+            <DTPOSTED>20250901120000.000[-5:EST]
+            <TRNAMT>-3.00
+            <FITID>9KWHPYNXGRVMJG23
+            <NAME>NON-CHASE ATM FEE-WITH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250903120000.000[-5:EST]
+            <TRNAMT>-49.15
+            <FITID>FC3B22JC43HWWZBP
+            <NAME>TRADER JOE S #243 SAN FRANCISCO
+            <MEMO>TRADER JOE S #243 SAN FRANCISCO CA 09/01
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEP
+            <DTPOSTED>20250905120000.000[-5:EST]
+            <TRNAMT>3655.40
+            <FITID>E6CQXNBQ6WSU0CR5
+            <NAME>NORTHWIND ANALYT PAYROLL PPD ID:
+            <MEMO>NORTHWIND ANALYT PAYROLL PPD ID: 0075270780
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>XFER
+            <DTPOSTED>20250905120000.000[-5:EST]
+            <TRNAMT>-750.00
+            <FITID>F15ZECLA9CF3E0RN
+            <NAME>ALLY BANK TRANSFER WEB ID: 06455
+            <MEMO>ALLY BANK TRANSFER WEB ID: 0645560021
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250905120000.000[-5:EST]
+            <TRNAMT>-750.00
+            <FITID>HH8K4T0JWD8918ZP
+            <NAME>Zelle payment to Logan Ipsumwort
+            <MEMO>Zelle payment to Logan Ipsumworth JPM99blcrtu
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>PAYMENT
+            <DTPOSTED>20250908120000.000[-5:EST]
+            <TRNAMT>-1631.89
+            <FITID>O5KHBDJBC603NLHS
+            <NAME>Payment to Chase card ending in
+            <MEMO>Payment to Chase card ending in 9014 09/08
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250909120000.000[-5:EST]
+            <TRNAMT>-125.08
+            <FITID>T17HXTRYFTWGBS6X
+            <NAME>WHOLEFDS MKT #70358 SAN FRANCISC
+            <MEMO>WHOLEFDS MKT #70358 SAN FRANCISCO CA 09/09
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>CREDIT
+            <DTPOSTED>20250912120000.000[-5:EST]
+            <TRNAMT>31.57
+            <FITID>TB8HX8WIBGEX08N0
+            <NAME>Zelle payment from Logan Ipsumwo
+            <MEMO>Zelle payment from Logan Ipsumworth JPM99j7ze05
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250914120000.000[-5:EST]
+            <TRNAMT>-114.06
+            <FITID>6ASJK2P1S2MI7L3Z
+            <NAME>Zelle payment to Rowan Mockridge
+            <MEMO>Zelle payment to Rowan Mockridge JPM99mxomx4
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEBIT
+            <DTPOSTED>20250915120000.000[-5:EST]
+            <TRNAMT>-312.50
+            <FITID>8LLW3S4SK41P9Z3V
+            <NAME>NELNET STUDENT LN WEB ID: 284130
+            <MEMO>NELNET STUDENT LN WEB ID: 2841302267
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEBIT
+            <DTPOSTED>20250918120000.000[-5:EST]
+            <TRNAMT>-57.78
+            <FITID>NMKL33KB17GC1GGS
+            <NAME>PGANDE WEB ONLINE WEB ID: 441528
+            <MEMO>PGANDE WEB ONLINE WEB ID: 4415289995
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250919120000.000[-5:EST]
+            <TRNAMT>-22.77
+            <FITID>MQZ1QSJH3G5190DE
+            <NAME>SAFEWAY STORE 4623 SAN FRANCISCO
+            <MEMO>SAFEWAY STORE 4623 SAN FRANCISCO CA 09/17
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEP
+            <DTPOSTED>20250919120000.000[-5:EST]
+            <TRNAMT>3655.40
+            <FITID>4Q6BVFEVK5C4QGSM
+            <NAME>NORTHWIND ANALYT PAYROLL PPD ID:
+            <MEMO>NORTHWIND ANALYT PAYROLL PPD ID: 9306040032
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250921120000.000[-5:EST]
+            <TRNAMT>-32.69
+            <FITID>XXY2YWVPI2DEC2TZ
+            <NAME>SQ *FLUFF N FOLD SAN FRANCISCO C
+            <MEMO>SQ *FLUFF N FOLD SAN FRANCISCO CA 09/19
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEBIT
+            <DTPOSTED>20250922120000.000[-5:EST]
+            <TRNAMT>-200.00
+            <FITID>4CC01EHS17ZT0OS5
+            <NAME>ROBINHOOD FUNDS WEB ID: 62126917
+            <MEMO>ROBINHOOD FUNDS WEB ID: 6212691797
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20250923120000.000[-5:EST]
+            <TRNAMT>-27.73
+            <FITID>MSYGKWCFPZ47WLMN
+            <NAME>SQ *FLUFF AND FOLD SAN FRANCISCO
+            <MEMO>SQ *FLUFF AND FOLD SAN FRANCISCO CA 09/21
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>CREDIT
+            <DTPOSTED>20250927120000.000[-5:EST]
+            <TRNAMT>47.28
+            <FITID>80A4U0TL8F82B2K3
+            <NAME>Zelle payment from Logan Ipsumwo
+            <MEMO>Zelle payment from Logan Ipsumworth JPM9966uzfo
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>PAYMENT
+            <DTPOSTED>20250929120000.000[-5:EST]
+            <TRNAMT>-635.54
+            <FITID>S1YR8XEDK6II2YQL
+            <NAME>AMERICAN EXPRESS ACH PMT WEB ID:
+            <MEMO>AMERICAN EXPRESS ACH PMT WEB ID: 3123162460
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEBIT
+            <DTPOSTED>20251001120000.000[-5:EST]
+            <TRNAMT>-2935.00
+            <FITID>AJXSZTVWSB3N9WV1
+            <NAME>BAYVIEW PROP MGMT RENT PMT WEB I
+            <MEMO>BAYVIEW PROP MGMT RENT PMT WEB ID: 5976503427
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>ATM
+            <DTPOSTED>20251002120000.000[-5:EST]
+            <TRNAMT>-100.00
+            <FITID>67HYETMR7RXX1SJ3
+            <NAME>NON-CHASE ATM WITHDRAW 622326 10
+            <MEMO>NON-CHASE ATM WITHDRAW 622326 10/02 4897 OAK AVE SAN FRANCISCO CA
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEP
+            <DTPOSTED>20251003120000.000[-5:EST]
+            <TRNAMT>3655.40
+            <FITID>MQ8KRHHMLI8QKX9G
+            <NAME>NORTHWIND ANALYT PAYROLL PPD ID:
+            <MEMO>NORTHWIND ANALYT PAYROLL PPD ID: 2712376235
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251004120000.000[-5:EST]
+            <TRNAMT>-71.66
+            <FITID>GR26KPVUSVUEW987
+            <NAME>TRADER JOE S #243 SAN FRANCISCO
+            <MEMO>TRADER JOE S #243 SAN FRANCISCO CA 10/03
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>XFER
+            <DTPOSTED>20251006120000.000[-5:EST]
+            <TRNAMT>-750.00
+            <FITID>BPV557BOPTWX4YY0
+            <NAME>ALLY BANK TRANSFER PPD ID: 51651
+            <MEMO>ALLY BANK TRANSFER PPD ID: 5165183529
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>PAYMENT
+            <DTPOSTED>20251007120000.000[-5:EST]
+            <TRNAMT>-1709.13
+            <FITID>LBXXEFA66473J2VN
+            <NAME>Payment to Chase card ending in
+            <MEMO>Payment to Chase card ending in 9014 10/07
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251008120000.000[-5:EST]
+            <TRNAMT>-78.72
+            <FITID>AH5C1VM98IQMYUUO
+            <NAME>SAFEWAY STORE 4623 SAN FRANCISCO
+            <MEMO>SAFEWAY STORE 4623 SAN FRANCISCO CA 10/07
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEBIT
+            <DTPOSTED>20251015120000.000[-5:EST]
+            <TRNAMT>-312.50
+            <FITID>1AQYP8NFYPOYGOMZ
+            <NAME>NELNET STUDENT LN WEB ID: 178303
+            <MEMO>NELNET STUDENT LN WEB ID: 1783031145
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEP
+            <DTPOSTED>20251017120000.000[-5:EST]
+            <TRNAMT>3655.40
+            <FITID>MMG8YB6238XPCB5F
+            <NAME>NORTHWIND ANALYT PAYROLL PPD ID:
+            <MEMO>NORTHWIND ANALYT PAYROLL PPD ID: 2160791739
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251020120000.000[-5:EST]
+            <TRNAMT>-26.89
+            <FITID>MBLWHLRR3DS0SVQ2
+            <NAME>VENMO PAYMENT 5464099231 WEB ID:
+            <MEMO>VENMO PAYMENT 5464099231 WEB ID: 3264681992
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEBIT
+            <DTPOSTED>20251020120000.000[-5:EST]
+            <TRNAMT>-72.26
+            <FITID>MPPUV1D2YJQ6ER0L
+            <NAME>PGANDE WEB ONLINE WEB ID: 082641
+            <MEMO>PGANDE WEB ONLINE WEB ID: 0826414933
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEBIT
+            <DTPOSTED>20251020120000.000[-5:EST]
+            <TRNAMT>-200.00
+            <FITID>0TB9HSHTWLC3CCJK
+            <NAME>ROBINHOOD FUNDS PPD ID: 60515494
+            <MEMO>ROBINHOOD FUNDS PPD ID: 6051549459
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251024120000.000[-5:EST]
+            <TRNAMT>-27.55
+            <FITID>02LIAO3PW1QDVN2H
+            <NAME>SQ *FLUFF N FOLD SAN FRANCISCO C
+            <MEMO>SQ *FLUFF N FOLD SAN FRANCISCO CA 10/24
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251025120000.000[-5:EST]
+            <TRNAMT>-47.73
+            <FITID>VVSZ5FH4HTULF07S
+            <NAME>TRADER JOE S #243 SAN FRANCISCO
+            <MEMO>TRADER JOE S #243 SAN FRANCISCO CA 10/24
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>PAYMENT
+            <DTPOSTED>20251027120000.000[-5:EST]
+            <TRNAMT>-691.37
+            <FITID>R7V97KHJF86A04C3
+            <NAME>AMERICAN EXPRESS ACH PMT WEB ID:
+            <MEMO>AMERICAN EXPRESS ACH PMT WEB ID: 4654457274
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEP
+            <DTPOSTED>20251031120000.000[-5:EST]
+            <TRNAMT>3655.40
+            <FITID>XX1RC0HHLUTK0H9L
+            <NAME>NORTHWIND ANALYT PAYROLL PPD ID:
+            <MEMO>NORTHWIND ANALYT PAYROLL PPD ID: 8001265850
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251031120000.000[-5:EST]
+            <TRNAMT>-34.82
+            <FITID>VA8Y9C2P01L9QVNZ
+            <NAME>SQ *FLUFF N FOLD SAN FRANCISCO C
+            <MEMO>SQ *FLUFF N FOLD SAN FRANCISCO CA 10/31
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEBIT
+            <DTPOSTED>20251103120000.000[-5:EST]
+            <TRNAMT>-2935.00
+            <FITID>PJ83HF945OK6NII3
+            <NAME>BAYVIEW PROP MGMT RENT PMT PPD I
+            <MEMO>BAYVIEW PROP MGMT RENT PMT PPD ID: 3687260070
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>XFER
+            <DTPOSTED>20251105120000.000[-5:EST]
+            <TRNAMT>-750.00
+            <FITID>837PLBK17JJ21KK0
+            <NAME>ALLY BANK TRANSFER PPD ID: 41739
+            <MEMO>ALLY BANK TRANSFER PPD ID: 4173966579
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>PAYMENT
+            <DTPOSTED>20251106120000.000[-5:EST]
+            <TRNAMT>-1831.89
+            <FITID>SKXFBOW54RN7UHTR
+            <NAME>Payment to Chase card ending in
+            <MEMO>Payment to Chase card ending in 9014 11/06
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251109120000.000[-5:EST]
+            <TRNAMT>-20.75
+            <FITID>8REBVUIBM8YCW2R8
+            <NAME>SQ *FLUFF N FOLD SAN FRANCISCO C
+            <MEMO>SQ *FLUFF N FOLD SAN FRANCISCO CA 11/08
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEP
+            <DTPOSTED>20251114120000.000[-5:EST]
+            <TRNAMT>3655.40
+            <FITID>0JX9FK4CMZ9PKUVM
+            <NAME>NORTHWIND ANALYT PAYROLL PPD ID:
+            <MEMO>NORTHWIND ANALYT PAYROLL PPD ID: 2802255486
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251116120000.000[-5:EST]
+            <TRNAMT>-33.88
+            <FITID>XVH9RS6LRDXJ4L2G
+            <NAME>SQ *FLUFF AND FOLD OAKLAND CA 11
+            <MEMO>SQ *FLUFF AND FOLD OAKLAND CA 11/14
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251117120000.000[-5:EST]
+            <TRNAMT>-34.17
+            <FITID>TI9JZVM190CKU9F5
+            <NAME>VENMO PAYMENT 6755955371 WEB ID:
+            <MEMO>VENMO PAYMENT 6755955371 WEB ID: 3264681992
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEBIT
+            <DTPOSTED>20251117120000.000[-5:EST]
+            <TRNAMT>-312.50
+            <FITID>W1T32392JEAU5SVB
+            <NAME>NELNET STUDENT LN PPD ID: 950327
+            <MEMO>NELNET STUDENT LN PPD ID: 9503276731
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEBIT
+            <DTPOSTED>20251118120000.000[-5:EST]
+            <TRNAMT>-94.88
+            <FITID>T6GR0MLYE3PDTLP3
+            <NAME>PGANDE WEB ONLINE PPD ID: 376836
+            <MEMO>PGANDE WEB ONLINE PPD ID: 3768363076
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEBIT
+            <DTPOSTED>20251120120000.000[-5:EST]
+            <TRNAMT>-200.00
+            <FITID>DFHY5D5BQURW0FMB
+            <NAME>ROBINHOOD FUNDS PPD ID: 66572376
+            <MEMO>ROBINHOOD FUNDS PPD ID: 6657237672
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251124120000.000[-5:EST]
+            <TRNAMT>-116.57
+            <FITID>02T2KH3GON1UWPG8
+            <NAME>IC* INSTACART SAN FRANCISCO CA 1
+            <MEMO>IC* INSTACART SAN FRANCISCO CA 11/22
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251126120000.000[-5:EST]
+            <TRNAMT>-64.79
+            <FITID>3E8IP7H1OXHJLY1B
+            <NAME>TRADER JOE S #243 SAN FRANCISCO
+            <MEMO>TRADER JOE S #243 SAN FRANCISCO CA 11/26
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251127120000.000[-5:EST]
+            <TRNAMT>-69.14
+            <FITID>NA2772WF5I8AJRT7
+            <NAME>WHOLEFDS MKT #70358 SAN FRANCISC
+            <MEMO>WHOLEFDS MKT #70358 SAN FRANCISCO CA 11/27
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>PAYMENT
+            <DTPOSTED>20251127120000.000[-5:EST]
+            <TRNAMT>-993.14
+            <FITID>JQHA6OVI3856M4UQ
+            <NAME>AMERICAN EXPRESS ACH PMT WEB ID:
+            <MEMO>AMERICAN EXPRESS ACH PMT WEB ID: 2937919845
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEP
+            <DTPOSTED>20251128120000.000[-5:EST]
+            <TRNAMT>3655.40
+            <FITID>8Q3JR9B8QHI6HI28
+            <NAME>NORTHWIND ANALYT PAYROLL PPD ID:
+            <MEMO>NORTHWIND ANALYT PAYROLL PPD ID: 6341733837
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251201120000.000[-5:EST]
+            <TRNAMT>-43.47
+            <FITID>YRHAW4U46SNMVLC9
+            <NAME>VENMO PAYMENT 4841098829 WEB ID:
+            <MEMO>VENMO PAYMENT 4841098829 WEB ID: 3264681992
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEBIT
+            <DTPOSTED>20251201120000.000[-5:EST]
+            <TRNAMT>-2935.00
+            <FITID>OKJGQSADMNW9Y5EQ
+            <NAME>BAYVIEW PROP MGMT RENT PMT WEB I
+            <MEMO>BAYVIEW PROP MGMT RENT PMT WEB ID: 0957137133
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251202120000.000[-5:EST]
+            <TRNAMT>-62.33
+            <FITID>KILESQKC0A86B91I
+            <NAME>WHOLEFDS MKT #70358 OAKLAND CA 1
+            <MEMO>WHOLEFDS MKT #70358 OAKLAND CA 11/30
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251205120000.000[-5:EST]
+            <TRNAMT>-106.41
+            <FITID>HNDOD5PVO7TPFRBC
+            <NAME>WHOLEFDS MKT #70358 SAN FRANCISC
+            <MEMO>WHOLEFDS MKT #70358 SAN FRANCISCO CA 12/04
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>XFER
+            <DTPOSTED>20251205120000.000[-5:EST]
+            <TRNAMT>-750.00
+            <FITID>T7EKJBTGB1KJ58GQ
+            <NAME>ALLY BANK TRANSFER WEB ID: 45403
+            <MEMO>ALLY BANK TRANSFER WEB ID: 4540347469
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251206120000.000[-5:EST]
+            <TRNAMT>-32.44
+            <FITID>UKXSG4SKOMTE7FOZ
+            <NAME>SQ *FLUFF AND FOLD SAN FRANCISCO
+            <MEMO>SQ *FLUFF AND FOLD SAN FRANCISCO CA 12/06
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>PAYMENT
+            <DTPOSTED>20251208120000.000[-5:EST]
+            <TRNAMT>-1846.30
+            <FITID>0PVPJFONOMD468C4
+            <NAME>Payment to Chase card ending in
+            <MEMO>Payment to Chase card ending in 9014 12/08
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEP
+            <DTPOSTED>20251212120000.000[-5:EST]
+            <TRNAMT>3655.40
+            <FITID>9OGZ1ZXQGB9EIJ5P
+            <NAME>NORTHWIND ANALYT PAYROLL PPD ID:
+            <MEMO>NORTHWIND ANALYT PAYROLL PPD ID: 1104783430
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEBIT
+            <DTPOSTED>20251215120000.000[-5:EST]
+            <TRNAMT>-312.50
+            <FITID>7PPZHA8PFYKTPDSU
+            <NAME>NELNET STUDENT LN WEB ID: 127265
+            <MEMO>NELNET STUDENT LN WEB ID: 1272658658
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251216120000.000[-5:EST]
+            <TRNAMT>-48.09
+            <FITID>ZXU4030WE6NNO97T
+            <NAME>TRADER JOE S #243 SAN FRANCISCO
+            <MEMO>TRADER JOE S #243 SAN FRANCISCO CA 12/14
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>CREDIT
+            <DTPOSTED>20251216120000.000[-5:EST]
+            <TRNAMT>38.55
+            <FITID>S90Z3AYDR58NVMPS
+            <NAME>Zelle payment from Parker Lorem
+            <MEMO>Zelle payment from Parker Lorem JPM99gd7m3h
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEBIT
+            <DTPOSTED>20251218120000.000[-5:EST]
+            <TRNAMT>-107.00
+            <FITID>WTN9M74UBK2554OZ
+            <NAME>PGANDE WEB ONLINE WEB ID: 155602
+            <MEMO>PGANDE WEB ONLINE WEB ID: 1556027380
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>CREDIT
+            <DTPOSTED>20251218120000.000[-5:EST]
+            <TRNAMT>33.21
+            <FITID>2HPNGCM79UGRUTR6
+            <NAME>Zelle payment from Logan Ipsumwo
+            <MEMO>Zelle payment from Logan Ipsumworth JPM993kodl7
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEBIT
+            <DTPOSTED>20251222120000.000[-5:EST]
+            <TRNAMT>-200.00
+            <FITID>ZMOXV8UNTSN6EAQP
+            <NAME>ROBINHOOD FUNDS PPD ID: 88977495
+            <MEMO>ROBINHOOD FUNDS PPD ID: 8897749521
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>ATM
+            <DTPOSTED>20251225120000.000[-5:EST]
+            <TRNAMT>-100.00
+            <FITID>ZCMN0H4OYBX7WD0Q
+            <NAME>NON-CHASE ATM WITHDRAW 137350 12
+            <MEMO>NON-CHASE ATM WITHDRAW 137350 12/25 4740 CONGRESS AVE SAN FRANCISCO CA
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>FEE
+            <DTPOSTED>20251225120000.000[-5:EST]
+            <TRNAMT>-3.00
+            <FITID>UU7HSIDGEZE8HVR7
+            <NAME>NON-CHASE ATM FEE-WITH
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DIRECTDEP
+            <DTPOSTED>20251226120000.000[-5:EST]
+            <TRNAMT>3655.40
+            <FITID>NJ3J1DNNTXD262GM
+            <NAME>NORTHWIND ANALYT PAYROLL PPD ID:
+            <MEMO>NORTHWIND ANALYT PAYROLL PPD ID: 9447928796
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>PAYMENT
+            <DTPOSTED>20251229120000.000[-5:EST]
+            <TRNAMT>-940.24
+            <FITID>RTK5UATE5XTE17LV
+            <NAME>AMERICAN EXPRESS ACH PMT PPD ID:
+            <MEMO>AMERICAN EXPRESS ACH PMT PPD ID: 6295395695
+          </STMTTRN>
+          <STMTTRN>
+            <TRNTYPE>DEBIT
+            <DTPOSTED>20251230120000.000[-5:EST]
+            <TRNAMT>-36.99
+            <FITID>7GFX0NZPWMKH3KCL
+            <NAME>SQ *FLUFF AND FOLD SAN FRANCISCO
+            <MEMO>SQ *FLUFF AND FOLD SAN FRANCISCO CA 12/28
+          </STMTTRN>
+        </BANKTRANLIST>
+        <LEDGERBAL>
+          <BALAMT>25763.22
+          <DTASOF>20260104120000.000[-5:EST]
+        </LEDGERBAL>
+      </STMTRS>
+    </STMTTRNRS>
+  </BANKMSGSRSV1>
+</OFX>

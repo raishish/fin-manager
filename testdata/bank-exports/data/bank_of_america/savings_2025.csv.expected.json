@@ -1,0 +1,46 @@
+{
+  "file": "bank_of_america/savings_2025.csv",
+  "layout": "bofa_checking_csv",
+  "institution": "Bank of America",
+  "source": {
+    "persona": "family",
+    "account_id": 2
+  },
+  "as_of": "2026-01-04",
+  "start": "2025-01-01",
+  "end": "2025-12-31",
+  "account": {
+    "kind": "savings",
+    "currency": "USD",
+    "number": null,
+    "routing": null,
+    "ledger_balance": null
+  },
+  "transactions": [
+    {"truth_id":280,"status":"posted","posted_date":"2025-01-02","transaction_date":null,"amount":{"minor":40000,"currency":"USD"},"description":"Online Banking transfer from CHK 2290 Confirmation# JGA9S7J394","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":{"minor":550038,"currency":"USD"},"bank_category":null},
+    {"truth_id":316,"status":"posted","posted_date":"2025-01-15","transaction_date":null,"amount":{"minor":-500000,"currency":"USD"},"description":"Online Banking transfer to CHK 2290 Confirmation# 1NFJKVW3L9","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":{"minor":50038,"currency":"USD"},"bank_category":null},
+    {"truth_id":358,"status":"posted","posted_date":"2025-01-31","transaction_date":null,"amount":{"minor":9,"currency":"USD"},"description":"Interest Earned","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":{"minor":50047,"currency":"USD"},"bank_category":null},
+    {"truth_id":371,"status":"posted","posted_date":"2025-02-03","transaction_date":null,"amount":{"minor":40000,"currency":"USD"},"description":"Online Banking transfer from CHK 2290 Confirmation# UMOAU9P0HN","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":{"minor":90047,"currency":"USD"},"bank_category":null},
+    {"truth_id":443,"status":"posted","posted_date":"2025-02-28","transaction_date":null,"amount":{"minor":10,"currency":"USD"},"description":"Interest Earned","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":{"minor":90057,"currency":"USD"},"bank_category":null},
+    {"truth_id":452,"status":"posted","posted_date":"2025-03-03","transaction_date":null,"amount":{"minor":40000,"currency":"USD"},"description":"Online Banking transfer from CHK 2290 Confirmation# DMYFP9M523","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":{"minor":130057,"currency":"USD"},"bank_category":null},
+    {"truth_id":536,"status":"posted","posted_date":"2025-03-31","transaction_date":null,"amount":{"minor":10,"currency":"USD"},"description":"Interest Earned","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":{"minor":130067,"currency":"USD"},"bank_category":null},
+    {"truth_id":544,"status":"posted","posted_date":"2025-04-02","transaction_date":null,"amount":{"minor":40000,"currency":"USD"},"description":"Online Banking transfer from CHK 2290 Confirmation# K3PANDNMI5","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":{"minor":170067,"currency":"USD"},"bank_category":null},
+    {"truth_id":619,"status":"posted","posted_date":"2025-04-30","transaction_date":null,"amount":{"minor":10,"currency":"USD"},"description":"Interest Earned","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":{"minor":170077,"currency":"USD"},"bank_category":null},
+    {"truth_id":627,"status":"posted","posted_date":"2025-05-02","transaction_date":null,"amount":{"minor":40000,"currency":"USD"},"description":"Online Banking transfer from CHK 2290 Confirmation# M9HA0DY3PX","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":{"minor":210077,"currency":"USD"},"bank_category":null},
+    {"truth_id":705,"status":"posted","posted_date":"2025-05-31","transaction_date":null,"amount":{"minor":11,"currency":"USD"},"description":"Interest Earned","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":{"minor":210088,"currency":"USD"},"bank_category":null},
+    {"truth_id":714,"status":"posted","posted_date":"2025-06-02","transaction_date":null,"amount":{"minor":40000,"currency":"USD"},"description":"Online Banking transfer from CHK 2290 Confirmation# 11S7FH1IXG","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":{"minor":250088,"currency":"USD"},"bank_category":null},
+    {"truth_id":816,"status":"posted","posted_date":"2025-06-30","transaction_date":null,"amount":{"minor":11,"currency":"USD"},"description":"Interest Earned","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":{"minor":250099,"currency":"USD"},"bank_category":null},
+    {"truth_id":824,"status":"posted","posted_date":"2025-07-02","transaction_date":null,"amount":{"minor":40000,"currency":"USD"},"description":"Online Banking transfer from CHK 2290 Confirmation# 6F16VQBP4D","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":{"minor":290099,"currency":"USD"},"bank_category":null},
+    {"truth_id":913,"status":"posted","posted_date":"2025-07-31","transaction_date":null,"amount":{"minor":11,"currency":"USD"},"description":"Interest Earned","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":{"minor":290110,"currency":"USD"},"bank_category":null},
+    {"truth_id":929,"status":"posted","posted_date":"2025-08-04","transaction_date":null,"amount":{"minor":40000,"currency":"USD"},"description":"Online Banking transfer from CHK 2290 Confirmation# I1E43BEDAD","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":{"minor":330110,"currency":"USD"},"bank_category":null},
+    {"truth_id":1006,"status":"posted","posted_date":"2025-08-31","transaction_date":null,"amount":{"minor":12,"currency":"USD"},"description":"Interest Earned","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":{"minor":330122,"currency":"USD"},"bank_category":null},
+    {"truth_id":1013,"status":"posted","posted_date":"2025-09-02","transaction_date":null,"amount":{"minor":40000,"currency":"USD"},"description":"Online Banking transfer from CHK 2290 Confirmation# NH1M8ANTPH","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":{"minor":370122,"currency":"USD"},"bank_category":null},
+    {"truth_id":1091,"status":"posted","posted_date":"2025-09-30","transaction_date":null,"amount":{"minor":12,"currency":"USD"},"description":"Interest Earned","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":{"minor":370134,"currency":"USD"},"bank_category":null},
+    {"truth_id":1099,"status":"posted","posted_date":"2025-10-02","transaction_date":null,"amount":{"minor":40000,"currency":"USD"},"description":"Online Banking transfer from CHK 2290 Confirmation# 68XORXKLH5","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":{"minor":410134,"currency":"USD"},"bank_category":null},
+    {"truth_id":1187,"status":"posted","posted_date":"2025-10-31","transaction_date":null,"amount":{"minor":12,"currency":"USD"},"description":"Interest Earned","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":{"minor":410146,"currency":"USD"},"bank_category":null},
+    {"truth_id":1198,"status":"posted","posted_date":"2025-11-03","transaction_date":null,"amount":{"minor":40000,"currency":"USD"},"description":"Online Banking transfer from CHK 2290 Confirmation# YL89CLCYMK","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":{"minor":450146,"currency":"USD"},"bank_category":null},
+    {"truth_id":1285,"status":"posted","posted_date":"2025-11-30","transaction_date":null,"amount":{"minor":13,"currency":"USD"},"description":"Interest Earned","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":{"minor":450159,"currency":"USD"},"bank_category":null},
+    {"truth_id":1293,"status":"posted","posted_date":"2025-12-02","transaction_date":null,"amount":{"minor":40000,"currency":"USD"},"description":"Online Banking transfer from CHK 2290 Confirmation# IE2LLY0ZPW","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":{"minor":490159,"currency":"USD"},"bank_category":null},
+    {"truth_id":1382,"status":"posted","posted_date":"2025-12-31","transaction_date":null,"amount":{"minor":13,"currency":"USD"},"description":"Interest Earned","payee":null,"memo":null,"external_id":null,"check_number":null,"balance":{"minor":490172,"currency":"USD"},"bank_category":null}
+  ]
+}
