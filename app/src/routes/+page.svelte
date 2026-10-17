@@ -1,22 +1,40 @@
 <script lang="ts">
-	import { invoke } from '@tauri-apps/api/core';
+	// The home page: where to go, and how much is waiting in Review.
+	import { errorText, reviewQueue } from './dashboard/ledger';
 
-	type CoreInfo = { name: string; version: string };
+	let waiting = $state<number | null>(null);
+	let error = $state('');
 
-	const info = invoke<CoreInfo>('core_info');
+	$effect(() => {
+		// An empty page: just the count.
+		reviewQueue(0, 0)
+			.then((q) => (waiting = q.total))
+			.catch((e) => (error = errorText(e)));
+	});
 </script>
 
 <main>
 	<h1>fin-manager</h1>
-	{#await info}
-		<p>Connecting to the core…</p>
-	{:then core}
-		<p>Core: <code>{core.name}</code> {core.version}</p>
-	{:catch error}
-		<p role="alert">Could not reach the core: {String(error)}</p>
-	{/await}
+	{#if error}
+		<p role="alert">{error}</p>
+	{:else if waiting !== null && waiting > 0}
+		<p><a href="/review">{waiting} {waiting === 1 ? 'transaction needs' : 'transactions need'} review</a></p>
+	{/if}
 	<nav>
-		<a href="/network">Network log</a> · <a href="/network/crash">Crash reports</a>
+		<ul>
+			<li><a href="/dashboard">Dashboard</a></li>
+			<li><a href="/review">Review</a></li>
+			<li><a href="/categories">Categories and rules</a></li>
+			<li><a href="/import">Import a bank file</a></li>
+			<li><a href="/connectors">Bank connections</a></li>
+		</ul>
+		<ul class="secondary">
+			<li><a href="/backup">Backups</a></li>
+			<li><a href="/data">Delete data</a></li>
+			<li><a href="/unlock/settings">Password and auto-lock</a></li>
+			<li><a href="/network">Network log</a></li>
+			<li><a href="/network/crash">Crash reports</a></li>
+		</ul>
 	</nav>
 </main>
 
@@ -24,5 +42,15 @@
 	main {
 		font-family: system-ui, sans-serif;
 		margin: 2rem;
+	}
+	ul {
+		list-style: none;
+		padding: 0;
+		display: grid;
+		gap: 0.4rem;
+	}
+	.secondary {
+		margin-top: 1.5rem;
+		font-size: 0.9em;
 	}
 </style>

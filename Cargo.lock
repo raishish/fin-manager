@@ -1033,6 +1033,7 @@ name = "fm-app"
 version = "0.0.0"
 dependencies = [
  "fm-core",
+ "fm-import-csv",
  "fm-netguard",
  "serde",
  "serde_json",
