@@ -15,6 +15,9 @@
 //! 5. **Backup.** After the import commits, `backup::after_import` runs (T5.2).
 //!
 //! Steps 1–4 run in one savepoint: an import is stored completely or not at all.
+//!
+//! [`import_statements`] runs the same steps for statements a bank connection has
+//! already parsed (SimpleFIN, T5.4), skipping step 2.
 
 mod institution;
 mod matcher;
@@ -66,6 +69,21 @@ pub struct ImportRequest<'a> {
     /// The CSV layouts to recognise the file with.
     pub csv_profiles: &'a fm_import_csv::ProfileSet,
     /// When the import happens (stored on the raw import and decisions).
+    pub now: SystemTime,
+}
+
+/// Statements already parsed by the caller (a bank connection such as SimpleFIN, T5.4),
+/// with the bytes they came from.
+pub struct StatementsImport<'a> {
+    /// What the source sent, kept as the raw import (and identifying a repeat).
+    pub bytes: &'a [u8],
+    pub file_name: Option<&'a str>,
+    pub source: ImportSource,
+    pub statements: Vec<imported::Statement>,
+    /// A name per statement, used only when the pipeline creates the account for it
+    /// (an existing account is never renamed). Empty for none, or one per statement.
+    pub account_names: Vec<Option<String>>,
+    pub target: Target,
     pub now: SystemTime,
 }
 
@@ -157,6 +175,10 @@ pub enum ImportError {
     AccountNeeded,
     /// The ledger connection is already inside a transaction.
     TransactionOpen,
+    /// A new account is needed for a statement that doesn't state its currency.
+    CurrencyNeeded,
+    /// `account_names` has neither no entry nor one per statement.
+    AccountNamesMismatch,
     /// A record's currency or date doesn't fit the ledger's types.
     InvalidRecord {
         index: u32,
@@ -182,6 +204,12 @@ impl fmt::Display for ImportError {
             }
             Self::AccountNeeded => f.write_str("choose which account this file is for"),
             Self::TransactionOpen => f.write_str("another change to the ledger is in progress"),
+            Self::CurrencyNeeded => f.write_str(
+                "the statement doesn't say its currency, so no account can be created for it",
+            ),
+            Self::AccountNamesMismatch => {
+                f.write_str("give one account name per statement, or none")
+            }
             Self::InvalidRecord { index, reason } => write!(f, "record {index}: {reason}"),
             Self::Storage(e) => write!(f, "{e}"),
         }
@@ -216,18 +244,20 @@ fn is_ofx(bytes: &[u8]) -> bool {
     head.contains("OFXHEADER")
 }
 
+fn refuse_repeat(ledger: &Unlocked, bytes: &[u8]) -> Result<(), ImportError> {
+    match ledger.imports_with_sha256(Sha256Hash::of(bytes))?.first() {
+        Some(&import_id) => Err(ImportError::AlreadyImported { import_id }),
+        None => Ok(()),
+    }
+}
+
 /// Imports one file. See the module documentation for the steps.
 pub fn import_file(
     ledger: &mut Unlocked,
     request: &ImportRequest<'_>,
 ) -> Result<ImportReport, ImportError> {
-    let sha256 = Sha256Hash::of(request.bytes);
-    if let Some(&import_id) = ledger.imports_with_sha256(sha256)?.first() {
-        return Err(ImportError::AlreadyImported { import_id });
-    }
-
-    let ofx = is_ofx(request.bytes);
-    let (statements, source, profile) = if ofx {
+    refuse_repeat(ledger, request.bytes)?;
+    let (statements, source, profile) = if is_ofx(request.bytes) {
         let file = fm_import_ofx::parse(request.bytes).map_err(ImportError::Ofx)?;
         let qfx = file
             .statements
@@ -246,12 +276,86 @@ pub fn import_file(
             .map_err(ImportError::Csv)?;
         (statements, ImportSource::Csv, Some(profile))
     };
+    ingest(
+        ledger,
+        &Ingest {
+            bytes: request.bytes,
+            file_name: request.file_name,
+            source,
+            profile,
+            profiles: request.csv_profiles,
+            statements: &statements,
+            account_names: &[],
+            target: &request.target,
+            currency: Some(request.csv_currency),
+            now: request.now,
+        },
+    )
+}
+
+/// Imports statements the caller has already parsed, as [`import_file`] imports a
+/// file's: the same raw layer (identical bytes are refused), accounts, matching and
+/// backup, without the parse.
+///
+/// With [`ImportSource::SimpleFin`] the statements' account numbers are opaque ids:
+/// they identify the account on their own, and no last four digits are taken from
+/// them. A new account takes its name from `account_names` when one is given.
+pub fn import_statements(
+    ledger: &mut Unlocked,
+    request: &StatementsImport<'_>,
+) -> Result<ImportReport, ImportError> {
+    if !request.account_names.is_empty() && request.account_names.len() != request.statements.len()
+    {
+        return Err(ImportError::AccountNamesMismatch);
+    }
+    refuse_repeat(ledger, request.bytes)?;
+    // Rows already in the ledger from CSV files are judged by the dates their layout
+    // gives; the built-in layouts are the ones those files were read with.
+    let profiles = fm_import_csv::ProfileSet::with_builtin();
+    ingest(
+        ledger,
+        &Ingest {
+            bytes: request.bytes,
+            file_name: request.file_name,
+            source: request.source,
+            profile: None,
+            profiles: &profiles,
+            statements: &request.statements,
+            account_names: &request.account_names,
+            target: &request.target,
+            currency: None,
+            now: request.now,
+        },
+    )
+}
+
+/// What [`ingest`] stores: parsed statements and where they came from.
+struct Ingest<'a> {
+    bytes: &'a [u8],
+    file_name: Option<&'a str>,
+    source: ImportSource,
+    /// The CSV layout the statements were read with.
+    profile: Option<&'a fm_import_csv::Profile>,
+    /// The layouts existing CSV rows may have been read with.
+    profiles: &'a fm_import_csv::ProfileSet,
+    statements: &'a [imported::Statement],
+    /// Empty, or one per statement.
+    account_names: &'a [Option<String>],
+    target: &'a Target,
+    /// The currency of a new account when its statement doesn't say (a CSV file's).
+    currency: Option<Currency>,
+    now: SystemTime,
+}
+
+/// Steps 1 and 3–5 of the module documentation, for parsed statements.
+fn ingest(ledger: &mut Unlocked, request: &Ingest<'_>) -> Result<ImportReport, ImportError> {
+    let statements = request.statements;
     // A named target fits a file whose statements are all one account (OFX files can
     // hold several statement periods of it); several accounts need Target::Auto.
     let one_account = statements
         .windows(2)
         .all(|w| w[0].info.account_number == w[1].info.account_number);
-    if !one_account && request.target != Target::Auto {
+    if !one_account && *request.target != Target::Auto {
         return Err(ImportError::SeveralStatements);
     }
 
@@ -260,11 +364,12 @@ pub fn import_file(
     let savepoint = Savepoint::begin(ledger.connection())?;
     let (import_id, statements) = (|| {
         let import_id = ImportId(ledger.next_id(Table::RawImports)?);
-        let mut raw = RawImport::new(import_id, source, now, request.bytes.to_vec());
+        let mut raw = RawImport::new(import_id, request.source, now, request.bytes.to_vec());
         raw.file_name = request.file_name.map(str::to_owned);
-        raw.mapping_profile = profile.map(|p| p.id.clone());
-        // The raw import goes in before its transactions (they refer to it). With one
-        // statement it records that statement's account.
+        raw.mapping_profile = request.profile.map(|p| p.id.clone());
+        // The raw import goes in exactly once, before its transactions (they refer to
+        // it). With one statement it records that statement's account, so it waits for
+        // that account to be resolved.
         let single = statements.len() == 1;
         if !single {
             ledger.insert_raw_import(&raw)?;
@@ -272,16 +377,16 @@ pub fn import_file(
         let mut reports = Vec::new();
         // A named target is one account for the whole file: resolve (or create) it once.
         let mut named: Option<AccountId> = None;
-        for statement in &statements {
-            let (account_id, created) = match (named, &request.target) {
+        for (i, statement) in statements.iter().enumerate() {
+            let (account_id, created) = match (named, request.target) {
                 (Some(id), _) => {
                     let account = ledger.account(id)?.ok_or(ImportError::UnknownAccount(id))?;
                     check_statement_currency(&account, statement)?;
                     (id, false)
                 }
                 (None, target) => {
-                    let resolved =
-                        resolve_account(ledger, target, statement, profile, request, now)?;
+                    let name = request.account_names.get(i).cloned().flatten();
+                    let resolved = resolve_account(ledger, target, statement, request, name, now)?;
                     if *target != Target::Auto {
                         named = Some(resolved.0);
                     }
@@ -297,8 +402,8 @@ pub fn import_file(
                 import_id,
                 account_id,
                 statement,
-                profile,
-                request.csv_profiles,
+                request.profile,
+                request.profiles,
                 now,
             )?;
             reports.push(StatementReport {
@@ -306,9 +411,6 @@ pub fn import_file(
                 account_created: created,
                 records,
             });
-        }
-        if statements.is_empty() {
-            ledger.insert_raw_import(&raw)?;
         }
         Ok::<_, ImportError>((import_id, reports))
     })()?;
@@ -392,14 +494,20 @@ fn account_kind(kind: Option<imported::AccountKind>) -> AccountKind {
 }
 
 /// The account for one statement, and whether it was just created.
+///
+/// `name` names an account this creates under [`Target::Auto`] (a [`Target::NewAccount`]
+/// carries its own); an existing account keeps its name.
 fn resolve_account(
     ledger: &Unlocked,
     target: &Target,
     statement: &imported::Statement,
-    profile: Option<&fm_import_csv::Profile>,
-    request: &ImportRequest<'_>,
+    request: &Ingest<'_>,
+    name: Option<String>,
     now: Timestamp,
 ) -> Result<(AccountId, bool), ImportError> {
+    let profile = request.profile;
+    // A bank connection's account ids are opaque: unique, but not account numbers.
+    let opaque = request.source == ImportSource::SimpleFin;
     let info = &statement.info;
     let statement_currency = match info.currency.as_deref() {
         Some(code) => Some(Currency::new(code).map_err(|_| ImportError::InvalidRecord {
@@ -410,7 +518,12 @@ fn resolve_account(
     };
     let institution =
         institution::name(&info.institution).or_else(|| profile.map(|p| p.institution.clone()));
-    let masked = last4(info.account_number.as_deref()).or_else(|| info.card_last4.clone());
+    let from_number = if opaque {
+        None
+    } else {
+        last4(info.account_number.as_deref())
+    };
+    let masked = from_number.or_else(|| info.card_last4.clone());
     let check_currency = |account: &Account| -> Result<(), ImportError> {
         match statement_currency {
             Some(c) if c != account.currency => Err(ImportError::CurrencyMismatch {
@@ -457,9 +570,10 @@ fn resolve_account(
             // A full account number identifies the account on its own; a short or
             // masked one ("XXXX1234") only together with the institution and kind.
             let by_number = info.account_number.as_ref().and_then(|n| {
-                let full = n.len() >= 8
-                    && n.chars().all(|c| c.is_ascii_alphanumeric())
-                    && !n.contains(['X', 'x']);
+                let full = opaque
+                    || (n.len() >= 8
+                        && n.chars().all(|c| c.is_ascii_alphanumeric())
+                        && !n.contains(['X', 'x']));
                 accounts.iter().find(|a| {
                     a.external_id.as_deref() == Some(n.as_str())
                         && (full
@@ -486,13 +600,15 @@ fn resolve_account(
                 return Err(ImportError::AccountNeeded);
             }
             let kind = account_kind(info.account_kind);
-            let currency = statement_currency.unwrap_or(request.csv_currency);
-            let name = match (&institution, &masked) {
+            let currency = statement_currency
+                .or(request.currency)
+                .ok_or(ImportError::CurrencyNeeded)?;
+            let name = name.unwrap_or_else(|| match (&institution, &masked) {
                 (Some(i), Some(m)) => format!("{i} …{m}"),
                 (Some(i), None) => i.clone(),
                 (None, Some(m)) => format!("Account …{m}"),
                 (None, None) => "Account".to_owned(),
-            };
+            });
             let account = Account {
                 id: AccountId(ledger.next_id(Table::Accounts)?),
                 name,
@@ -610,7 +726,11 @@ fn import_statement(
         .into_iter()
         .map(|t| {
             let given = match origins.get(&t.source.import_id) {
-                Some((ImportSource::Ofx | ImportSource::Qfx, _)) => ofx_dates(&t),
+                // Bank connections, like OFX, give a posted date and sometimes a
+                // purchase date per row.
+                Some((ImportSource::Ofx | ImportSource::Qfx | ImportSource::SimpleFin, _)) => {
+                    ofx_dates(&t)
+                }
                 Some((ImportSource::Csv, Some(id))) => profiles
                     .profiles()
                     .iter()

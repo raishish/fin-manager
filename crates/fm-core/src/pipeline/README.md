@@ -9,6 +9,28 @@ let report = pipeline::import_file(&mut unlocked, &ImportRequest {
 })?;
 ```
 
+**Statements a bank connection has already parsed** (SimpleFIN, T5.4) go through the same steps without the parse:
+
+```rust
+let report = pipeline::import_statements(&mut unlocked, &StatementsImport {
+    bytes,                       // what the connection sent: kept as the raw import
+    file_name: None,
+    source: ImportSource::SimpleFin,
+    statements,                  // Vec<fm_import_types::Statement>
+    account_names,               // empty, or one Option<String> per statement
+    target: Target::Auto,
+    now: SystemTime::now(),
+})?;
+```
+
+- **The same, with or without a parse.** Both entry points share the raw layer (identical bytes are refused with `AlreadyImported`, whichever way they came first), the savepoint, account resolution, the matcher and the backup.
+- **Opaque account ids.** For `ImportSource::SimpleFin`, the statement's account number is an opaque id:
+  - it identifies the account on its own, so the next sync finds the same account;
+  - no last four digits are taken from it (`masked_number` stays empty unless the statement gives `card_last4`).
+- **Account names.** A name in `account_names` (e.g. "Checking ••1234") is used only when `Target::Auto` creates the account. An existing account is never renamed, and `Target::NewAccount` carries its own name.
+- **Currency.** A statement without a currency can't create an account (`CurrencyNeeded`).
+- **Dates.** Rows from SimpleFIN are dated like OFX rows (a posted date, and a purchase date when given). Existing CSV rows are judged by the built-in layouts.
+
 ## Steps
 Steps 1–4 run in one `SAVEPOINT`: an import is stored completely or not at all.
 
@@ -98,6 +120,11 @@ A pending transaction that never posts stays pending. Transactions are immutable
   - Rollback on failure, and the savepoint closed on every path (error, panic, open transaction).
   - Source facts kept.
 - **TD.4 and TD.5's adversarial fixtures** (`testdata/import-edge-cases`, 17 cases): every row's expected outcome in `import_order`, then the expected final transactions in import order and again in reverse order on a fresh ledger. Under `Target::Auto` (case 04), the files resolve to exactly the case's accounts.
+- **Pre-parsed statements** (T0.11):
+  - Every TD.2 OFX/QFX file imported as parsed statements gives the same reports and the same ledger as the file itself, per persona with `Target::Account`, and with `Target::Auto` on an empty ledger.
+  - Identical bytes are refused, including bytes imported as a file before.
+  - An opaque id ending in digits gives no last four, finds its account on the next sync, and the given name is used at creation only.
+  - A mismatched `account_names` and a currency-less statement are refused with nothing written.
 - **Matcher unit tests** for every rule above, including review 1's cases:
   - the daily-fare month boundary;
   - generic memos;

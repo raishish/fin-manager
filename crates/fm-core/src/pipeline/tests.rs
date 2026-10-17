@@ -919,3 +919,347 @@ fn last_four_digits_need_the_same_kind_of_account() {
         AccountKind::Checking
     );
 }
+
+// ---- Pre-parsed statements (T0.11).
+
+fn statements_request<'a>(
+    bytes: &'a [u8],
+    path: Option<&'a str>,
+    source: ImportSource,
+    statements: Vec<imported::Statement>,
+    target: Target,
+) -> StatementsImport<'a> {
+    StatementsImport {
+        bytes,
+        file_name: path,
+        source,
+        statements,
+        account_names: Vec::new(),
+        target,
+        now: when(),
+    }
+}
+
+fn parsed_ofx(bytes: &[u8]) -> (Vec<imported::Statement>, ImportSource) {
+    let file = fm_import_ofx::parse(bytes).unwrap();
+    let qfx = file
+        .statements
+        .iter()
+        .any(|s| s.info.institution.intu_bid.is_some());
+    (
+        file.statements,
+        if qfx {
+            ImportSource::Qfx
+        } else {
+            ImportSource::Ofx
+        },
+    )
+}
+
+/// Every TD.2 file of each persona, in order: CSV files through `import_file` into both
+/// ledgers, OFX/QFX files through `import_file` into one and, parsed, through
+/// `import_statements` into the other. The two ledgers must come out identical.
+#[test]
+fn statements_import_like_the_files_they_were_parsed_from() {
+    let profiles = fm_import_csv::ProfileSet::with_builtin();
+    let mut compared = 0;
+    for persona in PERSONAS {
+        let (_a, mut by_file) = ledger_with_accounts(persona);
+        let (_b, mut by_statements) = ledger_with_accounts(persona);
+        for f in corpus(persona) {
+            let target = Target::Account(f.account);
+            let file_report = import_file(
+                &mut by_file,
+                &request(&f.bytes, &f.path, target.clone(), &profiles),
+            )
+            .unwrap();
+            let report = if is_ofx(&f.bytes) {
+                compared += 1;
+                let (statements, source) = parsed_ofx(&f.bytes);
+                import_statements(
+                    &mut by_statements,
+                    &statements_request(&f.bytes, Some(&f.path), source, statements, target),
+                )
+                .unwrap()
+            } else {
+                import_file(
+                    &mut by_statements,
+                    &request(&f.bytes, &f.path, target, &profiles),
+                )
+                .unwrap()
+            };
+            assert_eq!(report.import_id, file_report.import_id, "{}", f.path);
+            assert_eq!(
+                report
+                    .statements
+                    .iter()
+                    .map(|s| (s.account_id, s.account_created, s.records.clone()))
+                    .collect::<Vec<_>>(),
+                file_report
+                    .statements
+                    .iter()
+                    .map(|s| (s.account_id, s.account_created, s.records.clone()))
+                    .collect::<Vec<_>>(),
+                "{}",
+                f.path
+            );
+        }
+        assert_eq!(
+            by_statements.load_ledger().unwrap(),
+            by_file.load_ledger().unwrap(),
+            "{persona}"
+        );
+    }
+    assert!(compared >= 15, "OFX/QFX files compared: {compared}");
+
+    // Automatic matching creates the same accounts too.
+    let f = corpus("renter")
+        .into_iter()
+        .find(|f| is_ofx(&f.bytes))
+        .unwrap();
+    let (_a, mut by_file) = empty_ledger();
+    let (_b, mut by_statements) = empty_ledger();
+    import_file(
+        &mut by_file,
+        &request(&f.bytes, &f.path, Target::Auto, &profiles),
+    )
+    .unwrap();
+    let (statements, source) = parsed_ofx(&f.bytes);
+    let report = import_statements(
+        &mut by_statements,
+        &statements_request(&f.bytes, Some(&f.path), source, statements, Target::Auto),
+    )
+    .unwrap();
+    assert!(report.statements.iter().all(|s| s.account_created));
+    assert_eq!(
+        by_statements.load_ledger().unwrap(),
+        by_file.load_ledger().unwrap()
+    );
+}
+
+/// A SimpleFIN-style statement: an opaque account id that happens to end in digits.
+fn simplefin_statement(id: &str, rows: &[(u8, i64, &str)]) -> imported::Statement {
+    imported::Statement {
+        info: imported::StatementInfo {
+            account_kind: Some(imported::AccountKind::Checking),
+            currency: Some("USD".into()),
+            account_number: Some(id.into()),
+            institution: imported::Institution {
+                org: Some("Example Bank".into()),
+                ..Default::default()
+            },
+            ..Default::default()
+        },
+        records: rows
+            .iter()
+            .enumerate()
+            .map(|(i, &(day, minor, description))| imported::Record {
+                posted_date: imported::Date::new(2026, 9, day).unwrap(),
+                transaction_date: None,
+                amount_minor: minor,
+                currency: "USD".into(),
+                description: description.into(),
+                payee: None,
+                memo: None,
+                external_id: Some(format!("TRN-{id}-{day}-{i}")),
+                check_number: None,
+                trn_type: None,
+                balance_minor: None,
+                original_amount_minor: None,
+                original_currency: None,
+                bank_category: None,
+                status: imported::Status::Posted,
+                source_index: i as u32,
+            })
+            .collect(),
+    }
+}
+
+#[test]
+fn identical_bytes_are_refused_whichever_way_they_came() {
+    let (_dir, mut u) = empty_ledger();
+    let statement = simplefin_statement("ACT-9f2c71d3-0042-1234", &[(1, -4_500, "COFFEE")]);
+    let first = import_statements(
+        &mut u,
+        &statements_request(
+            b"{\"accounts\":[]}",
+            None,
+            ImportSource::SimpleFin,
+            vec![statement.clone()],
+            Target::Auto,
+        ),
+    )
+    .unwrap();
+    let before = u.load_ledger().unwrap();
+    let again = import_statements(
+        &mut u,
+        &statements_request(
+            b"{\"accounts\":[]}",
+            None,
+            ImportSource::SimpleFin,
+            vec![statement],
+            Target::Auto,
+        ),
+    );
+    assert!(matches!(
+        again,
+        Err(ImportError::AlreadyImported { import_id }) if import_id == first.import_id
+    ));
+    assert_eq!(u.load_ledger().unwrap(), before);
+
+    // Bytes imported as a file are refused as statements too.
+    let f = corpus("renter")
+        .into_iter()
+        .find(|f| is_ofx(&f.bytes))
+        .unwrap();
+    let profiles = fm_import_csv::ProfileSet::with_builtin();
+    let (_d, mut v) = ledger_with_accounts("renter");
+    import_file(
+        &mut v,
+        &request(&f.bytes, &f.path, Target::Account(f.account), &profiles),
+    )
+    .unwrap();
+    let (statements, source) = parsed_ofx(&f.bytes);
+    assert!(matches!(
+        import_statements(
+            &mut v,
+            &statements_request(
+                &f.bytes,
+                None,
+                source,
+                statements,
+                Target::Account(f.account)
+            ),
+        ),
+        Err(ImportError::AlreadyImported { .. })
+    ));
+}
+
+#[test]
+fn opaque_account_ids_give_no_last_four_digits_and_names_are_used_only_when_creating() {
+    let (_dir, mut u) = empty_ledger();
+    let id = "ACT-9f2c71d3-0042-1234";
+    let mut request = statements_request(
+        b"sync 1",
+        None,
+        ImportSource::SimpleFin,
+        vec![simplefin_statement(
+            id,
+            &[(1, -4_500, "COFFEE"), (2, 250_000, "PAYROLL")],
+        )],
+        Target::Auto,
+    );
+    request.account_names = vec![Some("Checking ••1234".into())];
+    let report = import_statements(&mut u, &request).unwrap();
+    let account = u.account(report.statements[0].account_id).unwrap().unwrap();
+    assert!(report.statements[0].account_created);
+    assert_eq!(account.name, "Checking ••1234");
+    assert_eq!(
+        account.masked_number, None,
+        "no last four from an opaque id"
+    );
+    assert_eq!(account.external_id.as_deref(), Some(id));
+    assert_eq!(u.raw_imports().unwrap()[0].source, ImportSource::SimpleFin);
+
+    // The next sync finds the account by its id alone, and doesn't rename it.
+    let mut next = statements_request(
+        b"sync 2",
+        None,
+        ImportSource::SimpleFin,
+        vec![simplefin_statement(
+            id,
+            &[(2, 250_000, "PAYROLL"), (3, -1_200, "LUNCH")],
+        )],
+        Target::Auto,
+    );
+    next.account_names = vec![Some("Renamed".into())];
+    let report = import_statements(&mut u, &next).unwrap();
+    let statement = &report.statements[0];
+    assert!(!statement.account_created);
+    assert_eq!(statement.account_id, account.id);
+    assert_eq!(statement.inserted(), 1);
+    assert_eq!(statement.duplicates(), 1);
+    assert_eq!(
+        u.account(account.id).unwrap().unwrap().name,
+        "Checking ••1234"
+    );
+    assert_eq!(u.accounts().unwrap().len(), 1);
+
+    // The same id from a file source is an account number: its last four are kept.
+    let (_d, mut v) = empty_ledger();
+    let report = import_statements(
+        &mut v,
+        &statements_request(
+            b"file",
+            None,
+            ImportSource::Ofx,
+            vec![simplefin_statement("999900001234", &[(1, -100, "X")])],
+            Target::Auto,
+        ),
+    )
+    .unwrap();
+    let account = v.account(report.statements[0].account_id).unwrap().unwrap();
+    assert_eq!(account.masked_number.as_deref(), Some("1234"));
+}
+
+#[test]
+fn statements_import_refuses_what_it_cant_place() {
+    let (_dir, mut u) = empty_ledger();
+    let statement = simplefin_statement("ACT-1", &[(1, -100, "X")]);
+    let mut request = statements_request(
+        b"names",
+        None,
+        ImportSource::SimpleFin,
+        vec![statement.clone(), statement.clone()],
+        Target::Auto,
+    );
+    request.account_names = vec![Some("One".into())];
+    assert!(matches!(
+        import_statements(&mut u, &request),
+        Err(ImportError::AccountNamesMismatch)
+    ));
+    let mut no_currency = statement;
+    no_currency.info.currency = None;
+    assert!(matches!(
+        import_statements(
+            &mut u,
+            &statements_request(
+                b"currency",
+                None,
+                ImportSource::SimpleFin,
+                vec![no_currency],
+                Target::Auto
+            ),
+        ),
+        Err(ImportError::CurrencyNeeded)
+    ));
+    assert!(u.raw_imports().unwrap().is_empty());
+    assert!(u.accounts().unwrap().is_empty());
+    assert!(u.connection().is_autocommit());
+}
+
+/// A source can send nothing but errors (a SimpleFIN response with no accounts): the
+/// raw import is still kept, once, with nothing derived from it.
+#[test]
+fn an_import_with_no_statements_keeps_one_raw_import() {
+    let (_dir, mut u) = empty_ledger();
+    let report = import_statements(
+        &mut u,
+        &statements_request(
+            b"{\"errors\":[\"connection needs attention\"],\"accounts\":[]}",
+            None,
+            ImportSource::SimpleFin,
+            Vec::new(),
+            Target::Auto,
+        ),
+    )
+    .unwrap();
+    assert!(report.statements.is_empty());
+    let raws = u.raw_imports().unwrap();
+    assert_eq!(raws.len(), 1);
+    assert_eq!(raws[0].id, report.import_id);
+    assert_eq!(raws[0].account_id, None);
+    assert!(u.transactions().unwrap().is_empty());
+    assert!(u.decisions().unwrap().is_empty());
+    assert!(u.connection().is_autocommit());
+}
