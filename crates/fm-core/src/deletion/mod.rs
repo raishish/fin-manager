@@ -7,6 +7,10 @@
 //! this module decides what goes: which original files are deleted whole, which are
 //! only partly in scope, and what the user is shown before confirming.
 
+mod overlap;
+
+pub use overlap::{DeletedScope, OVERLAP_WARNING, deleted_scopes, overlaps_deleted};
+
 use std::fmt;
 use std::fs;
 use std::io;
@@ -134,7 +138,15 @@ pub fn delete(
     partial: PartialFiles,
 ) -> Result<Deleted, DeletionError> {
     let (plan, _) = plan(ledger, target, partial)?;
+    // Read before the rows it is computed from are gone (decision 44).
+    let scope = overlap::scope_of(ledger, target)?;
     let counts = ledger.delete_planned(&plan.to_storage(), false)?;
+    // Recorded right after the deletion commits. If the app stops in between, this
+    // one deletion goes unrecorded and a later overlapping file isn't flagged; the
+    // data itself is deleted either way.
+    if let Some(scope) = scope {
+        overlap::record(ledger, &scope)?;
+    }
     Ok(Deleted {
         counts,
         backups: backup_offer(ledger),

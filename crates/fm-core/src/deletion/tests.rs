@@ -820,3 +820,134 @@ fn a_replaces_chain_across_the_deletion_is_cleared_not_deleted() {
     let seen = check_deletion(&data, Target::Import(ImportId(2)), PartialFiles::Keep);
     assert!(seen.replaces_cleared > 0, "{seen:?}");
 }
+
+// ---- decision 44: deleted periods are recorded, overlapping imports flagged ---------------
+
+fn scope_rows(u: &Unlocked) -> Vec<(String, String)> {
+    let mut stmt = u
+        .connection()
+        .prepare("SELECT key, value FROM meta WHERE key LIKE 'deletion.scope.%' ORDER BY key")
+        .unwrap();
+    stmt.query_map([], |r| Ok((r.get(0)?, r.get(1)?)))
+        .unwrap()
+        .map(Result::unwrap)
+        .collect()
+}
+
+#[test]
+fn a_range_deletion_records_its_scope_and_flags_overlapping_imports() {
+    let data = sample_ledger();
+    let (_dir, mut u) = ledger_with(&data);
+    let d = |s: &str| s.parse::<Date>().unwrap();
+    let account = data.accounts[0].id;
+    let target = Target::Range {
+        account: Some(account),
+        from: d("2025-09-01"),
+        to: d("2025-09-30"),
+    };
+
+    // A preview records nothing.
+    preview(&mut u, target, PartialFiles::Keep).unwrap();
+    assert!(scope_rows(&u).is_empty());
+    assert!(!overlaps_deleted(&u, Some(account), d("2025-09-10"), d("2025-09-20")).unwrap());
+
+    delete(&mut u, target, PartialFiles::Keep).unwrap();
+    assert_eq!(
+        scope_rows(&u),
+        [(
+            "deletion.scope.1".to_string(),
+            format!("{}|2025-09-01|2025-09-30", account.0)
+        )]
+    );
+    // A statement overlapping the deleted month is flagged; one outside isn't.
+    assert!(overlaps_deleted(&u, Some(account), d("2025-08-15"), d("2025-09-14")).unwrap());
+    assert!(overlaps_deleted(&u, None, d("2025-09-30"), d("2025-10-31")).unwrap());
+    assert!(!overlaps_deleted(&u, Some(account), d("2025-10-01"), d("2025-10-31")).unwrap());
+    let other = AccountId(account.0 + 1000);
+    assert!(!overlaps_deleted(&u, Some(other), d("2025-09-10"), d("2025-09-20")).unwrap());
+    assert_eq!(
+        OVERLAP_WARNING,
+        "This file covers a period you deleted earlier"
+    );
+}
+
+#[test]
+fn file_and_account_deletions_record_their_date_span() {
+    let data = sample_ledger();
+    let date_span = |f: &dyn Fn(&Transaction) -> bool| {
+        let dates: BTreeSet<Date> = data
+            .transactions
+            .iter()
+            .filter(|t| f(t))
+            .map(date_of)
+            .collect();
+        (*dates.first().unwrap(), *dates.last().unwrap())
+    };
+
+    let (_dir, mut u) = ledger_with(&data);
+    let import = &data.imports[0];
+    let (from, to) = date_span(&|t| t.source.import_id == import.id);
+    delete(&mut u, Target::Import(import.id), PartialFiles::Keep).unwrap();
+    assert_eq!(
+        deleted_scopes(&u).unwrap(),
+        [DeletedScope {
+            account: import.account_id,
+            from: Some(from),
+            to: Some(to),
+        }]
+    );
+
+    // An account is recorded for any account: a re-imported file makes a new one.
+    let (_dir2, mut u) = ledger_with(&data);
+    let account = data.accounts[0].id;
+    let (from, to) = date_span(&|t| t.account_id == account);
+    delete(&mut u, Target::Account(account), PartialFiles::Keep).unwrap();
+    assert_eq!(
+        deleted_scopes(&u).unwrap(),
+        [DeletedScope {
+            account: None,
+            from: Some(from),
+            to: Some(to),
+        }]
+    );
+    let new_account = AccountId(9_999);
+    assert!(overlaps_deleted(&u, Some(new_account), from, from).unwrap());
+
+    // Several deletions accumulate, numbered in order.
+    let d = |s: &str| s.parse::<Date>().unwrap();
+    delete(
+        &mut u,
+        Target::Range {
+            account: None,
+            from: d("2030-01-01"),
+            to: d("2030-01-31"),
+        },
+        PartialFiles::Keep,
+    )
+    .unwrap();
+    let keys: Vec<String> = scope_rows(&u).into_iter().map(|(k, _)| k).collect();
+    assert_eq!(keys, ["deletion.scope.1", "deletion.scope.2"]);
+}
+
+#[test]
+fn deleted_scopes_hold_no_transaction_details() {
+    let data = sample_ledger();
+    let (_dir, mut u) = ledger_with(&data);
+    for import in &data.imports {
+        delete(&mut u, Target::Import(import.id), PartialFiles::Keep).unwrap();
+    }
+    let rows = scope_rows(&u);
+    assert!(!rows.is_empty());
+    for (_, value) in &rows {
+        // An account id and two ISO dates, nothing else.
+        let parts: Vec<&str> = value.split('|').collect();
+        assert_eq!(parts.len(), 3, "{value}");
+        assert!(parts[0].bytes().all(|b| b.is_ascii_digit()), "{value}");
+        for date in &parts[1..] {
+            assert!(date.is_empty() || date.parse::<Date>().is_ok(), "{value}");
+        }
+        for t in &data.transactions {
+            assert!(!value.contains(&t.description), "{value}");
+        }
+    }
+}

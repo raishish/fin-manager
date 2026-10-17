@@ -121,8 +121,33 @@ The cases assert that they actually met decisions, rules, recorded rows and a cl
 **Delete everything:** see above. **IPC:** `delete_everything_then_the_backup_offer` and
 `preview_and_delete_an_account_through_the_app` (fm-app).
 
+## Files covering a deleted period (decision 44)
+A different file covering a deleted period, such as a re-saved copy or a later
+overlapping export, is imported in full, with a warning: "This file covers a period you
+deleted earlier" (`OVERLAP_WARNING`).
+
+**What is recorded.** Each real deletion, never a preview, records what it covered in the
+ledger's `meta` table: one row `deletion.scope.<n>` = `account|from|to`. That is an
+account id (or empty for any account) and two ISO dates, with no transaction details
+(`deleted_scopes_hold_no_transaction_details`).
+- **A range:** its account and dates.
+- **A file:** its account and its transactions' date span.
+- **An account:** any account, over that account's date span. A file imported again
+  later creates a new account with a new id, so matching on the deleted id would miss
+  exactly the re-import the warning is for. Over-warning is the safer side.
+
+The scope is read before the deletion and written right after it commits. If the app
+stops in between, that one deletion goes unrecorded and a later overlapping file isn't
+flagged; the data itself is deleted either way.
+
+**Checking an import.** `overlaps_deleted(ledger, account, from, to)` takes the new file's
+account (`None` if not known yet) and statement period, and says whether to show the
+warning; the import goes ahead either way. The import summary (T5.5) calls it.
+
+**TODO (decision 44):** refine this, for example by skipping the overlapping rows by
+default with a "bring them back" choice.
+
 ## Known gaps
-- **Another file covering the same period.** A different file that covers a deleted
-  period, such as a re-saved copy or a later overlapping export, could re-import the
-  deleted rows. Only the file the rows were deleted from records them. This was raised
-  by fm-core and is with the user; a fix will follow as its own change.
+- **Overlapping files are only flagged.** A different file covering a deleted period
+  brings the deleted rows back, with the warning above; refining this is the decision-44
+  TODO.
