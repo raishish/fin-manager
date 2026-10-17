@@ -75,6 +75,7 @@ Every connection also turns on `foreign_keys` and `secure_delete`, so deleted ro
   - It lets `decisions.builtin_logic` be `import_pipeline`. SQLite can't change a `CHECK` in place, so the decisions table is rebuilt with [SQLite's procedure](https://sqlite.org/lang_altertable.html): create, copy, drop, rename, then recreate the indexes and triggers.
 - Version 4 (`schema/v4_deleted_rows.sql`) adds `deleted_rows`: the rows deleted out of an import that was kept (SPEC decision 43, see below).
 - Version 5 (`schema/v5_reject_state.sql`) recreates the decisions trigger so that a decision the user has seen may move applied → dismissed (SPEC decision 46).
+- Version 6 (`schema/v6_id_marks.sql`) adds `id_marks`, so ids are never reused (T0.14, see below). It is seeded with each table's largest id at the time.
 - A migration that rebuilds a table runs with `foreign_keys_off`. The runner switches foreign keys off around its transaction, so the `DROP TABLE` can't cascade into rules, and requires `foreign_key_check` to come back empty before it commits.
 
 ## Ledger tables and the repository
@@ -82,7 +83,7 @@ The tables mirror the T0.5 model (`crates/fm-core/src/model/README.md`). All of 
 
 | Methods | Notes |
 |---|---|
-| `insert_*`, `account`, `transaction`, `decision`, `raw_import`, `accounts`, `transactions`, `transactions_for_account`, `decisions`, `decisions_for_transaction`, `rules`, `raw_imports`, `imports_with_sha256` | Writes keep the caller's ids; `next_id(Table)` gives a free one. Reads rebuild validated model types (rules through `Rule::validate`, the category list through `Taxonomy::validate`): a row that breaks an invariant is `StorageError::InvalidRow`, which names the table and the reason, never the row's contents |
+| `insert_*`, `account`, `transaction`, `decision`, `raw_import`, `accounts`, `transactions`, `transactions_for_account`, `decisions`, `decisions_for_transaction`, `rules`, `raw_imports`, `imports_with_sha256` | Writes keep the caller's ids; `next_id(Table)` gives one never used: one more than the largest the table has ever held, so deleting the newest rows (a rule and its decisions, a whole import) doesn't hand their ids to new rows, which a screen still holding an old id could otherwise act on. Reads rebuild validated model types (rules through `Rule::validate`, the category list through `Taxonomy::validate`): a row that breaks an invariant is `StorageError::InvalidRow`, which names the table and the reason, never the row's contents |
 | `taxonomy`, `save_taxonomy` | The whole category list. Saving upserts by id, so a rename re-applies to past decisions. A category still in use can't be removed (`RESTRICT`); merge it instead. A new ledger starts with `assets/taxonomy/default-v1.json` |
 | `save_ledger`, `load_ledger` | Write a whole `Ledger` into an empty ledger, or read it all back. Used for fixtures and the TD.1 ground truth |
 | `set_decision_state`, `mark_decision_seen` | The only changes a stored decision can take (see below) |
@@ -98,6 +99,7 @@ The tables mirror the T0.5 model (`crates/fm-core/src/model/README.md`). All of 
 | Transactions | Immutable, with one exception: `post_pending` turns a pending transaction into the posted one. That may change everything except the id and the account, including the import it points to. A `DELETE` happens only through the deletion API |
 | Raw imports | The id, `sha256` and `bytes` never change; metadata such as the file name can. A `DELETE` happens only through the deletion API |
 | Deleted rows | Inserted only by the deletion API, never updated, and removed only with their import |
+| Id marks | One per table that `next_id` serves, holding the highest id ever inserted. Every insert raises its table's mark (an `AFTER INSERT` trigger); a mark is never lowered, renamed or deleted, and no mark is added |
 | Rules | Once a rule has made decisions, its matcher, action, origin and id are fixed (`priority` and `enabled` can still change). Changing what it does means a new rule |
 | Accounts | The id and currency never change |
 

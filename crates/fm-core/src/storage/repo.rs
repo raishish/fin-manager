@@ -37,7 +37,7 @@ pub enum Table {
 }
 
 impl Table {
-    const fn name(self) -> &'static str {
+    pub(crate) const fn name(self) -> &'static str {
         match self {
             Self::Accounts => "accounts",
             Self::RawImports => "raw_imports",
@@ -818,11 +818,16 @@ fn count(conn: &Connection, table: &str) -> Result<u64, StorageError> {
 
 /// The public repository API, on an unlocked ledger.
 impl Unlocked {
-    /// An id not used yet in `table` (one more than the largest).
+    /// An id never used in `table`: one more than the largest it has ever held, so a
+    /// deleted row's id is not given to a new one (migration 6, `id_marks`).
     pub fn next_id(&self, table: Table) -> Result<i64, StorageError> {
+        let name = table.name();
         Ok(self.connection().query_row(
-            &format!("SELECT coalesce(max(id), 0) + 1 FROM {}", table.name()),
-            [],
+            &format!(
+                "SELECT max(coalesce((SELECT max(id) FROM {name}), 0),
+                            coalesce((SELECT high FROM id_marks WHERE table_name = ?1), 0)) + 1"
+            ),
+            [name],
             |r| r.get(0),
         )?)
     }

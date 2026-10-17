@@ -57,6 +57,12 @@ pub const MIGRATIONS: &[Migration] = &[
         sql: include_str!("schema/v5_reject_state.sql"),
         foreign_keys_off: false,
     },
+    Migration {
+        version: 6,
+        name: "ids are never reused",
+        sql: include_str!("schema/v6_id_marks.sql"),
+        foreign_keys_off: false,
+    },
 ];
 
 /// What the Rust side can temporarily allow on a connection. Each is off except while

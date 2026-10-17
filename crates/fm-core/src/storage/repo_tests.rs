@@ -1420,3 +1420,203 @@ fn deleted_row_records_are_written_only_by_deletion() {
     ));
     assert_eq!(u.deleted_rows(ImportId(2)).unwrap(), [0, 3]);
 }
+
+// ---- Ids are never reused (T0.14).
+
+const ID_TABLES: [Table; 7] = [
+    Table::Accounts,
+    Table::RawImports,
+    Table::Transactions,
+    Table::CategoryGroups,
+    Table::Categories,
+    Table::Decisions,
+    Table::Rules,
+];
+
+fn max_id(u: &Unlocked, table: Table) -> i64 {
+    u.connection()
+        .query_row(
+            &format!("SELECT coalesce(max(id), 0) FROM {}", table.name()),
+            [],
+            |r| r.get(0),
+        )
+        .unwrap()
+}
+
+#[test]
+fn deleting_the_newest_decision_doesnt_free_its_id() {
+    let (_dir, mut u) = with_sample();
+    // Transaction 5 holds decisions 9, 10 and 11, the newest.
+    assert_eq!(max_id(&u, Table::Decisions), 11);
+    let plan = DeletionPlan {
+        transactions: Some(scope(Some(2), Some("2026-09-10"), Some("2026-09-10"))),
+        ..DeletionPlan::default()
+    };
+    u.delete_planned(&plan, false).unwrap();
+    assert_eq!(max_id(&u, Table::Decisions), 8);
+    let id = u.next_id(Table::Decisions).unwrap();
+    assert_eq!(id, 12);
+    let mut decision = u.decision(DecisionId(1)).unwrap().unwrap();
+    decision.id = DecisionId(id);
+    decision.state = DecisionState::Suggested;
+    u.insert_decision(&decision).unwrap();
+    assert!(u.decision(DecisionId(11)).unwrap().is_none());
+    assert_eq!(u.next_id(Table::Decisions).unwrap(), 13);
+}
+
+#[test]
+fn no_table_gives_out_a_deleted_id() {
+    let (_dir, mut u) = with_sample();
+    // The newest rule is scoped to an account that goes below.
+    let mut rule = u.rules().unwrap().remove(1);
+    rule.id = RuleId(4);
+    rule.matcher.account_id = Some(AccountId(11));
+    u.insert_rule(&rule).unwrap();
+    // And the newest category group and category are ones nothing uses.
+    let mut taxonomy = u.taxonomy().unwrap();
+    let group = CategoryGroupId(u.next_id(Table::CategoryGroups).unwrap());
+    let category = CategoryId(u.next_id(Table::Categories).unwrap());
+    taxonomy.groups.push(CategoryGroup {
+        id: group,
+        key: "test".into(),
+        name: "Test".into(),
+        hidden: false,
+    });
+    taxonomy.categories.push(Category {
+        id: category,
+        group_id: group,
+        key: "test.only".into(),
+        name: "Only".into(),
+        hidden: false,
+        merged_into: None,
+    });
+    taxonomy.version.revision += 1;
+    u.save_taxonomy(&taxonomy).unwrap();
+    let before: Vec<i64> = ID_TABLES.iter().map(|&t| max_id(&u, t)).collect();
+    // Everything that can go: all transactions, imports and accounts, with their
+    // decisions and rules; then the new category and group.
+    let accounts: Vec<AccountId> = u.accounts().unwrap().iter().map(|a| a.id).collect();
+    let imports: Vec<ImportId> = u.raw_imports().unwrap().iter().map(|r| r.id).collect();
+    u.delete_planned(
+        &DeletionPlan {
+            transactions: Some(scope(None, None, None)),
+            imports,
+            accounts,
+        },
+        false,
+    )
+    .unwrap();
+    let mut taxonomy = u.taxonomy().unwrap();
+    taxonomy.categories.retain(|c| c.id != category);
+    taxonomy.groups.retain(|g| g.id != group);
+    taxonomy.version.revision += 1;
+    u.save_taxonomy(&taxonomy).unwrap();
+
+    for (&table, &old_max) in ID_TABLES.iter().zip(&before) {
+        let next = u.next_id(table).unwrap();
+        assert!(
+            next > old_max,
+            "{}: next id {next}, but {old_max} was used",
+            table.name()
+        );
+    }
+    // Each table really lost its newest row.
+    for (&table, &old_max) in ID_TABLES.iter().zip(&before) {
+        assert!(max_id(&u, table) < old_max, "{}", table.name());
+    }
+}
+
+#[test]
+fn id_marks_only_grow() {
+    let (_dir, u) = with_sample();
+    assert!(sql_fails(
+        &u,
+        "UPDATE id_marks SET high = 1 WHERE table_name = 'decisions'"
+    ));
+    assert!(sql_fails(&u, "DELETE FROM id_marks"));
+    assert!(sql_fails(
+        &u,
+        "INSERT INTO id_marks (table_name, high) VALUES ('meta', 0)"
+    ));
+    assert!(sql_fails(
+        &u,
+        "INSERT OR REPLACE INTO id_marks (table_name, high) VALUES ('decisions', 0)"
+    ));
+    assert!(sql_fails(
+        &u,
+        "UPDATE id_marks SET table_name = 'rules' WHERE table_name = 'decisions'"
+    ));
+    // Raising it is harmless and allowed (inserts do it).
+    u.connection()
+        .execute_batch("UPDATE id_marks SET high = 100 WHERE table_name = 'decisions'")
+        .unwrap();
+    assert_eq!(u.next_id(Table::Decisions).unwrap(), 101);
+}
+
+/// A ledger written before migration 6 gets its marks at its current largest ids.
+#[test]
+fn migration_6_starts_each_mark_at_the_ledgers_largest_id() {
+    let dir = tempfile::tempdir().unwrap();
+    let vault = Vault::at(&dir.path().join("ledger"));
+    fs::create_dir_all(vault.dir()).unwrap();
+    let key = keyfile::DataKey::generate().unwrap();
+    let mut kf = keyfile::Keyfile::new().unwrap();
+    kf.set_slot(SlotKind::Password, PASSWORD, P, &key).unwrap();
+    kf.write_atomic(vault.keyfile_path()).unwrap();
+    let (mut conn, permits) = db::open_encrypted(vault.db_path(), &key, true).unwrap();
+    assert_eq!(
+        db::migrate(&mut conn, &permits, &MIGRATIONS[..5]).unwrap(),
+        5
+    );
+    repo::seed_default_taxonomy(&mut conn).unwrap();
+    conn.execute_batch(
+        "INSERT INTO accounts (id, name, kind, currency, own_account, created_at)
+             VALUES (7, 'Card', 'credit_card', 'USD', 1, 0);
+         INSERT INTO raw_imports (id, source, imported_at, sha256, bytes)
+             VALUES (3, 'manual', 0, x'6e340b9cffb37a989ca544e6bb780a2c78901d3fb33738768511a30617afa01d', x'00');
+         INSERT INTO transactions (id, account_id, import_id, source_index, status, posted_date,
+             amount_minor, currency, description)
+             VALUES (40, 7, 3, 0, 'posted', '2026-01-02', -500, 'USD', 'COFFEE');
+         INSERT INTO decisions (id, transaction_id, assignment, bucket, source,
+             taxonomy_base, taxonomy_revision, decided_at, state)
+             VALUES (90, 40, 'bucket', 'needs_review', 'user', '1', 0, 10, 'applied');",
+    )
+    .unwrap();
+    let largest = |conn: &Connection, table: &str| -> i64 {
+        conn.query_row(
+            &format!("SELECT coalesce(max(id), 0) FROM {table}"),
+            [],
+            |r| r.get(0),
+        )
+        .unwrap()
+    };
+    let categories = largest(&conn, "categories");
+    let groups = largest(&conn, "category_groups");
+    drop(conn);
+
+    let u = vault.unlock(PASSWORD).unwrap();
+    assert_eq!(u.schema_version().unwrap(), MIGRATIONS.len() as u32);
+    let marks: std::collections::BTreeMap<String, i64> = u
+        .connection()
+        .prepare("SELECT table_name, high FROM id_marks")
+        .unwrap()
+        .query_map([], |r| Ok((r.get(0)?, r.get(1)?)))
+        .unwrap()
+        .map(Result::unwrap)
+        .collect();
+    let expected: std::collections::BTreeMap<String, i64> = [
+        ("accounts", 7),
+        ("raw_imports", 3),
+        ("transactions", 40),
+        ("category_groups", groups),
+        ("categories", categories),
+        ("decisions", 90),
+        ("rules", 0),
+    ]
+    .into_iter()
+    .map(|(t, h)| (t.to_owned(), h))
+    .collect();
+    assert_eq!(marks, expected);
+    assert_eq!(u.next_id(Table::Decisions).unwrap(), 91);
+    assert_eq!(u.next_id(Table::Rules).unwrap(), 1);
+}
