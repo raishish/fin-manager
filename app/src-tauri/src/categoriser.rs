@@ -664,7 +664,7 @@ mod tests {
     const PASSWORD: &str = "velvet anchor mosaic tundra";
     const FILE: &str = "chase/freedom_2025_h1.csv";
     /// Rows imported in the tests CI runs (CI's model job has minutes to spare, not tens).
-    const ROWS: usize = 50;
+    const ROWS: usize = 30;
 
     /// The model at `FM_LLM_TEST_MODEL` (CPU only with `FM_LLM_TEST_CPU`), as fm-llm's
     /// tests take it.
@@ -849,7 +849,8 @@ mod tests {
         let host = host();
         let (_dir, app, w) = app();
         let categoriser = Categoriser::start(app.handle().clone(), Arc::clone(&host));
-        import(&w, Some(ROWS));
+        // A few rows are enough: what this proves is when the model runs.
+        import(&w, Some(10));
         std::thread::sleep(POLL * 6);
         assert_eq!(categoriser.stats(), Stats::default());
         let before = ledger(&app);
@@ -866,41 +867,28 @@ mod tests {
         host.shut_down();
     }
 
-    /// Review finding 1: a description far longer than a bank's (2,000 characters) is
-    /// cut for the model and answered like the rest.
+    /// Review finding 1, on one import: a description far longer than a bank's (2,000
+    /// characters) is cut for the model and answered like the rest; transactions the
+    /// model can't answer stay in review while the others are answered, and later runs
+    /// neither stall on them nor ask them again.
     #[test]
-    fn a_very_long_description_is_answered_like_the_rest() {
+    fn a_long_description_is_answered_and_what_cant_be_answered_is_left() {
         let Some(host) = loaded_host() else { return };
         let (_dir, app, w) = app();
-        let categoriser = Categoriser::start(app.handle().clone(), Arc::clone(&host));
         import_rows(&w, Some(ROWS), |rows| {
             rows[3] = format!(
                 "06/20/2025,06/21/2025,{},Shopping,Sale,-12.34,\n",
                 "LONG MEMO TEXT ".repeat(134)
             );
         });
-        assert!(
-            ledger(&app)
-                .transactions
-                .iter()
-                .any(|t| t.description.len() >= 2000)
-        );
-        assert!(wait(600, || left(&app).is_empty()), "every row answered");
-        let stats = categoriser.stats();
-        assert_eq!((stats.skipped, stats.failed), (0, 0));
-        consistent(&ledger(&app));
-        categoriser.shut_down();
-        host.shut_down();
-    }
-
-    /// Review finding 1: a transaction the model can't answer stays in review; the others
-    /// are answered, and later runs neither stall on it nor ask it again.
-    #[test]
-    fn a_transaction_the_model_cant_answer_is_left_and_the_rest_go_on() {
-        let Some(host) = loaded_host() else { return };
-        let (_dir, app, w) = app();
-        import(&w, Some(ROWS));
-        let failing = ledger(&app)
+        let stored = ledger(&app);
+        let long = stored
+            .transactions
+            .iter()
+            .find(|t| t.description.len() >= 2000)
+            .unwrap()
+            .id;
+        let failing = stored
             .transactions
             .iter()
             .filter(|t| t.description.contains("TARGET"))
@@ -920,6 +908,12 @@ mod tests {
         let stats = categoriser.stats();
         assert_eq!(stats.asked, ROWS - failing);
         assert_eq!((stats.failed, stats.interrupted), (0, 0));
+        assert!(
+            model_decisions(&ledger(&app))
+                .iter()
+                .any(|d| d.transaction_id == long),
+            "the long one was answered"
+        );
         // A later trigger: nothing left to ask in this ledger session.
         imported();
         std::thread::sleep(POLL * 4);
@@ -930,35 +924,55 @@ mod tests {
         host.shut_down();
     }
 
-    /// Done-when (and review finding 6): a lock while a question has the model stops the
-    /// run and drops its session at once, without waiting for the question. The run is
-    /// held mid-way (the probe hands the test the model's turn after some answers); the
-    /// next unlocked session finishes it.
+    /// Done-when (and review findings 6 and 7), on one import, two locks:
+    /// 1. While a question has the model (the probe hands the test the model's turn
+    ///    mid-run): the lock stops the run and drops its session at once, without
+    ///    waiting for the question.
+    /// 2. In the next session, a real lock landing between two tokens: the answer stops
+    ///    at the next token, the batch in hand isn't written, and the session is dropped.
+    ///
+    /// After each, the ledger holds exactly the batches applied before the lock, and the
+    /// next unlocked session finishes the run.
     #[test]
-    fn a_lock_while_a_question_runs_stops_the_run_and_drops_the_session() {
+    fn a_lock_stops_the_run_while_a_question_runs_and_mid_token() {
         let Some(host) = loaded_host() else { return };
         let (_dir, app, w) = app();
         import(&w, Some(ROWS));
-        let (reached, wait_here) = (mpsc::channel(), mpsc::channel::<()>());
-        let (reached_tx, reached_rx) = reached;
-        let (go_tx, go_rx) = wait_here;
+        let (reached_tx, reached_rx) = mpsc::channel();
+        let (go_tx, go_rx) = mpsc::channel::<()>();
         let go_rx = Mutex::new(Some(go_rx));
         let tokens = Arc::new(AtomicUsize::new(0));
+        // The token count at which the second lock lands; 0 until the test arms it.
+        let lock_at = Arc::new(AtomicUsize::new(0));
+        let handle = app.handle().clone();
         let probe = Probe {
             on_token: Some(Arc::new({
                 let tokens = Arc::clone(&tokens);
+                let lock_at = Arc::clone(&lock_at);
                 move || {
-                    if tokens.fetch_add(1, Ordering::SeqCst) == 150 {
+                    let n = tokens.fetch_add(1, Ordering::SeqCst);
+                    if n == 150 {
                         let _ = reached_tx.send(());
                         if let Some(rx) = go_rx.lock().unwrap().take() {
                             let _ = rx.recv();
                         }
+                    }
+                    if n > 0 && n == lock_at.load(Ordering::SeqCst) {
+                        // The worker holds no ledger lock while it answers.
+                        handle.state::<AppUnlock>().lock();
                     }
                 }
             })),
             ..Probe::default()
         };
         let categoriser = Categoriser::start_with(app.handle().clone(), Arc::clone(&host), probe);
+        let written_matches = |stopped: &Stats| {
+            let after = ledger(&app);
+            assert_eq!(model_decisions(&after).len(), stopped.asked);
+            consistent(&after);
+        };
+
+        // 1. A lock while a question runs.
         reached_rx.recv_timeout(Duration::from_secs(300)).unwrap();
         let question = host.interactive();
         go_tx.send(()).unwrap();
@@ -977,56 +991,29 @@ mod tests {
             "stopped and dropped while the question still runs"
         );
         drop(question);
-
+        let first = categoriser.stats();
         invoke_with(&w, "unlock_with_password", json!({ "password": PASSWORD })).unwrap();
-        consistent(&ledger(&app));
+        written_matches(&first);
+
+        // 2. A lock between two tokens, about ten answers into the next session.
+        lock_at.store(tokens.load(Ordering::SeqCst) + 120, Ordering::SeqCst);
+        assert!(wait(300, || categoriser.stats().interrupted == 2));
+        assert!(wait(5, || categoriser.stats().sessions_alive == 0));
+        let second = categoriser.stats();
+        assert_eq!(second.sessions_built, 2);
+        invoke_with(&w, "unlock_with_password", json!({ "password": PASSWORD })).unwrap();
+        written_matches(&second);
+        assert!(second.asked < ROWS);
+
         assert!(
             wait(600, || left(&app).is_empty()),
             "the next session finishes it"
         );
         assert_eq!(
             categoriser.stats().sessions_built,
-            2,
-            "a new session after the lock"
+            3,
+            "a new session each time"
         );
-        consistent(&ledger(&app));
-        categoriser.shut_down();
-        host.shut_down();
-    }
-
-    /// Review finding 7: a real lock landing while the model is generating (between two
-    /// tokens) stops it at the next token; the batch in hand is not written, the session
-    /// is dropped, and the next unlocked session finishes the run.
-    #[test]
-    fn a_lock_mid_token_stops_the_answer_and_writes_nothing_of_the_batch() {
-        let Some(host) = loaded_host() else { return };
-        let (_dir, app, w) = app();
-        import(&w, Some(ROWS));
-        let handle = app.handle().clone();
-        let tokens = Arc::new(AtomicUsize::new(0));
-        let probe = Probe {
-            on_token: Some(Arc::new({
-                let tokens = Arc::clone(&tokens);
-                move || {
-                    if tokens.fetch_add(1, Ordering::SeqCst) == 150 {
-                        // The worker holds no ledger lock while it answers.
-                        handle.state::<AppUnlock>().lock();
-                    }
-                }
-            })),
-            ..Probe::default()
-        };
-        let categoriser = Categoriser::start_with(app.handle().clone(), Arc::clone(&host), probe);
-        assert!(wait(300, || categoriser.stats().interrupted == 1));
-        assert!(wait(5, || categoriser.stats().sessions_alive == 0));
-        let stopped = categoriser.stats();
-        invoke_with(&w, "unlock_with_password", json!({ "password": PASSWORD })).unwrap();
-        // What was written is exactly the batches applied before the lock.
-        let after = ledger(&app);
-        assert_eq!(model_decisions(&after).len(), stopped.asked);
-        assert!(stopped.asked < ROWS);
-        consistent(&after);
-        assert!(wait(600, || left(&app).is_empty()));
         consistent(&ledger(&app));
         categoriser.shut_down();
         host.shut_down();
