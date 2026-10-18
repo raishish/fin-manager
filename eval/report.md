@@ -1,6 +1,6 @@
 # Model comparison (T2.4, SPEC decision 33)
 
-**Recommendation.** Use **Qwen3.5-4B** for categorising and for questions, and apply its categories only when it is at least 80% confident; everything else waits in the review queue. Of the four small open models we tried, it gets the most right on both jobs: with it, 82.6% of a household's transactions end up correctly categorised and 2.8% wrong, against 54.4% and 0.4% with your rules and corrections alone. Its confidence also means what it says, which is what makes the 80% cut-off work; the runner-up (Qwen3-4B-2507) is about as accurate but sure of itself even when it's wrong. It takes under a second per transaction on a Mac and fits in 8 GB there. On a computer without a graphics chip it needed 6.3 GB, too much for 8 GB; switching off one llama.cpp optimisation (CPU weight repacking) brings that to 3.8 GB with the same answers, at a cost in speed: categorising a 300-transaction import takes about 6–7 minutes in the background, instead of about 3. A Linux test run will confirm this. Licence: Apache-2.0.
+**Recommendation.** Use **Qwen3.5-4B** for categorising and for questions, and apply its categories only when it is at least 80% confident; everything else waits in the review queue. Of the four small open models we tried, it gets the most right on both jobs: with it, 82.6% of a household's transactions end up correctly categorised and 2.8% wrong, against 54.4% and 0.4% with your rules and corrections alone. Its confidence also means what it says, which is what makes the 80% cut-off work; the runner-up (Qwen3-4B-2507) is about as accurate but sure of itself even when it's wrong. It takes under a second per transaction on a Mac and fits in 8 GB there. On a computer without a graphics chip it needed 6.3 GB, too much for 8 GB; switching off one llama.cpp optimisation (CPU weight repacking) brings that to 3.8 GB with the same answers, at a cost in speed: categorising a 300-transaction import takes about 6–7 minutes in the background, instead of about 3. On a real 4-core Linux machine without a GPU (T5.14), the build as shipped peaked at 3.4 GiB and took 3.6 s per transaction (about 8 minutes for that import, in the background); repacking would have used 4.7 GiB for only about 5% more speed, so switching it off costs little there. Licence: Apache-2.0.
 
 | | Qwen3.5-4B | Qwen3-4B-2507 | Ministral-3-3B | Phi-4-mini |
 |---|---|---|---|---|
@@ -101,7 +101,7 @@ Ministral-3-3B and Phi-4-mini were measured on the CPU only on an earlier build 
 - **What this means for an import:** rules and transfer detection settle most transactions first; in TD.1 the model sees about 45%. A 300-transaction import is then about 135 model answers: about 1.5 minutes with Qwen3.5-4B on Apple Silicon; on a computer without a graphics chip, about 6–7 minutes. It runs in the background after the first fixed-logic results are shown (SPEC decision 34).
 - **Qwen3.5-4B is the slowest on Metal**, by about 25% (its hybrid design and larger size); the difference is small in absolute terms.
 - **The CPU-only cost is evaluating prompts**, not writing answers (17 tokens/s generated either way). Each transaction adds ~70 tokens of its own to the shared prompt, and without a GPU those take most of the time.
-- The CPU-only numbers are this Mac's CPU, a stand-in for a Linux machine. The Linux CI run (T5.14) measures the real thing.
+- **On a real Linux machine** (T5.14: GitHub's ubuntu-24.04 runner, 4 cores, 15 GB, no GPU; the same 40 transactions), the build as shipped took **3.60 s** per transaction (median; mean 3.68 s) and peaked at **3.43 GiB**. With repacking it took 3.44 s and peaked at 4.70 GiB. So on Linux, switching repacking off costs about 5% in speed for 1.3 GiB less memory, much less than the 2× this Mac's CPU showed. A 300-transaction import's ~135 model answers take about 8 minutes there, in the background. The runner was busy during the runs (load average 3.5–5.4 on 4 cores), so these timings are on the slow side and carry some noise.
 - Answering questions (part b) is slower, 16–28 s per question on Metal with the generic JSON grammar; that grammar checks the whole vocabulary at every step. T4.2's schema grammar will be tighter.
 
 ## Machines without a GPU (8 GB): options
@@ -112,6 +112,8 @@ With repacking (llama.cpp's default), the CPU backend copies the weights into or
 |---|---|---|---|---|
 | Repacking on (llama.cpp's default) | 6.3 GB | 1.31 s | 33 s | 18.4 |
 | **Repacking off (as built, decision 48)** | **3.8 GB** | 2.72 s | 76 s | 17.3 |
+| Linux, 4 cores, no GPU (T5.14): repacking on | 4.70 GiB | 3.44 s | not reported | not reported |
+| **Linux, 4 cores, no GPU (T5.14): repacking off (as built)** | **3.43 GiB** | 3.60 s | not reported | not reported |
 
 On an 8 GB machine, 6.3 GB leaves too little for the app and the operating system. The options were:
 
@@ -139,4 +141,4 @@ llama.cpp also has a load-time switch for repacking, which would let the app cho
   - It is a thinking model; we give it an empty thinking block (its own "thinking off" form) before the answer.
   - The GGUF comes from unsloth, pinned by hash.
 - **Fallback choice:** Ministral-3-3B (smallest: 2.9 GB on Metal; well calibrated, cautious) if Qwen3.5-4B turns out too slow on Linux machines without a GPU, at the cost of coverage (71.3% correct against 82.6%) and much weaker queries (10% exact against 37.5%).
-- A true Linux CPU number waits for the manual CI run (T5.14).
+- **Linux CPU confirmed (T5.14):** 3.43 GiB peak and 3.60 s per transaction as shipped on a 4-core Linux machine without a GPU, within the 8 GB budget; repacking would add 1.3 GiB for about 5% more speed.
