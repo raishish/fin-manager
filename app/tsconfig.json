@@ -7,6 +7,9 @@
 	"compilerOptions": {
 		"allowJs": true,
 		"checkJs": true,
-		"strict": true
+		"strict": true,
+		// route.ts imports locked.ts with its extension, so Node's test runner can load it
+		// (Vite resolves either way; nothing is emitted).
+		"allowImportingTsExtensions": true
 	}
 }

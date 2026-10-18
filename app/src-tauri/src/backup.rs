@@ -38,9 +38,9 @@ impl BackupView {
 #[derive(Debug, Serialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct BackupStatus {
-    folder: Option<String>,
-    last_at: Option<i64>,
-    last_error: Option<String>,
+    pub(crate) folder: Option<String>,
+    pub(crate) last_at: Option<i64>,
+    pub(crate) last_error: Option<String>,
     /// The last backup was made, but something after it went wrong (e.g. an old backup
     /// couldn't be deleted).
     last_warning: Option<String>,

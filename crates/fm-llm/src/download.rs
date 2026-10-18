@@ -4,11 +4,19 @@
 //! if its size and SHA-256 match the spec. The body is hashed while it streams
 //! into `<file>.partial`, which is synced and renamed into place only after
 //! both checks pass, so a file at the final path is always a verified one.
+//!
+//! [`download_with`] can also resume. An interrupted or cancelled download keeps
+//! its `.partial` file; the next call hashes the bytes already there, asks for
+//! the rest with `Range: bytes=<n>-`, and continues the same hash over the new
+//! bytes. Only a `206` whose `Content-Range` is exactly `bytes <n>-<size−1>/<size>`
+//! is appended; any other answer truncates the file and starts again from zero.
+//! Resuming changes nothing about acceptance: the whole file's size and SHA-256
+//! must still match the spec, so a wrong or tampered range can only fail.
 
 use std::borrow::Cow;
 use std::fmt;
 use std::fs::{self, File};
-use std::io::{self, BufReader, Read, Write};
+use std::io::{self, BufReader, Read, Seek, SeekFrom, Write};
 use std::path::{Path, PathBuf};
 
 use fm_netguard::{NetGuard, Request};
@@ -84,6 +92,14 @@ pub enum DownloadError {
     },
     /// The spec's file name is empty or contains a path separator.
     BadFileName,
+    /// The caller's progress callback asked to stop. The `.partial` file is kept, so
+    /// the next [`download_with`] resumes from it.
+    Cancelled,
+    /// Another download (another app instance) holds the `.partial` file's lock. Nothing
+    /// was touched; try again once it finishes.
+    Busy,
+    /// The `.partial` path is a symbolic link; it is never followed or removed.
+    SymlinkedPartial,
     Io(io::Error),
 }
 
@@ -103,6 +119,11 @@ impl fmt::Display for DownloadError {
                 write!(f, "model file SHA-256 is {actual}, expected {expected}")
             }
             Self::BadFileName => f.write_str("model file name must be a plain file name"),
+            Self::Cancelled => f.write_str("model download stopped; it resumes next time"),
+            Self::Busy => f.write_str("another download of this model is running"),
+            Self::SymlinkedPartial => {
+                f.write_str("the partial model file is a symbolic link; remove it and try again")
+            }
             Self::Io(e) => write!(f, "model file I/O error: {e}"),
         }
     }
@@ -165,14 +186,289 @@ pub fn download(guard: &NetGuard, spec: &ModelSpec, dir: &Path) -> Result<PathBu
     let path = model_path(spec, dir)?;
     fs::create_dir_all(dir)?;
     let partial = dir.join(format!("{}.partial", spec.file_name));
-    let result = fetch_into(guard, spec, &partial).and_then(|()| {
+    let result = fetch_into(guard, spec, &partial).and_then(|lock| {
         fs::rename(&partial, &path)?;
-        sync_dir(dir)
+        sync_dir(dir)?;
+        drop(lock);
+        Ok(())
     });
-    if result.is_err() {
+    if result.is_err()
+        && !matches!(
+            result,
+            Err(DownloadError::Busy | DownloadError::SymlinkedPartial)
+        )
+    {
         let _ = fs::remove_file(&partial);
     }
     result.map(|()| path)
+}
+
+/// [`ensure_model`], downloading with [`download_with`]: resumable, with progress.
+pub fn ensure_model_with(
+    guard: &NetGuard,
+    spec: &ModelSpec,
+    dir: &Path,
+    on_progress: &mut dyn FnMut(u64) -> bool,
+) -> Result<PathBuf, DownloadError> {
+    let path = model_path(spec, dir)?;
+    if path.exists() {
+        match verify_file(&path, spec) {
+            Ok(()) => return Ok(path),
+            Err(DownloadError::WrongSize { .. } | DownloadError::WrongHash { .. }) => {
+                fs::remove_file(&path)?;
+            }
+            Err(e) => return Err(e),
+        }
+    }
+    download_with(guard, spec, dir, on_progress)
+}
+
+/// Downloads the model into `dir` like [`download`], but resumes from a `.partial`
+/// file left by an earlier call, and reports progress: `on_progress` gets the bytes
+/// on disk so far and returns `false` to stop (then [`DownloadError::Cancelled`], with
+/// the partial file kept). A partial file that fails the final check is deleted.
+pub fn download_with(
+    guard: &NetGuard,
+    spec: &ModelSpec,
+    dir: &Path,
+    on_progress: &mut dyn FnMut(u64) -> bool,
+) -> Result<PathBuf, DownloadError> {
+    let path = model_path(spec, dir)?;
+    fs::create_dir_all(dir)?;
+    let partial = dir.join(format!("{}.partial", spec.file_name));
+    let result = resume_into(guard, spec, &partial, on_progress).and_then(|lock| {
+        // The lock is held across the rename, so no other download touches the file
+        // between the hash check and here.
+        fs::rename(&partial, &path)?;
+        sync_dir(dir)?;
+        drop(lock);
+        // The file now at the final path is checked once more, whole.
+        if let Err(e) = verify_file(&path, spec) {
+            let _ = fs::remove_file(&path);
+            return Err(e);
+        }
+        Ok(())
+    });
+    match &result {
+        // Kept for the next attempt: a stop, or the network dropping mid-way. Whatever
+        // the partial file holds is re-hashed from disk next time and checked in full.
+        Err(DownloadError::Cancelled | DownloadError::Network(_)) => {}
+        // Not ours to delete: another instance's download, or a link we won't follow.
+        Err(DownloadError::Busy | DownloadError::SymlinkedPartial) => {}
+        // A wrong size or hash, a refused host or status, a bad file: start clean.
+        Err(_) => {
+            let _ = fs::remove_file(&partial);
+        }
+        Ok(()) => {}
+    }
+    result.map(|()| path)
+}
+
+/// Opens `partial` for this download alone: never through a symbolic link, and with an
+/// exclusive lock, so two app instances can't write the same file. The returned handle
+/// holds the lock until it is dropped.
+fn open_partial(partial: &Path) -> Result<File, DownloadError> {
+    if fs::symlink_metadata(partial).is_ok_and(|m| m.file_type().is_symlink()) {
+        return Err(DownloadError::SymlinkedPartial);
+    }
+    let file = fs::OpenOptions::new()
+        .read(true)
+        .write(true)
+        .create(true)
+        .truncate(false)
+        .open(partial)?;
+    match file.try_lock() {
+        Ok(()) => Ok(file),
+        Err(std::fs::TryLockError::WouldBlock) => Err(DownloadError::Busy),
+        Err(std::fs::TryLockError::Error(e)) => Err(e.into()),
+    }
+}
+
+/// The resumable fetch: picks up from what `partial` holds, else from zero. Returns the
+/// locked handle, to be held until the file is renamed into place.
+fn resume_into(
+    guard: &NetGuard,
+    spec: &ModelSpec,
+    partial: &Path,
+    on_progress: &mut dyn FnMut(u64) -> bool,
+) -> Result<File, DownloadError> {
+    let mut file = open_partial(partial)?;
+    let have = file.metadata()?.len();
+    if have > 0 && have <= spec.size {
+        // Hash what is already there; the new bytes continue the same hash.
+        let mut hasher = Sha256::new();
+        file.seek(SeekFrom::Start(0))?;
+        let mut reader = BufReader::with_capacity(1 << 20, (&file).take(have));
+        io::copy(&mut reader, &mut HashOnly(&mut hasher))?;
+        if have == spec.size {
+            check_hash(spec, &hasher.finalize().into())?;
+            file.sync_all()?;
+            return Ok(file);
+        }
+        file.seek(SeekFrom::End(0))?;
+        match fetch_range(guard, spec, file.try_clone()?, hasher, have, on_progress)? {
+            Ranged::Done => return Ok(file),
+            // The server didn't answer with exactly the rest: start again from zero.
+            Ranged::Refused => {}
+        }
+    }
+    file.set_len(0)?;
+    file.seek(SeekFrom::Start(0))?;
+    fetch_full(guard, spec, file.try_clone()?, on_progress)?;
+    Ok(file)
+}
+
+enum Ranged {
+    Done,
+    /// The answer wasn't `206` with the exact `Content-Range` asked for.
+    Refused,
+}
+
+/// Asks for `start..size`, appending to `file`. Accepts only `206` with
+/// `Content-Range: bytes <start>-<size-1>/<size>` and exactly that many bytes.
+fn fetch_range(
+    guard: &NetGuard,
+    spec: &ModelSpec,
+    file: File,
+    hasher: Sha256,
+    start: u64,
+    on_progress: &mut dyn FnMut(u64) -> bool,
+) -> Result<Ranged, DownloadError> {
+    let remaining = spec.size - start;
+    let mut out = ProgressWriter {
+        inner: io::BufWriter::with_capacity(1 << 20, file),
+        hasher,
+        written: start,
+        on_progress,
+        cancelled: false,
+    };
+    let request = Request::get(spec.url.as_ref(), DOWNLOAD_PURPOSE)
+        .header("Range", format!("bytes={start}-"))
+        .max_body_bytes(remaining);
+    let response = guard.download(request, &mut out);
+    if out.cancelled {
+        out.flush_kept()?;
+        return Err(DownloadError::Cancelled);
+    }
+    let download = match response {
+        Ok(d) => d,
+        // A body longer than the rest: the server ignored the range.
+        Err(fm_netguard::Error::BodyTooLarge { .. }) => return Ok(Ranged::Refused),
+        Err(e) => {
+            out.flush_kept()?;
+            return Err(e.into());
+        }
+    };
+    let expected_range = format!("bytes {start}-{}/{}", spec.size - 1, spec.size);
+    let range_ok = download.headers.iter().any(|(name, value)| {
+        name.eq_ignore_ascii_case("content-range") && value.trim() == expected_range
+    });
+    if download.status != 206 || !range_ok || download.bytes != remaining {
+        return Ok(Ranged::Refused);
+    }
+    out.finish(spec)?;
+    Ok(Ranged::Done)
+}
+
+/// The whole file from zero into `file`.
+fn fetch_full(
+    guard: &NetGuard,
+    spec: &ModelSpec,
+    file: File,
+    on_progress: &mut dyn FnMut(u64) -> bool,
+) -> Result<(), DownloadError> {
+    let mut out = ProgressWriter {
+        inner: io::BufWriter::with_capacity(1 << 20, file),
+        hasher: Sha256::new(),
+        written: 0,
+        on_progress,
+        cancelled: false,
+    };
+    let request = Request::get(spec.url.as_ref(), DOWNLOAD_PURPOSE).max_body_bytes(spec.size);
+    let response = guard.download(request, &mut out);
+    if out.cancelled {
+        out.flush_kept()?;
+        return Err(DownloadError::Cancelled);
+    }
+    let download = match response {
+        Ok(d) => d,
+        Err(e) => {
+            out.flush_kept()?;
+            return Err(e.into());
+        }
+    };
+    if download.status != 200 {
+        return Err(DownloadError::Status(download.status));
+    }
+    if download.bytes != spec.size {
+        return Err(DownloadError::WrongSize {
+            expected: spec.size,
+            actual: download.bytes,
+        });
+    }
+    out.finish(spec)
+}
+
+/// Writes and hashes the body, reporting progress; stops the transfer (with an I/O
+/// error the guard passes on) when the callback says so.
+struct ProgressWriter<'a, W: Write> {
+    inner: W,
+    hasher: Sha256,
+    /// Bytes in the file so far, including any resumed from.
+    written: u64,
+    on_progress: &'a mut dyn FnMut(u64) -> bool,
+    cancelled: bool,
+}
+
+impl<W: Write> Write for ProgressWriter<'_, W> {
+    fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
+        if self.cancelled || !(self.on_progress)(self.written) {
+            self.cancelled = true;
+            return Err(io::Error::other("model download cancelled"));
+        }
+        let n = self.inner.write(buf)?;
+        self.hasher.update(&buf[..n]);
+        self.written += n as u64;
+        Ok(n)
+    }
+
+    fn flush(&mut self) -> io::Result<()> {
+        self.inner.flush()
+    }
+}
+
+impl ProgressWriter<'_, io::BufWriter<File>> {
+    /// Keeps what was written for a later resume.
+    fn flush_kept(&mut self) -> Result<(), DownloadError> {
+        self.inner.flush()?;
+        Ok(())
+    }
+
+    /// Checks the whole file's hash and syncs it.
+    fn finish(self, spec: &ModelSpec) -> Result<(), DownloadError> {
+        (self.on_progress)(self.written);
+        check_hash(spec, &self.hasher.finalize().into())?;
+        let file = self
+            .inner
+            .into_inner()
+            .map_err(io::IntoInnerError::into_error)?;
+        file.sync_all()?;
+        Ok(())
+    }
+}
+
+/// Feeds bytes to a hasher, for re-hashing a partial file.
+struct HashOnly<'a>(&'a mut Sha256);
+
+impl Write for HashOnly<'_> {
+    fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
+        self.0.update(buf);
+        Ok(buf.len())
+    }
+
+    fn flush(&mut self) -> io::Result<()> {
+        Ok(())
+    }
 }
 
 /// Checks the file's size and SHA-256 against the spec.
@@ -250,8 +546,11 @@ fn check_hash(spec: &ModelSpec, digest: &[u8; 32]) -> Result<(), DownloadError> 
 }
 
 /// Streams the body into `partial`, hashing as it goes, then checks it.
-fn fetch_into(guard: &NetGuard, spec: &ModelSpec, partial: &Path) -> Result<(), DownloadError> {
-    let file = File::create(partial)?;
+/// Returns the locked handle, to be held until the file is renamed into place.
+fn fetch_into(guard: &NetGuard, spec: &ModelSpec, partial: &Path) -> Result<File, DownloadError> {
+    // The same protections as the resumable path: no symbolic link, one writer.
+    let file = open_partial(partial)?;
+    file.set_len(0)?;
     let mut out = HashingWriter {
         inner: io::BufWriter::with_capacity(1 << 20, file),
         hasher: Sha256::new(),
@@ -271,7 +570,7 @@ fn fetch_into(guard: &NetGuard, spec: &ModelSpec, partial: &Path) -> Result<(), 
     check_hash(spec, &hasher.finalize().into())?;
     let file = inner.into_inner().map_err(io::IntoInnerError::into_error)?;
     file.sync_all()?;
-    Ok(())
+    Ok(file)
 }
 
 #[cfg(unix)]

@@ -11,7 +11,13 @@ use tauri::webview::InvokeRequest;
 
 /// The permissions the main window is granted. Adding one means changing this list on
 /// purpose.
-const MAIN_PERMISSIONS: &[&str] = &["core:event:allow-listen", "core:event:allow-unlisten"];
+const MAIN_PERMISSIONS: &[&str] = &[
+    "core:event:allow-listen",
+    "core:event:allow-unlisten",
+    // T5.5: the native folder picker for the backup folder. Open only: no save dialog,
+    // message boxes or file access.
+    "dialog:allow-open",
+];
 
 fn window(label: &str) -> (tauri::App<MockRuntime>, tauri::WebviewWindow<MockRuntime>) {
     let app = mock_builder()
@@ -56,13 +62,25 @@ fn the_main_window_may_listen_for_events_and_nothing_else() {
     )
     .expect("and stop listening");
 
+    // The folder picker (T5.5) passes the ACL. The mock runtime has no dialog to show, so
+    // the call fails further on; what matters is that it isn't "not allowed".
+    assert!(
+        !denied(call(
+            &main,
+            "plugin:dialog|open",
+            json!({ "options": { "directory": true } })
+        )),
+        "dialog|open is allowed for main"
+    );
+
     // Everything else of Tauri's stays denied, so the file can't silently grow.
     for (cmd, args) in [
         (
             "plugin:event|emit",
             json!({ "event": "x", "payload": null }),
         ),
-        ("plugin:dialog|open", json!({ "options": {} })),
+        ("plugin:dialog|save", json!({ "options": {} })),
+        ("plugin:dialog|message", json!({ "message": "x" })),
         ("plugin:window|close", json!({ "label": "main" })),
         ("plugin:webview|print", json!({ "label": "main" })),
         ("plugin:path|resolve_directory", json!({ "directory": 1 })),

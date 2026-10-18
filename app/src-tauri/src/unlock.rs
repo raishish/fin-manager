@@ -49,6 +49,10 @@ pub const ALLOWED_WHILE_LOCKED: &[&str] = &[
     // app itself stored when it deleted (deletion.rs).
     "delete_old_backups",
     "pending_backup_offer",
+    // The model download (T5.5) starts on first run's Welcome screen, before a ledger
+    // exists; it touches only the models folder, never ledger data.
+    "model_status",
+    "start_model_download",
 ];
 
 /// The error every other command returns while locked.

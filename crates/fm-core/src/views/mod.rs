@@ -50,6 +50,7 @@
 mod breakdown;
 mod compare;
 mod error;
+mod first_look;
 mod query;
 mod rank;
 mod scope;
@@ -62,6 +63,7 @@ mod tests;
 pub use breakdown::{Breakdown, Line, Row, Totals, breakdown};
 pub use compare::{Change, Comparison, Delta, Ratio, compare, month_over_month};
 pub use error::ViewError;
+pub use first_look::{FirstLook, FirstLookQuery, FlowMonth, MerchantOut, first_look};
 pub use query::{Filter, GroupBy, Measure, Period, Query};
 pub use scope::Key;
 pub use series::{Column, Series, SeriesRow, Trend, TrendRow, TrendStats, monthly, trend};

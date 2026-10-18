@@ -9,7 +9,9 @@ mod dashboard;
 mod deletion;
 mod importing;
 mod ledger_view;
+mod model;
 mod network;
+mod onboarding;
 mod review;
 
 use std::sync::Arc;
@@ -118,6 +120,13 @@ const COMMANDS: &[&str] = &[
     "delete_everything",
     "delete_old_backups",
     "pending_backup_offer",
+    "model_status",
+    "start_model_download",
+    "onboarding_state",
+    "set_onboarding_step",
+    "first_insight",
+    "backup_reminder",
+    "snooze_backup_reminder",
     "simplefin_status",
     "simplefin_inspect_token",
     "simplefin_connect",
@@ -183,6 +192,13 @@ fn handler<R: Runtime>() -> impl Fn(Invoke<R>) -> bool + Send + Sync + 'static {
         deletion::commands::delete_everything,
         deletion::commands::delete_old_backups,
         deletion::commands::pending_backup_offer,
+        model::commands::model_status,
+        model::commands::start_model_download,
+        onboarding::commands::onboarding_state,
+        onboarding::commands::set_onboarding_step,
+        onboarding::commands::first_insight,
+        onboarding::commands::backup_reminder,
+        onboarding::commands::snooze_backup_reminder,
         connectors::commands::simplefin_status,
         connectors::commands::simplefin_inspect_token,
         connectors::commands::simplefin_connect,
@@ -214,6 +230,27 @@ fn handler<R: Runtime>() -> impl Fn(Invoke<R>) -> bool + Send + Sync + 'static {
     ])
 }
 
+/// Pages the window may show: the app's own UI (Tauri's custom protocol; `tauri.localhost`
+/// on Windows), `about:blank`, and in a debug build the Vite dev server. Anything else is
+/// refused: a file dropped on the window, or a link out, would otherwise load a page
+/// with no CSP and full network access, which could pass for the unlock screen (T5.5
+/// review). The UI also cancels drops outside its drop zone (`+layout.svelte`).
+fn navigation_allowed(url: &tauri::Url) -> bool {
+    match (url.scheme(), url.host_str()) {
+        ("tauri", Some("localhost")) => true,
+        ("http" | "https", Some("tauri.localhost")) => true,
+        ("about", None) => url.path() == "blank",
+        ("http", Some("127.0.0.1")) => cfg!(debug_assertions) && url.port() == Some(1420),
+        _ => false,
+    }
+}
+
+fn navigation_guard<R: Runtime>() -> tauri::plugin::TauriPlugin<R> {
+    tauri::plugin::Builder::new("navigation-guard")
+        .on_navigation(|_webview, url| navigation_allowed(url))
+        .build()
+}
+
 /// The app's context: its config, assets and the permission ACL generated from
 /// `capabilities/`. Expanded once (the macro embeds Info.plist on macOS), so the tests use
 /// the same one (`capability_tests`).
@@ -224,6 +261,8 @@ fn context<R: Runtime>() -> tauri::Context<R> {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(navigation_guard())
+        .plugin(tauri_plugin_dialog::init())
         .setup(|app| {
             let dir = app.path().app_data_dir()?.join("crash-reports");
             let reporter = CrashReporter::new(CrashStore::new(dir), env!("CARGO_PKG_VERSION"));
@@ -236,6 +275,8 @@ pub fn run() {
                 connectors::BridgeAllowance::new(Arc::clone(&net)),
             ));
             app.manage(reporter);
+            let models_dir = app.path().app_data_dir()?.join("models");
+            app.manage(model::ModelDownload::for_app(&models_dir, Arc::clone(&net)));
             app.manage(Net(net));
             app.manage(connectors::Busy::default());
             unlock::start_autolock_timer(app.handle().clone());
@@ -249,6 +290,8 @@ pub fn run() {
             // the Touch ID Keychain item (SPEC §7).
             if let tauri::RunEvent::Exit = event {
                 app.state::<unlock::AppUnlock>().shut_down();
+                // The partial model file is kept; the next run resumes it.
+                app.state::<Arc<model::ModelDownload>>().stop();
             }
         });
 }
@@ -257,6 +300,8 @@ pub fn run() {
 mod capability_tests;
 #[cfg(test)]
 mod ipc_contract_tests;
+#[cfg(test)]
+mod onboarding_tests;
 #[cfg(test)]
 mod ui_tests;
 
@@ -271,6 +316,30 @@ pub(crate) mod tests {
     use tauri::webview::InvokeRequest;
 
     use super::*;
+
+    #[test]
+    fn the_window_only_shows_the_apps_own_pages() {
+        let allowed = |u: &str| super::navigation_allowed(&u.parse().unwrap());
+        assert!(allowed("tauri://localhost/"));
+        assert!(allowed("tauri://localhost/dashboard"));
+        assert!(allowed("https://tauri.localhost/review"));
+        assert!(allowed("about:blank"));
+        for refused in [
+            "file:///Users/someone/Downloads/fake-unlock.html",
+            "file:///tmp/x.csv",
+            "https://example.com/",
+            "http://localhost:1420/",
+            "tauri://evil/",
+            "about:srcdoc",
+            "data:text/html,<p>hi</p>",
+            "javascript:alert(1)",
+        ] {
+            assert!(!allowed(refused), "{refused}");
+        }
+        // The Vite dev server only in a debug build.
+        assert_eq!(allowed("http://127.0.0.1:1420/"), cfg!(debug_assertions));
+        assert!(!allowed("http://127.0.0.1:8080/"));
+    }
 
     #[test]
     fn core_info_comes_from_fm_core() {
@@ -321,6 +390,14 @@ pub(crate) mod tests {
             connectors::BridgeAllowance::new(Arc::clone(&net)),
         ));
         app.manage(reporter);
+        // No download origins: in tests the model download is refused by the network
+        // guard before anything is contacted.
+        app.manage(model::ModelDownload::new(
+            model::model_spec(),
+            &dir.join("models"),
+            Arc::clone(&net),
+            vec![],
+        ));
         app.manage(Net(net));
         app.manage(connectors::Busy::default());
         let webview = tauri::WebviewWindowBuilder::new(&app, "main", Default::default())

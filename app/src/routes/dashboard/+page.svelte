@@ -3,6 +3,7 @@
 	// out, it never adds anything up. Pending transactions are their own line, never in a
 	// total; Needs review is its own line and feeds the review queue (SPEC decision 42).
 	import TransactionList from './TransactionList.svelte';
+	import BackupReminder from '../onboarding/BackupReminder.svelte';
 	import { dashboard, errorText, money, type Dashboard, type Line } from './ledger';
 
 	let month = $state<string | null>(null);
@@ -52,6 +53,7 @@
 		<a href="/import">Import</a>
 	</nav>
 	<h1>Dashboard</h1>
+	<BackupReminder />
 
 	{#if error}
 		<p role="alert">{error}</p>

@@ -79,6 +79,7 @@ with no release. Dry runs happen:
 - The SBOM covers the whole Rust workspace and the app's npm lockfile, development
   dependencies included, so it lists more than ships.
 - The macOS build is Apple Silicon only (SPEC decision 11).
+- It needs macOS 11 or later (`bundle.macOS.minimumSystemVersion`): llama.cpp, built into the app since T5.5, uses `std::filesystem`, which needs macOS 10.15, and Apple Silicon Macs run 11 or later anyway.
 
 ## Cutting a release
 

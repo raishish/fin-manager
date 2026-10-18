@@ -1,6 +1,7 @@
 <script lang="ts">
 	// The home page: where to go, and how much is waiting in Review.
 	import { errorText, reviewQueue } from './dashboard/ledger';
+	import BackupReminder from './onboarding/BackupReminder.svelte';
 
 	let waiting = $state<number | null>(null);
 	let error = $state('');
@@ -15,6 +16,7 @@
 
 <main>
 	<h1>fin-manager</h1>
+	<BackupReminder />
 	{#if error}
 		<p role="alert">{error}</p>
 	{:else if waiting !== null && waiting > 0}

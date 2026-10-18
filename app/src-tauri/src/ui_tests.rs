@@ -14,7 +14,7 @@ use tauri::webview::InvokeRequest;
 use crate::tests::{Webview, create_confirmed, invoke, invoke_with, mock_app};
 use crate::unlock::AppUnlock;
 
-fn exports() -> PathBuf {
+pub(crate) fn exports() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../testdata/bank-exports/data")
 }
 
@@ -39,7 +39,7 @@ fn encode(s: &str) -> String {
         .collect()
 }
 
-fn import(w: &Webview, bytes: Vec<u8>, args: &Value) -> Result<Value, Value> {
+pub(crate) fn import(w: &Webview, bytes: Vec<u8>, args: &Value) -> Result<Value, Value> {
     let mut headers = tauri::http::HeaderMap::new();
     headers.insert(
         crate::importing::ARGS_HEADER,
@@ -67,7 +67,7 @@ fn ids(v: &Value) -> Vec<i64> {
 
 /// Imports the renter's 16 files, one TD.1 account at a time, creating each account from
 /// its first file. Returns the number of rows per file and what the reports said.
-fn import_renter(w: &Webview) -> Vec<(usize, Value)> {
+pub(crate) fn import_renter(w: &Webview) -> Vec<(usize, Value)> {
     let manifest: Value =
         serde_json::from_slice(&std::fs::read(exports().join("manifest.json")).unwrap()).unwrap();
     let mut accounts: BTreeMap<i64, i64> = BTreeMap::new();

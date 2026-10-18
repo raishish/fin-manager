@@ -17,7 +17,8 @@
         "width": 1100,
         "height": 720,
         "minWidth": 800,
-        "minHeight": 560
+        "minHeight": 560,
+        "dragDropEnabled": false
       }
     ],
     "security": {
@@ -45,7 +46,8 @@
     "createUpdaterArtifacts": false,
     "macOS": {
       "signingIdentity": "-",
-      "hardenedRuntime": true
+      "hardenedRuntime": true,
+      "minimumSystemVersion": "11.0"
     },
     "linux": {
       "appimage": {

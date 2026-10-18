@@ -48,7 +48,7 @@ mod runtime;
 
 pub use download::{
     CI_TEST_MODEL, DOWNLOAD_ORIGINS, DOWNLOAD_PURPOSE, DownloadError, ModelSpec, download,
-    ensure_model, hex, sha256_file, sha256_hex, verify_file,
+    download_with, ensure_model, ensure_model_with, hex, sha256_file, sha256_hex, verify_file,
 };
 pub use grammar::{CHOICE_PREFIX, Choices, ChoicesError, UNCATEGORISED};
 pub use runtime::{

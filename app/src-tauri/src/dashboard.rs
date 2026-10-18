@@ -235,12 +235,7 @@ pub fn build(
 ) -> Result<DashboardView> {
     let currency_of: BTreeMap<_, Currency> =
         ledger.accounts.iter().map(|a| (a.id, a.currency)).collect();
-    let mut per_currency: BTreeMap<&'static str, usize> = BTreeMap::new();
-    for t in &ledger.transactions {
-        if let Some(c) = currency_of.get(&t.account_id) {
-            *per_currency.entry(c.code()).or_default() += 1;
-        }
-    }
+    let per_currency = per_currency(ledger);
     if per_currency.is_empty() {
         return Ok(DashboardView::empty(as_of));
     }
@@ -248,13 +243,7 @@ pub fn build(
         Some(code) => {
             Currency::new(code).map_err(|e| ui_error("InvalidCurrency", e.to_string()))?
         }
-        None => {
-            let (code, _) = per_currency
-                .iter()
-                .max_by_key(|(code, n)| (**n, std::cmp::Reverse(**code)))
-                .expect("not empty");
-            Currency::new(code).expect("an account's currency is valid")
-        }
+        None => main_currency(&per_currency).expect("not empty"),
     };
     let months: BTreeSet<YearMonth> = ledger
         .transactions
@@ -370,12 +359,48 @@ pub fn build(
         ),
     };
 
+    let recurring = recurring_charges(ledger, currency, as_of);
+
+    let t = &by_group.totals;
+    Ok(DashboardView {
+        as_of: as_of.to_string(),
+        currencies: per_currency.keys().copied().collect(),
+        currency: Some(currency.code()),
+        months: months.iter().rev().map(ToString::to_string).collect(),
+        month: Some(month.to_string()),
+        partial: by_group.partial_month,
+        totals: Some(TotalsView {
+            spending: (&t.spending).into(),
+            refunds: (&t.refunds).into(),
+            income: (&t.income).into(),
+            transfers_out: (&t.transfers_out).into(),
+            transfers_in: (&t.transfers_in).into(),
+            needs_review: (&t.needs_review).into(),
+            pending: (&t.pending).into(),
+            net_flow: t.net_flow.into(),
+        }),
+        spending_change: Some((&group_change.total).into()),
+        groups,
+        merchants: merchants.rows.iter().map(Into::into).collect(),
+        merchants_other: merchants.other.as_ref().map(Into::into),
+        trend: Some(trend),
+        recurring,
+    })
+}
+
+/// Subscriptions and bills in `currency` (recurring charges going out), as of `as_of`.
+/// Shared with the first-run insight.
+pub(crate) fn recurring_charges(
+    ledger: &Ledger,
+    currency: Currency,
+    as_of: Date,
+) -> Vec<RecurringView> {
     let account_name: BTreeMap<_, &str> = ledger
         .accounts
         .iter()
         .map(|a| (a.id, a.name.as_str()))
         .collect();
-    let recurring = recurring::detect(
+    recurring::detect(
         &ledger.accounts,
         &ledger.transactions,
         &ledger.decisions,
@@ -409,33 +434,27 @@ pub fn build(
             .collect(),
         transaction_ids: ids(&s.members),
     })
-    .collect();
+    .collect()
+}
 
-    let t = &by_group.totals;
-    Ok(DashboardView {
-        as_of: as_of.to_string(),
-        currencies: per_currency.keys().copied().collect(),
-        currency: Some(currency.code()),
-        months: months.iter().rev().map(ToString::to_string).collect(),
-        month: Some(month.to_string()),
-        partial: by_group.partial_month,
-        totals: Some(TotalsView {
-            spending: (&t.spending).into(),
-            refunds: (&t.refunds).into(),
-            income: (&t.income).into(),
-            transfers_out: (&t.transfers_out).into(),
-            transfers_in: (&t.transfers_in).into(),
-            needs_review: (&t.needs_review).into(),
-            pending: (&t.pending).into(),
-            net_flow: t.net_flow.into(),
-        }),
-        spending_change: Some((&group_change.total).into()),
-        groups,
-        merchants: merchants.rows.iter().map(Into::into).collect(),
-        merchants_other: merchants.other.as_ref().map(Into::into),
-        trend: Some(trend),
-        recurring,
-    })
+/// How many transactions each currency's accounts hold.
+pub(crate) fn per_currency(ledger: &Ledger) -> BTreeMap<&'static str, usize> {
+    let currency_of: BTreeMap<_, Currency> =
+        ledger.accounts.iter().map(|a| (a.id, a.currency)).collect();
+    let mut per: BTreeMap<&'static str, usize> = BTreeMap::new();
+    for t in &ledger.transactions {
+        if let Some(c) = currency_of.get(&t.account_id) {
+            *per.entry(c.code()).or_default() += 1;
+        }
+    }
+    per
+}
+
+/// The currency with the most transactions (ties: the first code), if any.
+pub(crate) fn main_currency(per: &BTreeMap<&'static str, usize>) -> Option<Currency> {
+    per.iter()
+        .max_by_key(|(code, n)| (**n, std::cmp::Reverse(**code)))
+        .map(|(code, _)| Currency::new(code).expect("an account's currency is valid"))
 }
 
 impl AppUnlock {

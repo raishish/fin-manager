@@ -18,10 +18,13 @@ tauri-build = { version = "=2.7.3", features = [] }
 [dependencies]
 fm-core = { path = "../../crates/fm-core" }
 fm-import-csv = { path = "../../crates/fm-import-csv" }
+fm-llm = { path = "../../crates/fm-llm" }
 fm-netguard = { path = "../../crates/fm-netguard" }
 serde = { version = "=1.0.229", features = ["derive"] }
 serde_json = "=1.0.154"
 tauri = { version = "=2.12.4", features = [] }
+# The native folder picker for the backup folder (T5.5); only dialog:allow-open is granted.
+tauri-plugin-dialog = "=2.8.3"
 zeroize = { version = "=1.9.1", default-features = false, features = ["alloc"] }
 
 [dev-dependencies]
