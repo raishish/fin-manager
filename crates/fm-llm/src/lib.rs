@@ -52,8 +52,8 @@ pub use download::{
 };
 pub use grammar::{CHOICE_PREFIX, Choices, ChoicesError, UNCATEGORISED};
 pub use runtime::{
-    Choice, GenerateOptions, Generation, LlmError, MAX_BASIS_POINTS, Model, Sampling,
-    gpu_offload_supported,
+    Choice, GenerateOptions, Generation, LlmError, LoadOptions, MAX_BASIS_POINTS, Model, Sampling,
+    Session, SessionOptions, Timings, gpu_offload_supported,
 };
 
 /// Crate name, used by the workspace smoke test.

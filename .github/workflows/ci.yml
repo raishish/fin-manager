@@ -28,6 +28,10 @@ jobs:
       # rustup reads rust-toolchain.toml and installs the pinned toolchain.
       - run: rustup show active-toolchain
       - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+        with:
+          # v1: llama.cpp is built without CPU weight repacking (.cargo/config.toml). An
+          # older cache would keep a build with it, so none from before is restored.
+          prefix-key: v1-rust
       # The Tauri app (app/src-tauri) is a workspace member, so every Rust build needs the
       # built UI (tauri::generate_context! reads app/build) and, on Linux, Tauri's system
       # libraries. Node is pinned by app/.node-version (SPEC decision 35).
@@ -92,8 +96,9 @@ jobs:
   model-tests:
     # fm-llm against a real (tiny) model: SmolLM2-135M-Instruct Q8_0, pinned by SHA-256
     # (T2.3). Downloaded through fm-netguard with only the Hugging Face origins allowed
-    # (SPEC decision 40), and cached by its hash. Linux runs on CPU; macOS uses Metal when
-    # the runner exposes it.
+    # (SPEC decision 40), and cached by its hash. Both run on the CPU: the macOS runner's
+    # GPU is a virtual one ("Apple Paravirtual device", Apple5 family, no simdgroup
+    # reduction or matrix multiply), on which these tests took over 30 minutes (PR #17).
     name: Model tests (${{ matrix.os }})
     strategy:
       fail-fast: false
@@ -103,17 +108,38 @@ jobs:
     timeout-minutes: 40
     env:
       FM_LLM_TEST_MODEL: ${{ github.workspace }}/.models/SmolLM2-135M-Instruct-Q8_0.gguf
+      FM_LLM_TEST_CPU: "1"
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - run: rustup show active-toolchain
       - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+        with:
+          # v1: llama.cpp is built without CPU weight repacking (.cargo/config.toml). An
+          # older cache would keep a build with it, so none from before is restored.
+          prefix-key: v1-rust
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: .models
           key: gguf-5a1395716f7913741cc51d98581b9b1228d80987a9f7d3664106742eb06bba83
       - name: Fetch the test model (verified by size and SHA-256)
         run: cargo run -p fm-llm --locked --example fetch_test_model -- .models
-      - run: cargo test -p fm-llm --locked
+      # One test at a time: each one runs llama.cpp on every core, and side by side
+      # they'd fight over the runner's 3–4 cores.
+      - run: cargo test -p fm-llm --locked -- --test-threads 1
+      - name: llama.cpp is built without CPU weight repacking (SPEC decision 48)
+        run: |
+          caches=$(find target -path '*/build/llama-cpp-sys-2-*/out/build/CMakeCache.txt')
+          if [ -z "$caches" ]; then
+            echo "::error::no llama.cpp build under target/"
+            exit 1
+          fi
+          for c in $caches; do
+            grep -H '^GGML_CPU_REPACK:' "$c"
+            if ! grep -q '^GGML_CPU_REPACK:BOOL=OFF$' "$c"; then
+              echo "::error::llama.cpp was built with CPU weight repacking (see .cargo/config.toml)"
+              exit 1
+            fi
+          done
 
   dco:
     # Contributions are accepted under a DCO sign-off (SPEC decision 24).

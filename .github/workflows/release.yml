@@ -99,6 +99,20 @@ jobs:
       - name: Build
         working-directory: app
         run: npx tauri build --ci --bundles app,dmg -- --locked
+      - name: llama.cpp is built without CPU weight repacking (SPEC decision 48)
+        run: |
+          caches=$(find target -path '*/build/llama-cpp-sys-2-*/out/build/CMakeCache.txt')
+          if [ -z "$caches" ]; then
+            echo "::error::no llama.cpp build under target/"
+            exit 1
+          fi
+          for c in $caches; do
+            grep -H '^GGML_CPU_REPACK:' "$c"
+            if ! grep -q '^GGML_CPU_REPACK:BOOL=OFF$' "$c"; then
+              echo "::error::llama.cpp was built with CPU weight repacking (see .cargo/config.toml)"
+              exit 1
+            fi
+          done
       - name: Collect
         run: |
           mkdir -p out
@@ -172,6 +186,20 @@ jobs:
       - name: Build
         working-directory: app
         run: npx tauri build --ci --bundles appimage -- --locked
+      - name: llama.cpp is built without CPU weight repacking (SPEC decision 48)
+        run: |
+          caches=$(find target -path '*/build/llama-cpp-sys-2-*/out/build/CMakeCache.txt')
+          if [ -z "$caches" ]; then
+            echo "::error::no llama.cpp build under target/"
+            exit 1
+          fi
+          for c in $caches; do
+            grep -H '^GGML_CPU_REPACK:' "$c"
+            if ! grep -q '^GGML_CPU_REPACK:BOOL=OFF$' "$c"; then
+              echo "::error::llama.cpp was built with CPU weight repacking (see .cargo/config.toml)"
+              exit 1
+            fi
+          done
       - name: Collect
         run: |
           mkdir -p out

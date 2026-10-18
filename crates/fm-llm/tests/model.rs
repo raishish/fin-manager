@@ -13,8 +13,8 @@
 use std::path::PathBuf;
 
 use fm_llm::{
-    CHOICE_PREFIX, CI_TEST_MODEL, Choices, GenerateOptions, LlmError, MAX_BASIS_POINTS, Model,
-    Sampling, UNCATEGORISED,
+    CHOICE_PREFIX, CI_TEST_MODEL, Choices, GenerateOptions, LlmError, LoadOptions,
+    MAX_BASIS_POINTS, Model, Sampling, SessionOptions, UNCATEGORISED,
 };
 use proptest::prelude::*;
 use proptest::test_runner::{Config, TestRunner};
@@ -32,9 +32,14 @@ fn model_path() -> Option<PathBuf> {
 /// The test model, or `None` when not configured. Each test loads its own and
 /// drops it before the process exits: ggml's Metal device asserts at exit if
 /// a model is still alive, so a model must never live in a `static`.
+/// `FM_LLM_TEST_CPU=1` loads it on the CPU only, e.g. where the GPU is too slow
+/// to use (CI's macOS virtual machines).
 fn model() -> Option<Model> {
     let path = model_path()?;
-    Some(Model::load(&path, &CI_TEST_MODEL).expect("load the test model"))
+    let gpu = std::env::var_os("FM_LLM_TEST_CPU").is_none();
+    Some(
+        Model::load_with(&path, &CI_TEST_MODEL, &LoadOptions { gpu }).expect("load the test model"),
+    )
 }
 
 /// Category keys from the default list (fm-core's taxonomy asset).
@@ -254,4 +259,141 @@ fn output_never_breaks_the_schema() {
             Ok(())
         })
         .unwrap();
+}
+
+/// A session's prefix and per-transaction suffix, split where a categorisation prompt
+/// splits: after the shared system part, before the transaction.
+fn split_prompt(model: &Model, choices: &Choices, description: &str) -> (String, String) {
+    let full = categorise_prompt(model, choices, description);
+    let at = full
+        .find("Transaction: ")
+        .expect("the prompt names the transaction");
+    (full[..at].to_string(), full[at..].to_string())
+}
+
+#[test]
+fn a_session_answers_exactly_like_a_fresh_context_and_keeps_no_state_between_calls() {
+    let Some(model) = model() else { return };
+    let choices = Choices::new(default_keys()).unwrap();
+    let descriptions = [
+        "WHOLE FOODS MARKET #10234 AUSTIN TX",
+        "SHELL OIL 57444 HOUSTON",
+        "NETFLIX.COM 866-579-7172 CA",
+        "Zelle payment from J SMITH",
+    ];
+    let (prefix, _) = split_prompt(&model, &choices, descriptions[0]);
+    let options = GenerateOptions::default();
+
+    // Each answer from a brand-new session: nothing evaluated before it but the prefix.
+    let fresh: Vec<_> = descriptions
+        .iter()
+        .map(|d| {
+            let (p, suffix) = split_prompt(&model, &choices, d);
+            assert_eq!(p, prefix);
+            let mut s = model.session(&p, &SessionOptions::default()).unwrap();
+            s.choose(&suffix, &choices, &options).unwrap()
+        })
+        .collect();
+
+    // One session reused for all of them, in an order that would show leakage: the same
+    // transaction before and after others.
+    let mut session = model.session(&prefix, &SessionOptions::default()).unwrap();
+    for i in [0, 1, 2, 3, 0, 3, 1, 2] {
+        let (_, suffix) = split_prompt(&model, &choices, descriptions[i]);
+        let reused = session.choose(&suffix, &choices, &options).unwrap();
+        assert_eq!(reused, fresh[i], "call for transaction {i}");
+    }
+
+    // And the same as evaluating the whole prompt at once.
+    for (i, d) in descriptions.iter().enumerate() {
+        let whole = model
+            .choose(&categorise_prompt(&model, &choices, d), &choices, &options)
+            .unwrap();
+        assert_eq!(whole.key, fresh[i].key, "transaction {i}");
+        assert!(
+            whole.confidence_bp.abs_diff(fresh[i].confidence_bp) <= 50,
+            "transaction {i}: {} vs {}",
+            whole.confidence_bp,
+            fresh[i].confidence_bp
+        );
+    }
+}
+
+#[test]
+fn on_the_cpu_a_session_answers_exactly_like_the_whole_prompt() {
+    // On the CPU, batching the prompt differently (prefix then suffix, or all at once)
+    // must not change any answer, not even by a basis point: a CPU-only machine
+    // applies an answer when its confidence crosses the threshold.
+    let Some(path) = model_path() else { return };
+    let model = Model::load_with(&path, &CI_TEST_MODEL, &LoadOptions { gpu: false }).unwrap();
+    let choices = Choices::new(default_keys()).unwrap();
+    let options = GenerateOptions::default();
+    let (prefix, _) = split_prompt(&model, &choices, "");
+    let mut session = model.session(&prefix, &SessionOptions::default()).unwrap();
+    for d in [
+        "WHOLE FOODS MARKET #10234 AUSTIN TX",
+        "SHELL OIL 57444 HOUSTON",
+        "NETFLIX.COM 866-579-7172 CA",
+        "Zelle payment from J SMITH",
+    ] {
+        let (_, suffix) = split_prompt(&model, &choices, d);
+        let whole = model
+            .choose(&categorise_prompt(&model, &choices, d), &choices, &options)
+            .unwrap();
+        assert_eq!(session.choose(&suffix, &choices, &options).unwrap(), whole);
+    }
+}
+
+#[test]
+fn a_session_split_inside_a_token_answers_like_the_whole_prompt() {
+    // "Pick on" + "e." tokenises differently from "Pick one.": the session must give
+    // the model the whole prompt's tokens, not the suffix tokenised on its own.
+    let Some(model) = model() else { return };
+    let choices = Choices::new(["a", "b"]).unwrap();
+    let options = GenerateOptions::default();
+    let whole = model.choose("Pick one.\n", &choices, &options).unwrap();
+    let mut session = model
+        .session("Pick on", &SessionOptions::default())
+        .unwrap();
+    assert_eq!(session.choose("e.\n", &choices, &options).unwrap(), whole);
+    // And again, from the shorter cache.
+    assert_eq!(session.choose("e.\n", &choices, &options).unwrap(), whole);
+}
+
+#[test]
+fn a_session_refuses_a_suffix_or_answer_over_its_limits() {
+    let Some(model) = model() else { return };
+    let choices = Choices::new(["a", "b"]).unwrap();
+    let options = SessionOptions {
+        max_suffix_tokens: 8,
+        max_answer_tokens: 16,
+        threads: None,
+    };
+    let mut session = model.session("Pick one.\n", &options).unwrap();
+    let long = "word ".repeat(50);
+    let err = session
+        .choose(&long, &choices, &GenerateOptions::default())
+        .unwrap_err();
+    assert!(matches!(err, LlmError::PromptTooLong { .. }), "{err}");
+    let err = session
+        .choose(
+            "x",
+            &choices,
+            &GenerateOptions {
+                max_tokens: 17,
+                ..GenerateOptions::default()
+            },
+        )
+        .unwrap_err();
+    assert!(matches!(err, LlmError::PromptTooLong { .. }), "{err}");
+    // Still usable afterwards.
+    let ok = session.choose(
+        "x",
+        &choices,
+        &GenerateOptions {
+            max_tokens: 16,
+            ..GenerateOptions::default()
+        },
+    );
+    assert!(ok.is_ok(), "{ok:?}");
 }

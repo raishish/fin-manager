@@ -19,6 +19,9 @@ fm-netguard = { path = "../fm-netguard" }
 # llama.cpp's own downloader (cpp-httplib) is never built. Metal is switched on
 # by llama-cpp-2 itself for aarch64-apple-darwin; elsewhere it is CPU only.
 llama-cpp-2 = { version = "=0.1.160", default-features = false }
+# The same crate llama-cpp-2 builds on, for llama.cpp constants it doesn't wrap
+# (the flash-attention setting). No default features: no `common`, as above.
+llama-cpp-sys-2 = { version = "=0.1.160", default-features = false }
 serde_json = { version = "=1.0.154", default-features = false, features = ["std"] }
 sha2 = { version = "=0.11.1", default-features = false }
 
