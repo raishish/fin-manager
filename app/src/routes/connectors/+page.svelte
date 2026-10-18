@@ -8,6 +8,7 @@
 		simplefinInspectToken,
 		simplefinStatus,
 		simplefinSync,
+		finishSync,
 		type SimpleFinStatus,
 		type SyncResult,
 		type TokenInfo
@@ -193,6 +194,23 @@
 					<p class="warning">
 						Today's requests ran out before everything was fetched. The next update carries on from
 						where this one stopped.
+					</p>
+				{/if}
+				<p>
+					{result.transfersPaired} transfers between your accounts paired{result.transfersSuggested
+						? `, ${result.transfersSuggested} suggested`
+						: ''}; your rules filed {result.ruleBuckets}; {result.cleanedMerchants} merchant names
+					cleaned up.
+				</p>
+				{#if result.incomplete}
+					<p class="warning">
+						Updated, but {result.incomplete} didn't finish.
+						<button
+							disabled={busy}
+							onclick={() => run(finishSync, 'Finished.').then(() => (result = null))}
+						>
+							Finish
+						</button>
 					</p>
 				{/if}
 				{#if result.backupError}<p class="warning">Backup after the update failed: {result.backupError}</p>{/if}

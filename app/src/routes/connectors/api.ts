@@ -37,6 +37,12 @@ export type SyncResult = {
 	requestsLeft: number;
 	nextAllowed: number | null;
 	backupError: string | null;
+	transfersPaired: number;
+	transfersSuggested: number;
+	ruleBuckets: number;
+	cleanedMerchants: number;
+	/** What was fetched is kept, but this step after it didn't finish; `finishSync` runs it. */
+	incomplete: string | null;
 };
 
 export type ConnectorError = {
@@ -72,6 +78,8 @@ export const simplefinInspectToken = (setupToken: string) =>
 export const simplefinConnect = (setupToken: string, confirmedHost: string) =>
 	invoke<SimpleFinStatus>('simplefin_connect', { setupToken, confirmedHost });
 export const simplefinSync = () => invoke<SyncResult>('simplefin_sync');
+/** Runs the steps an update or import left unfinished (transfers, rules, backup). */
+export const finishSync = () => invoke<unknown>('finish_import', { importId: null });
 export const simplefinDisconnect = () => invoke<SimpleFinStatus>('simplefin_disconnect');
 
 export function formatTime(unixSeconds: number): string {

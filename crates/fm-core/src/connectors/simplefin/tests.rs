@@ -487,6 +487,52 @@ fn responses_and_syncs_are_size_limited() {
     assert_eq!(report.synced_to, Some(window.to));
 }
 
+/// T5.13: a window whose import is stopped keeps nothing and the sync doesn't move
+/// past it; without the per-window backup, none is taken; `changed` lists the new rows.
+#[test]
+fn a_stopped_window_keeps_nothing_and_the_backup_can_be_left_to_the_caller() {
+    let (dir, mut u, _bridge, guard) = connected();
+    let folder = dir.path().join("backups");
+    std::fs::create_dir(&folder).unwrap();
+    crate::backup::set_folder(&u, &folder).unwrap();
+
+    let mut run = SyncRun::start(&u, at(NOW)).unwrap();
+    run.set_backup(false);
+    let window = run.next(&u, at(NOW)).unwrap().unwrap();
+    let body = fetch(&guard, &run, window).unwrap();
+    let err = run
+        .store_cancellable(&mut u, window, body.clone(), &|| true)
+        .unwrap_err();
+    assert!(matches!(err, SimpleFinError::Interrupted), "{err:?}");
+    assert!(u.raw_imports().unwrap().is_empty(), "nothing stored");
+    assert!(u.transactions().unwrap().is_empty());
+    assert_eq!(
+        status(&u, at(NOW)).unwrap().synced_to,
+        None,
+        "not moved past it"
+    );
+    assert_eq!(
+        status(&u, at(NOW)).unwrap().requests_left,
+        23,
+        "still counted"
+    );
+
+    run.store_cancellable(&mut u, window, body, &|| false)
+        .unwrap();
+    while let Some(w) = run.next(&u, at(NOW)).unwrap() {
+        let body = fetch(&guard, &run, w).unwrap();
+        run.store(&mut u, w, body).unwrap();
+    }
+    let report = run.finish(&u).unwrap();
+    assert_eq!(
+        std::fs::read_dir(&folder).unwrap().count(),
+        0,
+        "no backup taken"
+    );
+    let ids: Vec<_> = u.transactions().unwrap().iter().map(|t| t.id).collect();
+    assert_eq!(report.changed(), ids, "the new rows");
+}
+
 /// Review finding L3: a disconnect (or a new connection) while a sync is running
 /// means the sync stores nothing more.
 #[test]
@@ -582,7 +628,7 @@ fn an_access_url_on_another_server_is_refused() {
     let guard = NetGuard::new(Allowlist::new());
     let port = bridge.port;
     for access in [
-        format!("http://u:p@localhost:{port}/simplefin"),
+        format!("http://u:p@[::1]:{port}/simplefin"),
         format!("http://u:p@127.0.0.1:{}/simplefin", port.wrapping_add(1)),
         "https://u:p@bridge.example.com/simplefin".to_string(),
         "https://u:p@127-0-0-1.nip.io/simplefin".to_string(),

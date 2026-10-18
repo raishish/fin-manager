@@ -9,8 +9,8 @@
 //! Both URLs come from outside (a pasted token, the bridge's answer), so both must name
 //! a public host over https: never this machine, the local network or a link-local
 //! address ([`is_public_host`]). A crafted token can't point the app at a local
-//! service. The tests' fake bridge (plain http to 127.0.0.1 or localhost) is accepted
-//! only in this crate's own tests.
+//! service. The tests' fake bridge (plain http to 127.0.0.1 or [::1] with a port) is
+//! accepted only in this crate's own tests or with the test-only `fake-bridge` feature.
 
 use std::fmt;
 use std::net::{Ipv4Addr, Ipv6Addr};
@@ -52,7 +52,7 @@ pub(super) fn claim_url(setup_token: &str) -> Result<Claim, SimpleFinError> {
         return Err(invalid());
     }
     let parts = split_url(url).ok_or_else(invalid)?;
-    if parts.userinfo.is_some() || !allowed_endpoint(parts.scheme, &parts.host) {
+    if parts.userinfo.is_some() || !allowed_endpoint(&parts) {
         return Err(invalid());
     }
     Ok(Claim {
@@ -87,10 +87,7 @@ impl Credentials {
             .userinfo
             .and_then(|u| u.split_once(':'))
             .ok_or_else(bad)?;
-        if user.is_empty()
-            || parts.rest.contains(['?', '#'])
-            || !allowed_endpoint(parts.scheme, &parts.host)
-        {
+        if user.is_empty() || parts.rest.contains(['?', '#']) || !allowed_endpoint(&parts) {
             return Err(bad());
         }
         let origin = format!("{}://{}", parts.scheme, parts.authority);
@@ -127,6 +124,8 @@ struct UrlParts<'a> {
     host: String,
     /// Path, query and fragment.
     rest: &'a str,
+    /// The URL names a port.
+    has_port: bool,
 }
 
 fn split_url(url: &str) -> Option<UrlParts<'_>> {
@@ -153,20 +152,30 @@ fn split_url(url: &str) -> Option<UrlParts<'_>> {
     if host.is_empty() || port.is_some_and(|p| p.parse::<u16>().is_err()) {
         return None;
     }
+    let has_port = port.is_some();
     Some(UrlParts {
         scheme,
         userinfo,
         authority,
         host,
         rest,
+        has_port,
     })
 }
 
-/// https to a public host; or, in this crate's tests only, the fake bridge.
-fn allowed_endpoint(scheme: &str, host: &str) -> bool {
-    match scheme {
-        "https" => is_public_host(host),
-        "http" => cfg!(test) && (host == "127.0.0.1" || host == "localhost"),
+/// https to a public host; or, in tests only, the fake bridge: plain http to
+/// `127.0.0.1` or `[::1]` with a port, nothing else (not `localhost`, no private range).
+/// "Tests only" is this crate's own tests, or the `fake-bridge` feature that fm-app's
+/// tests turn on; an optimised build with that feature doesn't compile, so
+/// `cargo test --release -p fm-app` doesn't either (CI runs it in debug).
+fn allowed_endpoint(parts: &UrlParts<'_>) -> bool {
+    match parts.scheme {
+        "https" => is_public_host(&parts.host),
+        "http" => {
+            (cfg!(test) || crate::FAKE_BRIDGE)
+                && parts.has_port
+                && (parts.host == "127.0.0.1" || parts.host == "[::1]")
+        }
         _ => false,
     }
 }
@@ -307,6 +316,23 @@ mod tests {
             claim_url(&encode("http://127.0.0.1:8080/claim/x")).is_ok(),
             "tests"
         );
+        assert!(
+            claim_url(&encode("http://[::1]:8080/claim/x")).is_ok(),
+            "tests"
+        );
+        // The fake bridge's shape and nothing more.
+        for bad in [
+            "http://localhost:8080/claim/x",
+            "http://127.0.0.1/claim/x",
+            "http://127.0.0.2:8080/claim/x",
+            "http://10.0.0.1:8080/claim/x",
+            "http://192.168.1.1:8080/claim/x",
+        ] {
+            assert!(
+                matches!(claim_url(&encode(bad)), Err(SimpleFinError::InvalidToken)),
+                "{bad}"
+            );
+        }
     }
 
     /// Review finding M1: a crafted token must not point the app at this machine or the
