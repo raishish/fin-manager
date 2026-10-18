@@ -60,6 +60,19 @@ Public surface (for T4.5, the Ask screen):
 
 **Deterministic.** Greedy decoding: the same model, prompt version, question and ledger always give the same query.
 
+**Fast decoding (T2.7).** The runtime samples each token first and checks only that token against the grammar, applying the grammar to the whole vocabulary only when the token is rejected (as llama.cpp's own sampler does). The query written is the same as checking every token. `confidence_bp` is the model's probability of the query over its whole vocabulary, which is at most the figure renormalised over what the grammar allows. `Model::generate_exact` gives that old figure, at the old speed.
+
+**Where the time goes.** Measured with Qwen3.5-4B Q4_K_M on Metal, over 20 TD.3 questions (every fifth id), alternating old and new paths in a quiet window:
+
+| | Prompt (4,610 tokens) | Generation | Total |
+|---|---|---|---|
+| Grammar over the whole vocabulary at every step (`generate_exact`) | 22.5 s | 4.23 s (82 ms a token) | 26.7 s |
+| Sampled token checked first (`generate`, T2.7) | 22.7 s | 3.77 s (73 ms a token) | 26.5 s |
+
+- The queries are byte-identical on all 20, and only 12 of 1,035 sampled tokens were rejected.
+- The prompt (the language, the worked examples and the user's vocabulary) is about 85% of each question's time. The way to make a question fast is to evaluate that prompt once and keep it: a `Session` with the system prompt as its cached prefix (T4.5), after which a question costs only its own few tokens plus generation.
+- On the CI test model on a CPU, the per-token grammar check was the cost. There, T2.7 is what makes the model tests fit in CI.
+
 **fm-core isn't a dependency.** T2.5 makes fm-core call fm-llm, so this module takes the schema text and a `Vocabulary` as plain values and returns JSON. fm-core is only a dev-dependency, so tests can deserialise into `Query`.
 
 ## Answer completion (`complete`, optional)

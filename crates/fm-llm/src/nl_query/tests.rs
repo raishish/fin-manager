@@ -285,13 +285,13 @@ fn the_grammar_renders_with_root_first() {
 
 // ---- With the CI test model.
 //
-// All of these are ignored for now. The runtime checks the grammar against the whole
-// vocabulary at every token, about 1 s per token on CI's macOS runners, so even the
-// small versions (one short question on a tiny ledger, 128 tokens, greedy and one
-// sampled run) outlast the job's time limit. T2.7 (sample first, check the grammar on
-// the sampled token only) re-enables the two small ones in CI. The grammar and
-// recogniser tests above cover validity without a model. Run these with
+// The two small ones (one short question on a tiny ledger, 128 tokens, greedy and one
+// sampled run) run in CI since T2.7: the runtime samples each token first and checks
+// only it against the grammar, instead of the whole vocabulary at every token (about
+// 1 s per token on CI's macOS runners before). The full one stays ignored (minutes on
+// a CPU); run it with
 // `FM_LLM_TEST_MODEL=<gguf> cargo test -p fm-llm --lib nl_query -- --ignored`.
+// The grammar and recogniser tests above cover validity without a model.
 
 fn model() -> Option<Model> {
     let path = std::env::var_os("FM_LLM_TEST_MODEL").map(PathBuf::from);
@@ -361,7 +361,6 @@ fn is_query_or_capped(r: Result<Interpretation, NlQueryError>) -> bool {
 }
 
 #[test]
-#[ignore = "re-enabled by T2.7 (grammar fast path)"]
 fn llama_takes_the_grammar_and_nothing_malformed_comes_out() {
     let Some(model) = model() else { return };
     let v = tiny_vocabulary();
@@ -378,7 +377,6 @@ fn llama_takes_the_grammar_and_nothing_malformed_comes_out() {
 }
 
 #[test]
-#[ignore = "re-enabled by T2.7 (grammar fast path)"]
 fn the_same_question_gives_the_same_reading() {
     let Some(model) = model() else { return };
     let v = tiny_vocabulary();

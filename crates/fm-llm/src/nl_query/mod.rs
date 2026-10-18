@@ -120,7 +120,9 @@ impl<'a> Request<'a> {
 pub struct Interpretation {
     /// The query, as JSON text that the query schema accepts.
     pub json: String,
-    /// How sure the model was of it, within what the grammar allowed (basis points).
+    /// How sure the model was of it (basis points): its probability over the model's
+    /// whole vocabulary (T2.7), at most the figure renormalised over what the grammar
+    /// allows, which `Model::generate_exact` gives.
     pub confidence_bp: u16,
     pub tokens: u32,
     pub model_id: String,
