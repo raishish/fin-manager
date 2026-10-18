@@ -1,5 +1,6 @@
 //! Desktop app shell: Tauri 2 host for the Svelte UI, calling into fm-core.
 
+mod ask;
 mod backup;
 mod categories;
 mod connectors;
@@ -150,6 +151,7 @@ const COMMANDS: &[&str] = &[
     "delete_rule",
     "accounts",
     "import_file",
+    "ask",
     "csv_mapping_inspect",
     "csv_mapping_preview",
     "csv_mapping_save",
@@ -222,6 +224,7 @@ fn handler<R: Runtime>() -> impl Fn(Invoke<R>) -> bool + Send + Sync + 'static {
         categories::commands::delete_rule,
         importing::commands::accounts,
         importing::commands::import_file,
+        ask::commands::ask,
         csv_mapping::commands::csv_mapping_inspect,
         csv_mapping::commands::csv_mapping_preview,
         csv_mapping::commands::csv_mapping_save,
@@ -279,6 +282,7 @@ pub fn run() {
             app.manage(model::ModelDownload::for_app(&models_dir, Arc::clone(&net)));
             app.manage(Net(net));
             app.manage(connectors::Busy::default());
+            app.manage(ask::AskEngine::default());
             unlock::start_autolock_timer(app.handle().clone());
             Ok(())
         })
@@ -400,6 +404,7 @@ pub(crate) mod tests {
         ));
         app.manage(Net(net));
         app.manage(connectors::Busy::default());
+        app.manage(ask::AskEngine::default());
         let webview = tauri::WebviewWindowBuilder::new(&app, "main", Default::default())
             .build()
             .unwrap();
