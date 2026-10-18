@@ -87,7 +87,10 @@ fn td1_households_labelled_from_truth_pass() {
             [
                 Constraint::ExactNumbers,
                 Constraint::UserInputsWin,
+                Constraint::ClosedList,
                 Constraint::EverythingAddsUp,
+                Constraint::AdmitUncertainty,
+                Constraint::NoSilentChanges,
                 Constraint::SourceShown
             ]
         );
@@ -260,6 +263,153 @@ fn constraint_2_allows_a_pair_refining_a_rules_unpaired_transfer() {
         .with(super::user_inputs_win::UserInputsWin)
         .run(&l);
     assert!(report.is_ok(), "{report}");
+}
+
+/// The sample's model decision on transaction 5 (decision 9), changed.
+fn model_says(l: &mut Ledger, bucket: Bucket, confidence_bp: u16) {
+    set_bucket(l, 9, bucket);
+    model(l, 9).confidence = Confidence::from_basis_points(confidence_bp).unwrap();
+}
+
+#[test]
+fn constraint_3_broken_fixtures() {
+    let d = |id| Subject::Decision(DecisionId(id));
+    assert_caught(
+        Constraint::ClosedList,
+        &[
+            (
+                "model_chose_transfer",
+                |l| model_says(l, Bucket::Transfer { counterpart: None }, 9_500),
+                d(9),
+            ),
+            (
+                // Transaction 5 is money going out.
+                "model_bucket_does_not_fit",
+                |l| model_says(l, Bucket::Income, 9_500),
+                d(9),
+            ),
+            (
+                "model_bucket_does_not_fit",
+                |l| {
+                    model_says(
+                        l,
+                        Bucket::Refund {
+                            category_id: CategoryId(1),
+                            original: None,
+                        },
+                        9_500,
+                    )
+                },
+                d(9),
+            ),
+        ],
+    );
+}
+
+#[test]
+fn constraint_5_broken_fixtures() {
+    assert_caught(
+        Constraint::AdmitUncertainty,
+        &[(
+            "below_threshold_applied",
+            |l| {
+                model_says(
+                    l,
+                    Bucket::Category {
+                        category_id: CategoryId(1),
+                    },
+                    7_999,
+                )
+            },
+            Subject::Decision(DecisionId(9)),
+        )],
+    );
+    // At the threshold, and Needs review at any confidence, are fine.
+    for (bucket, bp) in [
+        (
+            Bucket::Category {
+                category_id: CategoryId(1),
+            },
+            8_000,
+        ),
+        (Bucket::NeedsReview, 10),
+    ] {
+        let mut l = sample_ledger();
+        model_says(&mut l, bucket, bp);
+        assert!(check(&l).of(Constraint::AdmitUncertainty).next().is_none());
+    }
+}
+
+/// The user saw the model's decision on transaction 5 (9); a new decision replaces it.
+fn replace_seen_model_decision(l: &mut Ledger, source: DecisionSource, seen: bool, bucket: Bucket) {
+    let old = decision(l, 9);
+    old.seen_at = Some(Timestamp::from_unix_seconds(1_760_002_000));
+    old.state = DecisionState::Superseded;
+    let mut new = old.clone();
+    new.id = DecisionId(12);
+    new.source = source;
+    new.assignment = Assignment::Bucket(bucket);
+    new.state = DecisionState::Applied;
+    new.seen_at = seen.then(|| Timestamp::from_unix_seconds(1_760_003_000));
+    new.replaces = Some(DecisionId(9));
+    l.decisions.push(new);
+}
+
+/// The sample's model, more confident.
+fn confident_model() -> DecisionSource {
+    let mut s = sample_ledger()
+        .decisions
+        .into_iter()
+        .find(|d| d.id == DecisionId(9))
+        .unwrap()
+        .source;
+    if let DecisionSource::Model(p) = &mut s {
+        p.confidence = Confidence::from_basis_points(9_900).unwrap();
+    }
+    s
+}
+
+#[test]
+fn constraint_7_broken_fixtures() {
+    let coffee = Bucket::Category {
+        category_id: CategoryId(1),
+    };
+    assert_caught(
+        Constraint::NoSilentChanges,
+        &[(
+            "silent_change",
+            |l| {
+                let coffee = Bucket::Category {
+                    category_id: CategoryId(1),
+                };
+                replace_seen_model_decision(l, confident_model(), false, coffee);
+            },
+            Subject::Decision(DecisionId(12)),
+        )],
+    );
+    // Not silent: an accepted suggestion (seen), the user's own correction, a rule the
+    // user made, and going back to Needs review (undoing a rule, breaking a pair).
+    for (source, seen, bucket) in [
+        (confident_model(), true, coffee),
+        (DecisionSource::User, false, coffee),
+        (DecisionSource::Rule { rule_id: RuleId(1) }, false, coffee),
+        (
+            DecisionSource::Builtin {
+                logic: BuiltinLogic::ImportPipeline,
+                version: 1,
+            },
+            false,
+            Bucket::NeedsReview,
+        ),
+    ] {
+        let mut l = sample_ledger();
+        replace_seen_model_decision(&mut l, source.clone(), seen, bucket);
+        let report = check(&l);
+        assert!(
+            report.of(Constraint::NoSilentChanges).next().is_none(),
+            "{source:?}: {report}"
+        );
+    }
 }
 
 #[test]
@@ -555,7 +705,7 @@ fn reports_are_deterministic_and_carry_no_financial_data() {
 
     let printed = a.to_string();
     assert!(
-        printed.starts_with("contract check (constraints 1, 2, 4, 8): "),
+        printed.starts_with("contract check (constraints 1, 2, 3, 4, 5, 7, 8): "),
         "{printed}"
     );
     for secret in [

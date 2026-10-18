@@ -1772,3 +1772,349 @@ mod actions {
         assert!(u.rules().unwrap().is_empty());
     }
 }
+
+// ---- T2.5: the model fallback, with a scripted model.
+
+mod fallback {
+    use std::collections::HashMap;
+
+    use super::*;
+    use crate::categorize::llm_fallback::{PROMPT_VERSION, choices};
+    use crate::categorize::{
+        Chooser, ChooserError, FALLBACK_THRESHOLD_BP, FallbackOptions, reject_decisions,
+        run_fallback,
+    };
+
+    const LATER: Timestamp = Timestamp::from_unix_seconds(1_770_000_500);
+
+    /// Answers by description; records what it was asked and offered.
+    struct Scripted {
+        answers: HashMap<&'static str, (&'static str, u16)>,
+        instructions: Vec<String>,
+        asked: Vec<String>,
+        offered: Vec<Vec<String>>,
+    }
+
+    impl Scripted {
+        fn new(answers: &[(&'static str, &'static str, u16)]) -> Scripted {
+            Scripted {
+                answers: answers.iter().map(|(d, k, c)| (*d, (*k, *c))).collect(),
+                instructions: Vec::new(),
+                asked: Vec::new(),
+                offered: Vec::new(),
+            }
+        }
+    }
+
+    impl Chooser for Scripted {
+        fn model_id(&self) -> &str {
+            "scripted-model"
+        }
+        fn gguf_sha256(&self) -> [u8; 32] {
+            [7; 32]
+        }
+        fn begin(&mut self, instructions: &str) -> Result<(), ChooserError> {
+            self.instructions.push(instructions.to_string());
+            Ok(())
+        }
+        fn choose(
+            &mut self,
+            transaction: &str,
+            keys: &[String],
+        ) -> Result<(String, u16), ChooserError> {
+            let description = transaction
+                .lines()
+                .next()
+                .and_then(|l| l.strip_prefix("Description: "))
+                .unwrap_or("");
+            self.asked.push(description.to_string());
+            self.offered.push(keys.to_vec());
+            let (key, bp) = self
+                .answers
+                .get(description)
+                .copied()
+                .unwrap_or(("uncategorised", 9000));
+            Ok((key.to_string(), bp))
+        }
+    }
+
+    fn stored(transactions: Vec<Transaction>, rules: Vec<Rule>) -> (tempfile::TempDir, Unlocked) {
+        let (dir, mut u) = new_database();
+        let mut l = mini(transactions);
+        l.rules = rules;
+        u.save_ledger(&l).unwrap();
+        run(&mut u, Scope::All, NOW).unwrap();
+        (dir, u)
+    }
+
+    fn checked(u: &Unlocked) -> Ledger {
+        let l = u.load_ledger().unwrap();
+        assert_contract(&l);
+        l
+    }
+
+    fn fallback(
+        u: &mut Unlocked,
+        model: &mut Scripted,
+        now: Timestamp,
+    ) -> crate::categorize::FallbackReport {
+        run_fallback(u, model, &FallbackOptions::default(), now).unwrap()
+    }
+
+    #[test]
+    fn the_model_is_offered_the_closed_list_and_nothing_else_is_accepted() {
+        let (_dir, mut u) = stored(vec![txn(1, 1, -1599, "NETFLIX.COM")], vec![]);
+        let mut model = Scripted::new(&[("NETFLIX.COM", "entertainment.streaming", 9500)]);
+        fallback(&mut u, &mut model, LATER);
+        let offered = &model.offered[0];
+        assert_eq!(offered, &choices(&default_taxonomy()));
+        assert!(offered.iter().any(|k| k == "income"));
+        assert!(
+            offered.iter().all(|k| !k.contains("transfer")),
+            "decision 45"
+        );
+        checked(&u);
+
+        // An answer outside the list (a misbehaving adapter) is refused; nothing written.
+        for bad in ["transfer", "food.not_a_category"] {
+            let (_dir, mut u) = stored(vec![txn(1, 1, -1599, "NETFLIX.COM")], vec![]);
+            let before = u.load_ledger().unwrap();
+            let mut model = Scripted::new(&[("NETFLIX.COM", bad, 9500)]);
+            let err =
+                run_fallback(&mut u, &mut model, &FallbackOptions::default(), LATER).unwrap_err();
+            assert!(matches!(err, CategorizeError::Model(_)), "{err}");
+            assert_eq!(u.load_ledger().unwrap(), before);
+        }
+    }
+
+    #[test]
+    fn below_the_threshold_it_stays_in_review_with_the_models_identity() {
+        let taxonomy = default_taxonomy();
+        let (_dir, mut u) = stored(
+            vec![
+                txn(1, 1, -1599, "NETFLIX.COM"),
+                txn(2, 1, -450, "SQ *SAKURA RAMEN"),
+                txn(3, 1, -100, "MYSTERY"),
+            ],
+            vec![],
+        );
+        let mut model = Scripted::new(&[
+            (
+                "NETFLIX.COM",
+                "entertainment.streaming",
+                FALLBACK_THRESHOLD_BP,
+            ),
+            (
+                "SQ *SAKURA RAMEN",
+                "food.restaurants",
+                FALLBACK_THRESHOLD_BP - 1,
+            ),
+            ("MYSTERY", "uncategorised", 9900),
+        ]);
+        let report = fallback(&mut u, &mut model, LATER);
+        assert_eq!(
+            (report.asked, report.categorised, report.needs_review),
+            (3, 1, 2)
+        );
+        let l = checked(&u);
+        assert_eq!(bucket(&l, 1), cat(&taxonomy, "entertainment.streaming"));
+        assert_eq!(bucket(&l, 2), Bucket::NeedsReview);
+        assert_eq!(bucket(&l, 3), Bucket::NeedsReview);
+        for t in 1..=3 {
+            let DecisionSource::Model(p) = &applied(&l, t, true).source else {
+                panic!("transaction {t}: a model decision");
+            };
+            assert_eq!(p.model_id, "scripted-model");
+            assert_eq!(p.gguf_sha256, Sha256Hash::from_bytes([7; 32]));
+            assert_eq!(p.prompt_version, PROMPT_VERSION);
+        }
+        let DecisionSource::Model(p) = &applied(&l, 2, true).source else {
+            unreachable!()
+        };
+        assert_eq!(p.confidence.basis_points(), FALLBACK_THRESHOLD_BP - 1);
+
+        // The same model again: nothing changes.
+        let again = fallback(&mut u, &mut model, LATER);
+        assert_eq!(again.run.suggestions + again.run.rule_buckets, 0);
+        assert_eq!(u.load_ledger().unwrap().decisions.len(), l.decisions.len());
+    }
+
+    #[test]
+    fn answers_fit_the_direction_of_money() {
+        let taxonomy = default_taxonomy();
+        let (_dir, mut u) = stored(
+            vec![
+                txn(1, 1, 1999, "AMAZON REFUND"),
+                txn(2, 1, -500, "PAYROLL CORRECTION"),
+                txn(3, 1, 250_000, "PAYROLL ACME"),
+            ],
+            vec![],
+        );
+        let mut model = Scripted::new(&[
+            ("AMAZON REFUND", "shopping.general", 9500),
+            ("PAYROLL CORRECTION", "income", 9900),
+            ("PAYROLL ACME", "income", 9900),
+        ]);
+        fallback(&mut u, &mut model, LATER);
+        let l = checked(&u);
+        assert_eq!(
+            bucket(&l, 1),
+            Bucket::Refund {
+                category_id: category(&taxonomy, "shopping.general"),
+                original: None
+            }
+        );
+        assert_eq!(
+            bucket(&l, 2),
+            Bucket::NeedsReview,
+            "income on money out stays in review"
+        );
+        assert_eq!(bucket(&l, 3), Bucket::Income);
+    }
+
+    #[test]
+    fn only_what_nothing_stronger_decided_is_asked() {
+        let streaming = cat(&default_taxonomy(), "entertainment.streaming");
+        let (_dir, mut u) = stored(
+            vec![
+                txn(1, 1, -1599, "NETFLIX.COM"),
+                txn(2, 1, -1599, "HULU"),
+                txn(3, 1, -50_000, "ONLINE TRANSFER TO SAV"),
+                txn(4, 2, 50_000, "ONLINE TRANSFER FROM CHK"),
+                txn(5, 1, -100, "MYSTERY"),
+            ],
+            vec![user_rule(1, "NETFLIX", Some(streaming), None)],
+        );
+        correct(
+            &mut u,
+            TransactionId(2),
+            Correction::Bucket(streaming),
+            Learn::No,
+            NOW,
+        )
+        .unwrap();
+        crate::transfers::detect(&mut u, NOW).unwrap();
+        let mut model = Scripted::new(&[]);
+        fallback(&mut u, &mut model, LATER);
+        assert_eq!(model.asked, ["MYSTERY"]);
+        assert_eq!(
+            model.instructions.len(),
+            1,
+            "the shared instructions once per run"
+        );
+        checked(&u);
+
+        // Nothing left to ask: the model isn't even started.
+        let mut idle = Scripted::new(&[]);
+        let (_dir2, mut v) = stored(
+            vec![txn(1, 1, -1599, "NETFLIX.COM")],
+            vec![user_rule(1, "NETFLIX", Some(streaming), None)],
+        );
+        assert_eq!(fallback(&mut v, &mut idle, LATER).asked, 0);
+        assert!(idle.instructions.is_empty());
+    }
+
+    #[test]
+    fn a_seen_decision_gets_a_suggestion_not_a_change() {
+        let taxonomy = default_taxonomy();
+        let (_dir, mut u) = stored(vec![txn(1, 1, -1599, "NETFLIX.COM")], vec![]);
+        fallback(
+            &mut u,
+            &mut Scripted::new(&[("NETFLIX.COM", "entertainment.streaming", 9000)]),
+            LATER,
+        );
+        let l = u.load_ledger().unwrap();
+        crate::categorize::confirm_decisions(&mut u, &[applied(&l, 1, true).id], LATER).unwrap();
+
+        // A later model disagrees.
+        let report = fallback(
+            &mut u,
+            &mut Scripted::new(&[("NETFLIX.COM", "services.software", 9900)]),
+            LATER,
+        );
+        assert_eq!(report.run.suggestions, 1);
+        let l = checked(&u);
+        assert_eq!(bucket(&l, 1), cat(&taxonomy, "entertainment.streaming"));
+        let suggestion = l
+            .decisions
+            .iter()
+            .find(|d| d.state == DecisionState::Suggested)
+            .unwrap();
+        assert_eq!(
+            suggestion.assignment,
+            Assignment::Bucket(cat(&taxonomy, "services.software"))
+        );
+    }
+
+    #[test]
+    fn a_rejected_answer_is_not_given_again() {
+        let taxonomy = default_taxonomy();
+        let (_dir, mut u) = stored(vec![txn(1, 1, -1599, "NETFLIX.COM")], vec![]);
+        let mut model = Scripted::new(&[("NETFLIX.COM", "services.software", 9500)]);
+        fallback(&mut u, &mut model, LATER);
+        let l = u.load_ledger().unwrap();
+        reject_decisions(&mut u, &[applied(&l, 1, true).id], LATER).unwrap();
+
+        let report = fallback(&mut u, &mut model, LATER);
+        assert_eq!(report.run.kept_dismissed, 1);
+        assert_eq!(bucket(&checked(&u), 1), Bucket::NeedsReview);
+        // A different answer may be applied: it's new, and unseen.
+        fallback(
+            &mut u,
+            &mut Scripted::new(&[("NETFLIX.COM", "entertainment.streaming", 9500)]),
+            LATER,
+        );
+        assert_eq!(
+            bucket(&checked(&u), 1),
+            cat(&taxonomy, "entertainment.streaming")
+        );
+    }
+
+    #[test]
+    fn the_prompt_shows_the_users_corrections_as_examples() {
+        let restaurants = cat(&default_taxonomy(), "food.restaurants");
+        let (_dir, mut u) = stored(
+            vec![
+                txn(1, 1, -450, "SQ *SAKURA RAMEN"),
+                txn(2, 1, -100, "MYSTERY"),
+            ],
+            vec![],
+        );
+        correct(
+            &mut u,
+            TransactionId(1),
+            Correction::Bucket(restaurants),
+            Learn::No,
+            NOW,
+        )
+        .unwrap();
+        let mut model = Scripted::new(&[]);
+        fallback(&mut u, &mut model, LATER);
+        let prompt = &model.instructions[0];
+        assert!(prompt.contains("Description: SQ *SAKURA RAMEN"));
+        assert!(prompt.contains("Answer: food.restaurants"));
+        assert!(prompt.contains("food.groceries: Groceries"));
+        assert!(
+            !prompt.contains("transfer:"),
+            "no transfer key (decision 45)"
+        );
+    }
+
+    #[test]
+    fn scope_limits_what_is_asked() {
+        let (_dir, mut u) = stored(vec![txn(1, 1, -100, "ONE"), txn(2, 1, -100, "TWO")], vec![]);
+        let mut model = Scripted::new(&[]);
+        let ids = [TransactionId(2)];
+        run_fallback(
+            &mut u,
+            &mut model,
+            &FallbackOptions {
+                threshold_bp: FALLBACK_THRESHOLD_BP,
+                scope: Scope::Transactions(&ids),
+            },
+            LATER,
+        )
+        .unwrap();
+        assert_eq!(model.asked, ["TWO"]);
+    }
+}

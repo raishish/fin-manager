@@ -23,6 +23,9 @@ pub enum CategorizeError {
     InvalidPair,
     /// The correction's category isn't in the category list.
     UnknownCategory,
+    /// The model couldn't answer, or answered outside its closed list (constraint 3).
+    /// Nothing was written.
+    Model(String),
     /// Income or a refund for money going out: money out is spending, a transfer or
     /// Needs review (SPEC constraint 4).
     DoesNotFit,
@@ -58,6 +61,7 @@ impl fmt::Display for CategorizeError {
             Self::UnknownTransaction => f.write_str("the transaction isn't in the ledger"),
             Self::InvalidPair => f.write_str("those two transactions can't be a transfer pair"),
             Self::UnknownCategory => f.write_str("the category isn't in the category list"),
+            Self::Model(why) => write!(f, "the model couldn't categorise: {why} [model]"),
             Self::DoesNotFit => {
                 f.write_str("money going out can't be income or a refund [does_not_fit]")
             }

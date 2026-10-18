@@ -3,7 +3,7 @@
 SPEC §6 defines eight hard constraints that the app's output must never break (decision 20). A violation is a bug. This module checks a whole `Ledger` against them:
 
 ```rust
-let report = fm_core::contract::check(&ledger);   // constraints 1, 2, 4 and 8 so far
+let report = fm_core::contract::check(&ledger);   // constraints 1–5, 7 and 8 so far
 assert!(report.is_ok(), "{report}");
 ```
 
@@ -16,7 +16,7 @@ To check a ledger in an encrypted database, run it on `unlocked.load_ledger()?`.
   | Constraint | Added by |
   |---|---|
   | 2 | T2.2 (done) |
-  | 3, 5, 7 | T2.5 |
+  | 3, 5, 7 | T2.5 (done) |
   | 6 | T4.3 |
 
 - **`Report`** lists every violation, sorted by constraint, subject and code. The same ledger always gives the same report, whatever order its rows are in.
@@ -48,6 +48,14 @@ Sources rank user > rule > fixed logic (transfer matcher, merchant clean-up) > m
 
 Account designations (`own_account`) are plain fields no model writes, so they need no check.
 
+### Constraint 3: models pick from a closed list
+The model chooses from the user's categories, Income or "uncategorised" (SPEC decision 45), enforced at generation time by a grammar in `fm-llm`. Only applied model decisions are checked.
+
+| Code | Subject | Meaning |
+|---|---|---|
+| `model_chose_transfer` | decision | A model decision files a transfer. Transfers come only from transfer detection, rules and the user |
+| `model_bucket_does_not_fit` | decision | A model decision files money going out as income or a refund; neither was on offer for it |
+
 ### Constraint 4: everything adds up
 Only **applied** decisions count; suggested, dismissed and superseded ones don't.
 
@@ -69,6 +77,18 @@ Only **applied** decisions count; suggested, dismissed and superseded ones don't
 | `matched_transfers_not_net_zero` | ledger | Per currency, matched transfers don't net to zero |
 
 An unmatched transfer (`counterpart: null`) is money moving to or from an own account outside the ledger, so it isn't required to net to zero.
+
+### Constraint 5: admit uncertainty
+
+| Code | Subject | Meaning |
+|---|---|---|
+| `below_threshold_applied` | decision | An applied model decision other than Needs review has a confidence below `categorize::FALLBACK_THRESHOLD_BP` (8000) |
+
+### Constraint 7: no silent changes
+
+| Code | Subject | Meaning |
+|---|---|---|
+| `silent_change` | decision | An applied decision from fixed logic or the model replaced a decision the user had seen, without the user having seen the new one. An accepted suggestion is marked seen, so it passes. The user's own corrections and rules, and going back to Needs review (undoing a rule, breaking a pair), aren't silent |
 
 ### Constraint 8: every decision shows its source
 The type guarantees every decision has a source. This checks that the source can be followed:

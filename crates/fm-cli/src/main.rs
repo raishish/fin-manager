@@ -2,20 +2,26 @@
 //!
 //! ```text
 //! fm-cli models list
-//! fm-cli models fetch [NAME...]        download candidates into eval/models (verified)
+//! fm-cli models fetch [NAME...]        download candidates (verified) into the models folder
 //! fm-cli models probe [NAME...]        load each and show its chat template
 //! fm-cli eval categorize NAME [--cpu] [--limit N] [--threads N] [--variants a,b] [--out RUN]
 //!                              [--check-whole | --no-check]   every answer, or none, also
 //!                              against the whole prompt (default: the first 3 per household)
 //! fm-cli eval questions NAME [--cpu] [--threads N]   TD.3 question types (proxy)
 //! fm-cli eval queries NAME [--cpu] [--threads N]     TD.3 question → query (part b)
+//! fm-cli eval fallback NAME [--cpu] [--limit N] [--threads N] [--out RUN]
+//!                                      T2.5's fallback end to end on TD.1: correction rate
 //! fm-cli eval report                   eval/runs/* → eval/report.md, eval/summary.json
 //! ```
+//!
+//! Model files live in `$FM_MODELS_DIR`, or `eval/models` (ignored by git) without it.
 
 mod candidates;
 mod eval_categorize;
+mod eval_fallback;
 mod eval_query;
 mod eval_questions;
+mod fallback;
 mod prompt;
 mod report;
 mod td1;
@@ -31,8 +37,9 @@ fn eval_dir() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../eval")
 }
 
+/// Where model files are: `$FM_MODELS_DIR`, or `eval/models`.
 fn models_dir() -> PathBuf {
-    eval_dir().join("models")
+    std::env::var_os("FM_MODELS_DIR").map_or_else(|| eval_dir().join("models"), PathBuf::from)
 }
 
 fn main() -> ExitCode {
@@ -56,6 +63,7 @@ fn main() -> ExitCode {
             ExitCode::SUCCESS
         }
         ["eval", "queries", name, rest @ ..] => eval(name, rest, Part::Queries),
+        ["eval", "fallback", name, rest @ ..] => eval(name, rest, Part::Fallback),
         ["eval", "report"] => report::write(&eval_dir()),
         _ => {
             eprintln!("usage: fm-cli models list | models fetch [NAME...]");
@@ -147,6 +155,7 @@ enum Part {
     Categorize,
     QuestionTypes,
     Queries,
+    Fallback,
 }
 
 /// How the llama.cpp in this binary was built: `GGML_CPU_REPACK` from the CMake cache of
@@ -248,6 +257,19 @@ fn eval(name: &str, rest: &[&str], part: Part) -> ExitCode {
     } else if part == Part::Queries {
         meta["queries"] = eval_query::run(&model, &run_dir, candidate.answer_lead, threads);
         "queries-meta.json"
+    } else if part == Part::Fallback {
+        let settings = eval_fallback::Settings {
+            run_dir: &run_dir,
+            limit,
+            threads,
+            answer_lead: candidate.answer_lead,
+        };
+        meta["fallback"] = eval_fallback::run(&model, &settings);
+        println!(
+            "{}",
+            serde_json::to_string_pretty(&meta["fallback"]).unwrap()
+        );
+        "fallback-meta.json"
     } else {
         let scratch = std::env::temp_dir();
         let households: Vec<td1::Household> = td1::PERSONAS

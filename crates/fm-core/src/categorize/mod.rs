@@ -71,6 +71,7 @@
 pub mod actions;
 pub mod apply;
 pub mod correct;
+pub mod llm_fallback;
 pub mod merchant;
 pub mod normalize;
 pub mod plan;
@@ -87,4 +88,7 @@ pub use actions::{
 };
 pub use apply::{CategorizeError, apply_to_ledger, run, run_on_ledger};
 pub use correct::{Correction, CorrectionReport, Learn, correct, correct_all, correct_ledger};
+pub use llm_fallback::{
+    Chooser, ChooserError, FALLBACK_THRESHOLD_BP, FallbackOptions, FallbackReport, run_fallback,
+};
 pub use plan::{LedgerView, Plan, RunReport, Scope};

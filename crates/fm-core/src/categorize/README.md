@@ -15,6 +15,7 @@ import (T1.3) → transfers::detect (T1.4) → categorize::run (rules, clean-up)
 | `plan.rs` | The pure planner and `decide`, the precedence policy T2.5 shares |
 | `apply.rs` | Writing plans to a `Ledger` or, in one savepoint, to the database; `run` |
 | `correct.rs` | Corrections: the user decision, transfer pairing and unpairing, the learned rule, the re-run. Income or a refund for money going out is refused (`DoesNotFit`, constraint 4) |
+| `llm_fallback.rs` | The model fallback (T2.5): asks a `Chooser` (the model, a parameter) about each transaction still in review or decided by an earlier model, from SPEC decision 45's closed list (categories, income, uncategorised; never transfer). Below `FALLBACK_THRESHOLD_BP` (8000) the answer stays Needs review, with the model's identity and confidence. Every write goes through `Planner::propose`, so user and rule decisions win, seen decisions get suggestions, and dismissals and rejections stick. fm-core doesn't depend on llama.cpp: `fm_llm::Session` is wrapped in a `Chooser` where the model is loaded |
 | `actions.rs` | The user's actions (T2.6): `set_rule_enabled`, `delete_rule` (its decisions go by the storage cascade; those transactions are planned again), `undo_rule_decisions` (supersedes what a rule decided and plans those transactions without it), `accept_suggestion` and `dismiss_suggestion` (both sides of a transfer pair together; a dismissal sticks: fixed logic and the model never bring the same assignment back, though the user's own rules can); `confirm_decisions` and `reject_decisions`, the review queue's bulk approve and reject (SPEC decision 46: a decision is seen once the user acts on it). Confirming marks decisions seen and skips those already seen; rejecting sends a model's or fixed logic's bucket back to Needs review, both sides of a pair, and sticks like a dismissal. Each batch is all or none |
 | `tests.rs` | The policy row by row, rules against pairs and user decisions, suggestions, corrections; the done criterion through an encrypted database with TD.1's renter |
 | `td1_eval.rs` | The rules-only baseline below |
@@ -41,3 +42,18 @@ The wrong ones are TD.1's hard cases:
 - DoorDash orders from Chipotle, where the newer "CHIPOTLE" rule wins (6).
 
 **Merchant clean-up:** 64.4% of the 6,684 transactions with a merchant get exactly the truth name (33.2% without the alias table). Most misses are truncated names (`Blue Bottle Coff`) or names that run into the city; one merchant correction fixes them all through a merchant rule.
+
+## The model fallback on TD.1
+`FM_MODELS_DIR=<folder with the GGUF> cargo run -p fm-cli --release -- eval fallback qwen3.5-4b` runs it; `--limit N` asks about N transactions per household, `--cpu` keeps the model off the GPU. For each household, the starting state above (T1.4, then rules, then k = 20 corrections) is saved to a throwaway encrypted ledger, and `run_fallback` runs on it as the app would: SPEC decision 48's model (Qwen3.5-4B Q4_K_M) behind fm-cli's `SessionChooser`, threshold 0.80, through the planner and one savepoint. The ledger is then loaded back, checked against the contract, and scored. Answers come out the same on every run (greedy decoding).
+
+The **correction rate** is what the user would have to fix: of the answers the fallback applied (confidence at or above 0.80), the share that is wrong.
+
+| Household | Asked (in review) | Applied | Wrong among applied | Kept in review |
+|---|---|---|---|---|
+| renter | 950 | 646 | 47 (7.3%) | 304 |
+| family | 1,215 | 844 | 83 (9.8%) | 371 |
+| freelancer | 659 | 478 | 8 (1.7%) | 181 |
+| retiree | 510 | 284 | 37 (13.0%) | 226 |
+| **All** | **3,334** | **2,252** | **175 (7.8%)** | **1,082** |
+
+Whole ledger (7,376 transactions), correct / wrong / in review: 54.4% / 0.4% / 45.2% before, **82.6% / 2.8% / 14.7%** after. 0 contract violations and 0 errors. About 1 s per transaction on an Apple M2 (Metal) on a busy machine; quiet-machine speeds are in `eval/report.md`.
