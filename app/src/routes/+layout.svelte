@@ -6,6 +6,7 @@
 	// first; this only cancels the browser's default. The Rust side refuses any such
 	// navigation too (lib.rs, navigation_allowed).
 	import { onMount } from 'svelte';
+	import CategoriserStatus from './dashboard/CategoriserStatus.svelte';
 	import { installUnlockGuard } from './unlock/guard';
 
 	let { children } = $props();
@@ -24,3 +25,5 @@
 </script>
 
 {@render children()}
+<!-- The local model categorising in the background (T4.8). -->
+<CategoriserStatus />

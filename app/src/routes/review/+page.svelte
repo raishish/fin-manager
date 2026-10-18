@@ -24,6 +24,7 @@
 		type RulePreview,
 		type Transaction
 	} from '../dashboard/ledger';
+	import { reloadOnProgress } from '../dashboard/categoriser';
 
 	const PAGE = 50;
 
@@ -106,6 +107,9 @@
 		void offset;
 		load();
 	});
+
+	// The model's batches land in the queue as they are written (T4.8).
+	$effect(() => reloadOnProgress(() => load()));
 
 	async function select(t: Transaction) {
 		selected = t;

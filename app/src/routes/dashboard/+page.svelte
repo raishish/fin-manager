@@ -3,6 +3,7 @@
 	// out, it never adds anything up. Pending transactions are their own line, never in a
 	// total; Needs review is its own line and feeds the review queue (SPEC decision 42).
 	import TransactionList from './TransactionList.svelte';
+	import { reloadOnProgress } from './categoriser';
 	import BackupReminder from '../onboarding/BackupReminder.svelte';
 	import { dashboard, errorText, money, type Dashboard, type Line } from './ledger';
 
@@ -13,7 +14,12 @@
 	let open = $state<Set<number>>(new Set());
 	let drill = $state<{ title: string; ids: number[] } | null>(null);
 
+	/** Bumped when the model categoriser writes, to reload the figures (T4.8). */
+	let refresh = $state(0);
+	$effect(() => reloadOnProgress(() => refresh++));
+
 	$effect(() => {
+		void refresh;
 		const m = month;
 		const c = currency;
 		error = '';

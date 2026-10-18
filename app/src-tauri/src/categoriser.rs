@@ -31,6 +31,9 @@
 //! - **On CPU-only machines** it uses half the cores, so the app stays responsive.
 //! - **No financial data leaves it:** the snapshot and the recorded answers are the
 //!   run's locals; nothing is logged; errors are counted, not kept.
+//! - **Progress for the UI (T4.8):** [`PROGRESS_EVENT`] carries counts only
+//!   ([`Progress`]), when a run starts, after each batch is written, and when it ends,
+//!   so the review queue and dashboard refresh and a status line shows the run.
 
 use std::collections::{HashMap, HashSet};
 use std::sync::atomic::{AtomicBool, AtomicU64, AtomicUsize, Ordering};
@@ -49,7 +52,8 @@ use fm_core::model::{
     Assignment, BuiltinLogic, DecisionSource, DecisionState, Ledger, Timestamp, TransactionId,
 };
 use fm_llm::{Cancel, Choices, GenerateOptions, LlmError, Model, Session, SessionOptions};
-use tauri::{AppHandle, Manager, Runtime};
+use serde::Serialize;
+use tauri::{AppHandle, Emitter, Manager, Runtime};
 
 use crate::model::{ANSWER_LEAD, ModelHost, ReadyEdge};
 use crate::unlock::AppUnlock;
@@ -76,6 +80,26 @@ const ASK_POLL: Duration = Duration::from_millis(20);
 /// Imports finished in this process: [`imported`] moves it on, and every categoriser
 /// looks at its own ledger when it does. It carries no data.
 static IMPORTS: AtomicU64 = AtomicU64::new(0);
+
+/// The event a run's progress goes out on (`app/src/routes/dashboard/categoriserStatus.ts`).
+pub const PROGRESS_EVENT: &str = "categoriser://progress";
+
+/// One run's progress, for the UI: counts only, never a name, description or amount.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Progress {
+    pub running: bool,
+    /// Transactions waiting for the model when the run started.
+    pub total: usize,
+    /// Answers written in this run.
+    pub answered: usize,
+    /// Of those, filed to a category, refund or income.
+    pub applied: usize,
+    /// Of those, kept in Needs review; plus any the model couldn't answer.
+    pub left_in_review: usize,
+    /// Not answered yet.
+    pub still_waiting: usize,
+}
 
 /// An import finished (file or SimpleFIN sync): what the rules left is the model's.
 pub fn imported() {
@@ -120,6 +144,9 @@ pub struct Probe {
     /// An answer for a transaction whose text contains this fails, as a too-long prompt
     /// would.
     pub fail_if: Option<String>,
+    /// A shorter [`BATCH_TIME`], so a test can force batches to be applied early, as on a
+    /// slow machine.
+    pub batch_time: Option<Duration>,
 }
 
 /// The categoriser (see the module docs).
@@ -157,6 +184,7 @@ impl Categoriser {
             threads: (!fm_llm::gpu_offload_supported().unwrap_or(false))
                 .then(|| u32::try_from((cores / 2).max(1)).unwrap_or(1)),
             probe,
+            progress: Mutex::new(Progress::default()),
         };
         let worker = std::thread::Builder::new()
             .name("categoriser".into())
@@ -299,9 +327,22 @@ struct Worker<R: Runtime> {
     alive: Arc<AtomicUsize>,
     threads: Option<u32>,
     probe: Probe,
+    /// The current run's progress (T4.8).
+    progress: Mutex<Progress>,
 }
 
 impl<R: Runtime> Worker<R> {
+    /// Changes the run's progress and tells the UI.
+    fn progress(&self, change: impl FnOnce(&mut Progress)) {
+        let now = {
+            let mut p = self.progress.lock().unwrap_or_else(PoisonError::into_inner);
+            change(&mut p);
+            *p
+        };
+        // No window is not an error: the UI picks the counts up on its next run.
+        let _ = self.app.emit(PROGRESS_EVENT, now);
+    }
+
     fn stats(&self) -> std::sync::MutexGuard<'_, Stats> {
         self.stats.lock().unwrap_or_else(PoisonError::into_inner)
     }
@@ -390,11 +431,20 @@ impl<R: Runtime> Worker<R> {
             return;
         }
         self.stats().runs += 1;
+        self.progress(|p| {
+            *p = Progress {
+                running: true,
+                total: ids.len(),
+                still_waiting: ids.len(),
+                ..Progress::default()
+            }
+        });
         match self.answer_all(model, cached, generation, &ledger, &ids, skipped) {
             Ok(()) => {}
             Err(Stop::Interrupted) => self.stats().interrupted += 1,
             Err(Stop::Failed) => self.stats().failed += 1,
         }
+        self.progress(|p| p.running = false);
         if self.unlock().generation() != generation {
             *cached = None;
         }
@@ -430,7 +480,8 @@ impl<R: Runtime> Worker<R> {
             let mut answers: HashMap<String, (String, u16)> = HashMap::new();
             let mut batch = Vec::new();
             let started = Instant::now();
-            while batch.len() < MAX_BATCH && started.elapsed() < BATCH_TIME {
+            let batch_time = self.probe.batch_time.unwrap_or(BATCH_TIME);
+            while batch.len() < MAX_BATCH && started.elapsed() < batch_time {
                 let Some(id) = next.next() else {
                     exhausted = true;
                     break;
@@ -450,6 +501,9 @@ impl<R: Runtime> Worker<R> {
                     Err(_) => {
                         skipped.insert(*id);
                         self.stats().skipped += 1;
+                        let mut p = self.progress.lock().unwrap_or_else(PoisonError::into_inner);
+                        p.left_in_review += 1;
+                        p.still_waiting = p.still_waiting.saturating_sub(1);
                     }
                 }
             }
@@ -556,6 +610,13 @@ impl<R: Runtime> Worker<R> {
                 stats.asked += report.asked;
                 stats.categorised += report.categorised;
                 stats.needs_review += report.needs_review;
+                drop(stats);
+                self.progress(|p| {
+                    p.answered += report.asked;
+                    p.applied += report.categorised;
+                    p.left_in_review += report.needs_review;
+                    p.still_waiting = p.still_waiting.saturating_sub(batch.len());
+                });
                 Ok(())
             }
             // An answer recorded for a list that has changed since (a category hidden or
@@ -773,6 +834,113 @@ mod tests {
         }
     }
 
+    /// T4.8: the payload is counts only: exactly these keys, and no string anywhere, so a
+    /// later change can't slip a name or an amount in.
+    fn assert_counts_only(payload: &Value) {
+        let obj = payload.as_object().expect("an object");
+        let mut keys: Vec<&str> = obj.keys().map(String::as_str).collect();
+        keys.sort_unstable();
+        assert_eq!(
+            keys,
+            [
+                "answered",
+                "applied",
+                "leftInReview",
+                "running",
+                "stillWaiting",
+                "total"
+            ]
+        );
+        for (k, v) in obj {
+            assert!(
+                v.is_u64() || v.is_boolean(),
+                "{k} must be a count or a flag, not {v}"
+            );
+        }
+    }
+
+    #[test]
+    fn progress_is_counts_only() {
+        let p = Progress {
+            running: true,
+            total: 12,
+            answered: 5,
+            applied: 4,
+            left_in_review: 1,
+            still_waiting: 7,
+        };
+        assert_counts_only(&serde_json::to_value(p).unwrap());
+        assert_counts_only(&serde_json::to_value(Progress::default()).unwrap());
+    }
+
+    /// T4.8's done-when, with the CI model: an import's run reports its progress on
+    /// PROGRESS_EVENT (start, each written batch, end), counts only; the end adds up; and
+    /// the review queue then shows the model's work.
+    #[test]
+    fn an_import_reports_progress_with_counts_only() {
+        use tauri::Listener;
+        let Some(host) = loaded_host() else { return };
+        let (_dir, app, w) = app();
+        let seen: Arc<Mutex<Vec<String>>> = Arc::default();
+        {
+            let seen = Arc::clone(&seen);
+            app.listen_any(PROGRESS_EVENT, move |e| {
+                seen.lock().unwrap().push(e.payload().to_string());
+            });
+        }
+        let categoriser = Categoriser::start(app.handle().clone(), Arc::clone(&host));
+        import(&w, Some(ROWS));
+        let ended = || {
+            seen.lock()
+                .unwrap()
+                .iter()
+                .any(|p| p.contains("\"running\":false"))
+        };
+        assert!(wait(600, ended), "the run ended and said so");
+        let events: Vec<Value> = seen
+            .lock()
+            .unwrap()
+            .iter()
+            .map(|p| serde_json::from_str(p).unwrap())
+            .collect();
+        for e in &events {
+            assert_counts_only(e);
+        }
+        let (first, last) = (&events[0], events.last().unwrap());
+        assert_eq!(first["running"], true);
+        assert_eq!(first["answered"], 0);
+        assert_eq!(first["stillWaiting"], first["total"]);
+        assert_eq!(last["running"], false);
+        assert_eq!(last["stillWaiting"], 0, "every waiting row was answered");
+        let n = |v: &Value, k: &str| v[k].as_u64().unwrap();
+        assert_eq!(n(last, "total"), n(first, "total"));
+        assert_eq!(
+            n(last, "applied") + n(last, "leftInReview"),
+            n(last, "total"),
+            "each one either filed or left for review"
+        );
+        let answered: Vec<u64> = events.iter().map(|e| n(e, "answered")).collect();
+        assert!(
+            answered.windows(2).all(|w| w[0] <= w[1]),
+            "counts only grow"
+        );
+        assert!(
+            events.len() >= 3,
+            "start, at least one batch, end: {events:?}"
+        );
+
+        // What the review page reloads to: the model's filings wait there for Approve.
+        let queue = invoke_with(&w, "review_queue", json!({ "offset": 0, "limit": 200 })).unwrap();
+        let by_model = queue["transactions"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .filter(|t| t["bucketSource"] == "Model" && t["awaitsConfirmation"] == true)
+            .count() as u64;
+        assert_eq!(by_model, n(last, "applied"));
+        categoriser.shut_down();
+    }
+
     #[test]
     fn long_lines_are_cut_for_the_model_on_a_character_boundary() {
         let long = format!("Description: {}\nAmount: -1.00 USD\n", "é".repeat(500));
@@ -951,18 +1119,32 @@ mod tests {
                 let lock_at = Arc::clone(&lock_at);
                 move || {
                     let n = tokens.fetch_add(1, Ordering::SeqCst);
-                    if n == 150 {
+                    // About five answers in: early enough that no batch has been applied
+                    // yet on any machine.
+                    if n == 40 {
                         let _ = reached_tx.send(());
                         if let Some(rx) = go_rx.lock().unwrap().take() {
                             let _ = rx.recv();
                         }
                     }
-                    if n > 0 && n == lock_at.load(Ordering::SeqCst) {
-                        // The worker holds no ledger lock while it answers.
+                    let at = lock_at.load(Ordering::SeqCst);
+                    if at > 0
+                        && n >= at
+                        && lock_at
+                            .compare_exchange(at, 0, Ordering::SeqCst, Ordering::SeqCst)
+                            .is_ok()
+                    {
+                        // Once. The worker holds no ledger lock while it answers.
                         handle.state::<AppUnlock>().lock();
                     }
                 }
             })),
+            // FM_CATEGORISER_TEST_BATCH_MS=1000 forces the slow path: batches applied
+            // early, as on CI's slow VMs.
+            batch_time: std::env::var("FM_CATEGORISER_TEST_BATCH_MS")
+                .ok()
+                .and_then(|ms| ms.parse().ok())
+                .map(Duration::from_millis),
             ..Probe::default()
         };
         let categoriser = Categoriser::start_with(app.handle().clone(), Arc::clone(&host), probe);
@@ -995,9 +1177,15 @@ mod tests {
         invoke_with(&w, "unlock_with_password", json!({ "password": PASSWORD })).unwrap();
         written_matches(&first);
 
-        // 2. A lock between two tokens, about ten answers into the next session.
-        lock_at.store(tokens.load(Ordering::SeqCst) + 120, Ordering::SeqCst);
-        assert!(wait(300, || categoriser.stats().interrupted == 2));
+        // 2. A lock between two tokens of the next session: armed once that session is
+        // built and work remains, three tokens on, so it lands whatever has been applied.
+        assert!(wait(60, || categoriser.stats().sessions_built == 2));
+        assert!(
+            !left(&app).is_empty(),
+            "work remains for the second session"
+        );
+        lock_at.store(tokens.load(Ordering::SeqCst) + 3, Ordering::SeqCst);
+        assert!(wait(60, || categoriser.stats().interrupted == 2));
         assert!(wait(5, || categoriser.stats().sessions_alive == 0));
         let second = categoriser.stats();
         assert_eq!(second.sessions_built, 2);
