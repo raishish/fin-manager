@@ -6,7 +6,8 @@ name: Linux CPU timing
 # The commands are eval/README.md's "Linux CPU check": 40 transactions (10 per
 # household), CPU only.
 #
-# Run by hand ("Run workflow"). The numbers go to the job summary only: nothing is
+# Run by hand ("Run workflow"). The numbers go to the job summary and, identically, to
+# the Summary step's log (which the API returns; the summary page isn't): nothing is
 # uploaded, the token is read-only, and there are no secrets. Copy them into
 # eval/report.md.
 
@@ -97,6 +98,7 @@ jobs:
             grep "Maximum resident set size" "eval/runs/$out/categorize.log"
           done
       - name: Summary
+        # Every line goes to the job summary and to this step's log.
         run: |
           {
             echo "## Qwen3.5-4B on a Linux CPU (T5.14)"
@@ -105,7 +107,7 @@ jobs:
             echo
             echo "| Build | cpu_repack | Transactions | Median per transaction | Mean | Peak RSS | Load before → after |"
             echo "|---|---|---|---|---|---|---|"
-          } >> "$GITHUB_STEP_SUMMARY"
+          } | tee -a "$GITHUB_STEP_SUMMARY"
           over=0
           for repack in OFF ON; do
             dir="eval/runs/$MODEL-linux-cpu-repack-$repack"
@@ -122,7 +124,8 @@ jobs:
             mean=$(echo "$stats" | jq '.mean / 1000 * 100 | round / 100')
             meta=$(jq -r '.cpu_repack // "unknown"' "$dir/meta.json")
             load=$(awk -F'load average: ' '{print $2}' "$dir/load.txt" | tr '\n' ';' | sed 's/;$//; s/;/ → /')
-            echo "| GGML_CPU_REPACK=$repack | $meta | $n | ${median} s | ${mean} s | $gb | $load |" >> "$GITHUB_STEP_SUMMARY"
+            echo "| GGML_CPU_REPACK=$repack | $meta | $n | ${median} s | ${mean} s | $gb | $load |" \
+              | tee -a "$GITHUB_STEP_SUMMARY"
             # Decision 48's budget: the shipped build must fit an 8 GB machine.
             if [ "$repack" = OFF ] && [ "$kb" -gt $((4 * 1024 * 1024)) ]; then
               over=1
