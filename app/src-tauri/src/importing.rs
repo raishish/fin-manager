@@ -452,9 +452,6 @@ impl AppUnlock {
             after.suggestions = r.suggestions;
             after.rule_did_not_fit = r.rule_did_not_fit;
         }
-        // T2.5's model fallback goes here, as its own step (e.g. "suggesting categories"),
-        // for what the rules left in Needs review: both file imports and SimpleFIN syncs
-        // run through this one place. Nothing yet.
         let mut backup = None;
         let cancel = || self.interrupted();
         if !step("the backup", &mut after, &mut |u| {
@@ -483,6 +480,10 @@ impl AppUnlock {
                 message: Some(e.to_string()),
             },
         });
+        // The model's turn (T4.6), for what the rules left in Needs review: both file
+        // imports and SimpleFIN syncs end here. It runs in the background, in small
+        // steps, so the import's summary and the backup don't wait for it.
+        crate::categoriser::imported();
         after
     }
 

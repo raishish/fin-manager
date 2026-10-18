@@ -143,6 +143,11 @@ jobs:
       - name: The app's Ask path on the test model
         if: runner.os == 'macOS'
         run: cargo test -p fm-app --locked ask_model -- --test-threads 1
+      # The model categoriser (T4.6): an import through IPC ends with the model's
+      # decisions; nothing before the model is ready; a lock stops it mid-run.
+      - name: The app's model categoriser on the test model
+        if: runner.os == 'macOS'
+        run: cargo test -p fm-app --locked categoriser -- --test-threads 1
       - name: llama.cpp is built without CPU weight repacking (SPEC decision 48)
         run: |
           caches=$(find target -path '*/build/llama-cpp-sys-2-*/out/build/CMakeCache.txt')

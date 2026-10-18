@@ -4,6 +4,7 @@ mod ask;
 mod ask_model;
 mod backup;
 mod categories;
+mod categoriser;
 mod connectors;
 mod crash;
 mod csv_mapping;
@@ -299,6 +300,10 @@ pub fn run() {
             engine.set_writer(Box::new(ask_model::ModelWriter(Arc::clone(&ask_model))));
             app.manage(engine);
             app.manage(ask_model);
+            app.manage(categoriser::Categoriser::start(
+                app.handle().clone(),
+                Arc::clone(&host),
+            ));
             app.manage(Arc::clone(&host));
             model::watch_ready(app.handle().clone(), host);
             download.resume_if_started();
@@ -318,6 +323,7 @@ pub fn run() {
                 // Every user of the model drops it before the host does, and the host
                 // before the process exits (Metal aborts at exit with a model loaded).
                 app.state::<Arc<ask_model::AskModel>>().shut_down();
+                app.state::<Arc<categoriser::Categoriser>>().shut_down();
                 app.state::<Arc<model::ModelHost>>().shut_down();
             }
         });
