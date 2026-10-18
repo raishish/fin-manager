@@ -85,7 +85,7 @@ To change a rule, change its constant and run `cargo run --release`. Every answe
 - `note` says how to read the answer where that isn't obvious, for example "Card payments are transfers and don't count".
 - `expected_query` is the structured query (T4.1, `fm_core::query`) a perfect interpreter would write. It has one item per answer, with the same names. The queries are written in `src/queries.rs` and generated into the file like the answers. 98 questions have one:
   - `proxy` (9 questions: q044, q058, q059, q060, q064, q090, q094, q097, q100) says why the query is a stand-in. The answers came from a ground-truth tag or series the ledger doesn't record (the trip, the fee lines, the set-asides), and the query reaches the same transactions another way. A model can't be expected to guess these, so T4.2 reports accuracy with and without them.
-  - `known_gap` (q062, q065) says why a correct query doesn't give the answer yet: T3.2's recurring detection misses the US estimated-tax series, which T3.4 adds.
+  - `known_gap` says why a correct query doesn't give the answer yet, because of a known limit elsewhere. None does today: q062 and q065 had one until T3.4 taught recurring detection the US estimated-tax calendar.
 - `null_reason` is set on the two questions with no query (q089, the Lisbon trip, and q093, without one-offs): the ledger has no trip tags or one-off marks yet.
 
 ## Checks (`tests/questions.rs`)
@@ -111,10 +111,48 @@ Mutation-checked: making refunds not offset spending fails the independent recou
   - Each query runs through `fm_core::query::run` on the freelancer's ledger, labelled from truth, as of 2026-10-01.
   - Every answer must match exactly, and so must its evidence ids for sums and counts.
   - Recurring questions name their series through a labeler that reads truth. It stands in for the model behind T3.2's `Labeler` hook.
-  - The test prints `T4.1-TD3 queries=98 exact=96 known_gaps=2 nulls=2 proxies=9`.
-- **The known gaps live in one place**, `KNOWN_GAPS` at the top of the test. Each pins what its query gives today. If that changes, the test fails. When T3.4 lands, it deletes the two entries, and the queries must then give the expected answers.
+  - The test prints `T4.1-TD3 queries=98 exact=98 known_gaps=0 nulls=2 proxies=9`.
+- **Known gaps live in one place**, `KNOWN_GAPS` at the top of the test (empty today). Each entry pins what its query gives, so the test fails if that changes, until the limit is fixed and the entry deleted.
 - **Every query round-trips through JSON.**
 - fm-core's `query::schema_tests` also validates every expected query against `schema.json`.
+
+## Question answering with the local model (`nl-eval`, T4.2)
+
+`src/bin/nl-eval.rs` measures T4.2:
+- Each question goes through the local model (fm-llm's `nl_query`).
+- The query the model writes runs on the freelancer's ledger, labelled from truth (`src/labelled.rs`), as of 2026-10-01.
+- The answers are compared with this set's.
+
+It sits behind the `nl-eval` feature, so the default build and CI never compile llama.cpp here.
+
+```sh
+cargo run --release --features nl-eval --bin nl-eval -- \
+  --model <file.gguf> --sha256 <pinned hex> --id <model id> \
+  [--lead '<think>\n\n</think>\n\n'] [--only q001,q022] [--out nl-eval/<model id>.md]
+```
+
+- `--sha256` is required: the file is verified before it's loaded.
+- `--lead` is the text a thinking model's answer starts with (Qwen3.5 takes an empty think block).
+
+**A question is correct** when:
+- every expected answer is matched, one to one, by an answer of the model's query with the same value. Money must also match in currency; counts, percents, dates and texts must match exactly. Names and order don't matter. Extra answers are allowed but counted (a query has at most 6 items).
+- **and** no item of the model's query covers a period disjoint from every period the expected query covers.
+
+Special cases:
+- **Nulls** (q089, q093): wrong unless matched anyway.
+
+**The report** gives:
+- correct out of 100;
+- correct without the 9 proxies;
+- correct per type;
+- each failure class: wrong value, stray period, run error, no parse, no answer;
+- the extra-item rate;
+- whether evidence ids agree;
+- confidence when right and when wrong;
+- time per question;
+- every failure with the model's query and its plain-English reading.
+
+Reports are kept in `nl-eval/`.
 
 ## Changing the set
 

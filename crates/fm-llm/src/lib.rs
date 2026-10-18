@@ -44,6 +44,7 @@
 mod download;
 pub mod explain;
 mod grammar;
+pub mod nl_query;
 mod runtime;
 
 pub use download::{

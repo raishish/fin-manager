@@ -6,6 +6,7 @@
 //! re-add them. `README.md` documents the file and the counting conventions.
 
 pub mod facts;
+pub mod labelled;
 mod queries;
 mod questions;
 
@@ -304,10 +305,6 @@ pub fn build() -> QuestionSet {
             queries::Expected::Proxy(query, why) => {
                 q.expected_query = Some(query);
                 q.proxy = Some(why.to_string());
-            }
-            queries::Expected::KnownGap(query, why) => {
-                q.expected_query = Some(query);
-                q.known_gap = Some(why.to_string());
             }
             queries::Expected::Null(why) => q.null_reason = Some(why.to_string()),
         }

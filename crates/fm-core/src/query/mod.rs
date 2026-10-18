@@ -28,6 +28,7 @@
 //! See README.md for the language, and `schema.json` for its JSON schema.
 
 mod answer;
+mod describe;
 mod exec;
 mod facts;
 mod period;
@@ -39,6 +40,7 @@ mod spec;
 mod tests;
 
 pub use answer::{Answer, QueryError, Value};
+pub use describe::{describe, resolve_period};
 pub use exec::{Context, run};
 pub use spec::{
     AccountSelect, Amounts, Ask, By, CadenceSel, DeriveOp, Item, Measure, Metric, Order, Per,

@@ -6,6 +6,7 @@ edition = "2024"
 license = "AGPL-3.0-or-later"
 repository = "https://github.com/raishish/fin-manager"
 publish = false
+default-run = "fm-questions"
 
 # A standalone workspace, like testdata/synthetic: test-data tooling kept out of the
 # app's build. Build and test it from this folder.
@@ -13,9 +14,19 @@ publish = false
 
 [dependencies]
 fm-core = { path = "../../crates/fm-core" }
+# T4.2's accuracy harness (src/bin/nl-eval.rs) runs the local model through fm-llm.
+# Optional, so the default build and CI never compile llama.cpp here.
+fm-llm = { path = "../../crates/fm-llm", optional = true }
 fm-synth = { path = "../synthetic" }
 serde = { version = "=1.0.229", default-features = false, features = ["derive", "std"] }
 serde_json = "=1.0.154"
+
+[features]
+nl-eval = ["dep:fm-llm"]
+
+[[bin]]
+name = "nl-eval"
+required-features = ["nl-eval"]
 
 [lints.rust]
 unsafe_code = "deny"

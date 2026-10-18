@@ -2,12 +2,10 @@
 //! would write. `tests/answers.rs` runs each one through `fm_core::query` on the
 //! labelled ledger and checks it gives the question's answers.
 //!
-//! Three kinds of entry besides a plain query:
+//! Two kinds of entry besides a plain query:
 //! - **proxy**: the answers were computed from a ground-truth tag or series the ledger
 //!   doesn't have, and the query reaches the same transactions another way. A model
 //!   can't be expected to guess these, so T4.2 reports accuracy with and without them.
-//! - **known gap**: the query is right, but T3.2's recurring detection misses the
-//!   series, so it doesn't give the answer yet. The test pins today's result.
 //! - **null**: the question can't be expressed with what the ledger records.
 
 use fm_core::model::{AccountKind, Date, YearMonth};
@@ -16,7 +14,6 @@ use fm_core::query::*;
 pub enum Expected {
     Query(Query),
     Proxy(Query, &'static str),
-    KnownGap(Query, &'static str),
     Null(&'static str),
 }
 
@@ -229,8 +226,6 @@ fn proxy(why: &'static str, items: Vec<Item>) -> Expected {
 fn spent(p: PeriodSpec) -> Scope {
     s(p)
 }
-
-const T32_GAP: &str = "T3.2 doesn't detect the US estimated-tax schedule (Jan, Apr, Jun and Sep 15), so the IRS quarterly series is missing; T3.4 adds that calendar";
 
 /// The expected query for question `id`.
 pub fn expected(id: &str) -> Expected {
@@ -618,20 +613,15 @@ pub fn expected(id: &str) -> Expected {
             )
         }
         "q061" => total(spent(AllTime).at("Coursera")),
-        "q062" => Expected::KnownGap(
-            Query {
-                items: vec![series(
-                    "recurring",
-                    SeriesSelect {
-                        kinds: Some(vec![SeriesKindSel::Subscription, SeriesKindSel::Bill]),
-                        status: SeriesStatus::Active,
-                        ..SeriesSelect::default()
-                    },
-                    SeriesOutput::Count,
-                )],
+        "q062" => q(vec![series(
+            "recurring",
+            SeriesSelect {
+                kinds: Some(vec![SeriesKindSel::Subscription, SeriesKindSel::Bill]),
+                status: SeriesStatus::Active,
+                ..SeriesSelect::default()
             },
-            T32_GAP,
-        ),
+            SeriesOutput::Count,
+        )]),
         "q063" => q(vec![series(
             "monthly",
             SeriesSelect {
@@ -653,15 +643,10 @@ pub fn expected(id: &str) -> Expected {
                 period: Some(year(2025)),
                 ..SeriesSelect::default()
             };
-            Expected::KnownGap(
-                Query {
-                    items: vec![
-                        series("payments", irs(), SeriesOutput::MemberCount),
-                        series("total", irs(), SeriesOutput::MemberTotal),
-                    ],
-                },
-                T32_GAP,
-            )
+            q(vec![
+                series("payments", irs(), SeriesOutput::MemberCount),
+                series("total", irs(), SeriesOutput::MemberTotal),
+            ])
         }
 
         // ---- time ranges

@@ -1104,6 +1104,7 @@ dependencies = [
 name = "fm-llm"
 version = "0.0.0"
 dependencies = [
+ "fm-core",
  "fm-netguard",
  "llama-cpp-2",
  "proptest",

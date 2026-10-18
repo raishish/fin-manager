@@ -100,9 +100,14 @@ fn read<T: serde::de::DeserializeOwned>(path: &Path) -> T {
 
 /// The persona's ledger and truth, as TD.1 committed them.
 pub fn load(dir: &Path) -> (Ledger, PersonaTruth) {
+    load_persona(dir, PERSONA)
+}
+
+/// Any TD.1 persona's ledger and truth.
+pub fn load_persona(dir: &Path, persona: &str) -> (Ledger, PersonaTruth) {
     (
-        read(&dir.join(PERSONA).join("ledger.json")),
-        read(&dir.join(PERSONA).join("truth.json")),
+        read(&dir.join(persona).join("ledger.json")),
+        read(&dir.join(persona).join("truth.json")),
     )
 }
 
