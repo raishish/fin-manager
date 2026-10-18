@@ -18,6 +18,7 @@ tauri-build = { version = "=2.7.3", features = [] }
 [dependencies]
 fm-core = { path = "../../crates/fm-core" }
 fm-import-csv = { path = "../../crates/fm-import-csv" }
+# The local model: download (T5.5) and checked explanations of answers (T4.4, constraint 6).
 fm-llm = { path = "../../crates/fm-llm" }
 fm-netguard = { path = "../../crates/fm-netguard" }
 serde = { version = "=1.0.229", features = ["derive"] }
