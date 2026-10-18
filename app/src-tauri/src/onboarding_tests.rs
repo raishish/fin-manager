@@ -22,7 +22,7 @@ fn the_model_download_needs_no_ledger_and_nothing_else_runs() {
 
     let status = invoke(&w, "model_status").unwrap();
     assert_eq!(status["state"], "missing");
-    assert_eq!(status["modelId"], fm_llm::CI_TEST_MODEL.id.as_ref());
+    assert_eq!(status["modelId"], crate::model::model_spec().id.as_ref());
     // Extra arguments are ignored: the spec is model_spec(), never the caller's.
     let started = invoke_with(
         &w,
@@ -31,7 +31,7 @@ fn the_model_download_needs_no_ledger_and_nothing_else_runs() {
     )
     .unwrap();
     assert!(["downloading", "failed"].contains(&started["state"].as_str().unwrap()));
-    assert_eq!(started["modelId"], fm_llm::CI_TEST_MODEL.id.as_ref());
+    assert_eq!(started["modelId"], crate::model::model_spec().id.as_ref());
 
     for cmd in [
         "onboarding_state",

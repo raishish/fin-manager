@@ -35,6 +35,11 @@
 //!   aborts at exit if a model is still loaded, so never keep one in a
 //!   `static`.
 //!
+//! - **Stopping** ([`Cancel`]): [`Model::session_cancellable`],
+//!   [`Model::generate_cancellable`] and [`Model::load_cancellable`] check the
+//!   caller's predicate as they go (between prefix chunks, before every token, during a
+//!   load), for an app whose ledger can lock or that is quitting.
+//!
 //! - **Explanations** ([`explain`]): a model's explanation of an answer is kept only if
 //!   every number in it is one of the computed values the caller passed in (SPEC
 //!   constraint 6); otherwise a template is used.
@@ -58,8 +63,8 @@ pub use download::{
 };
 pub use grammar::{CHOICE_PREFIX, Choices, ChoicesError, UNCATEGORISED};
 pub use runtime::{
-    Choice, GenerateOptions, Generation, LlmError, LoadOptions, MAX_BASIS_POINTS, Model, Sampling,
-    Session, SessionOptions, Timings, gpu_offload_supported,
+    Cancel, Choice, GenerateOptions, Generation, LlmError, LoadOptions, MAX_BASIS_POINTS, Model,
+    Sampling, Session, SessionOptions, Timings, gpu_offload_supported,
 };
 
 /// Crate name, used by the workspace smoke test.

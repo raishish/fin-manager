@@ -8,10 +8,14 @@
 //!                              "How I read it"                       fm_llm::explain (check, template)
 //! ```
 //!
-//! Two seams take the model when it is ready (T4.2's question → query, T2.4's session):
-//! - [`Interpreter`] turns the question into a [`Query`]. Until one is installed, asking
-//!   says the local model isn't ready (`NotReady`).
+//! Two seams take the model (T4.5 installs both from `ask_model.rs`):
+//! - [`Interpreter`] turns the question into a [`Query`]. Until the model is loaded,
+//!   asking says the local model isn't ready (`NotReady`).
 //! - [`Writer`] writes an explanation. Without one, the explanation is the template.
+//!
+//! The ledger is read under the session lock and then let go: the model runs for
+//! seconds, and the auto-lock and other screens must not wait for it. If the ledger
+//! locked meanwhile, the answer is dropped (`Locked`).
 //!
 //! `as_of` is the app's local date, checked as the dashboard checks it; the model never
 //! gives it. Errors are fixed sentences that may name an item or a category key, never
@@ -19,7 +23,7 @@
 
 use std::sync::Mutex;
 
-use fm_core::model::Ledger;
+use fm_core::model::{Date, Ledger};
 use fm_core::query::{self, Answer, Context, Query, Value};
 use fm_llm::explain::{self, Fact, Source};
 use serde::Serialize;
@@ -52,8 +56,6 @@ pub struct Interpretation {
     /// The completed query: the model's own items, then the added ones (appended, in
     /// `added` order, with unique names).
     pub query: Query,
-    /// One plain-English line per item, in order.
-    pub described: Vec<String>,
     /// What completion added. Empty when nothing was.
     pub added: Vec<Added>,
 }
@@ -79,25 +81,32 @@ impl Interpretation {
 
 /// Why a question couldn't be read. Never repeats the question.
 #[derive(Debug, Clone, PartialEq, Eq)]
-#[allow(
-    dead_code,
-    reason = "constructed by T4.2's model interpreter (and the tests' stand-in)"
-)]
 pub enum InterpretError {
+    /// The model isn't downloaded or loaded yet.
+    NotReady,
     /// It isn't a question about this ledger the interpreter can turn into a query.
     NotUnderstood,
     /// The interpreter failed to run.
     Failed,
 }
 
-/// Turns a question into a query: T4.2's model, or a fixed table in tests.
+/// Turns a question into a query: T4.2's model (`ask_model.rs`), or a fixed table in
+/// tests. `ledger` gives the names the question may use; `as_of` is today; `opened` is
+/// the ledger's generation when it was read, so the model stops if it locks.
 pub trait Interpreter: Send + Sync {
-    fn interpret(&self, question: &str) -> std::result::Result<Interpretation, InterpretError>;
+    fn interpret(
+        &self,
+        question: &str,
+        ledger: &Ledger,
+        as_of: Date,
+        opened: u64,
+    ) -> std::result::Result<Interpretation, InterpretError>;
 }
 
-/// Writes an explanation from a prompt (T2.4's session, later). `None` when it can't.
+/// Writes an explanation from a prompt (`ask_model.rs`): `attempt` counts from 1 for
+/// one explanation, and `opened` is as for [`Interpreter`]. `None` when it can't.
 pub trait Writer: Send + Sync {
-    fn write(&self, prompt: &str) -> Option<String>;
+    fn write(&self, prompt: &str, attempt: usize, opened: u64) -> Option<String>;
 }
 
 /// The Ask screen's model hooks, managed by the app.
@@ -108,60 +117,27 @@ pub struct AskEngine {
 }
 
 impl AskEngine {
-    #[allow(
-        dead_code,
-        reason = "T4.2's model interpreter is installed once the model is ready"
-    )]
     pub fn set_interpreter(&self, interpreter: Box<dyn Interpreter>) {
         *self.interpreter.lock().unwrap_or_else(|p| p.into_inner()) = Some(interpreter);
     }
 
-    #[allow(dead_code, reason = "the model's writer is installed from T2.4")]
     pub fn set_writer(&self, writer: Box<dyn Writer>) {
         *self.writer.lock().unwrap_or_else(|p| p.into_inner()) = Some(writer);
     }
 }
 
-/// The plain-English line for one item.
-///
-/// TODO(T4.2): replace with `fm_core::query::describe` when it lands. Until then this is
-/// a structural reading of the item: its operation and its settings, as words.
-pub fn describe_item(item: &query::Item) -> String {
-    fn words(v: &serde_json::Value) -> String {
-        match v {
-            serde_json::Value::String(s) => s.replace('_', " "),
-            serde_json::Value::Number(n) => n.to_string(),
-            serde_json::Value::Bool(b) => b.to_string(),
-            serde_json::Value::Null => "any".to_owned(),
-            serde_json::Value::Array(a) if a.is_empty() => "any".to_owned(),
-            serde_json::Value::Array(a) => a.iter().map(words).collect::<Vec<_>>().join(", "),
-            serde_json::Value::Object(o) => o
-                .iter()
-                .filter(|(_, v)| !v.is_null() && v.as_array().is_none_or(|a| !a.is_empty()))
-                .map(|(k, v)| format!("{} {}", k.replace('_', " "), words(v)))
-                .collect::<Vec<_>>()
-                .join("; "),
-        }
-    }
-    let ask = serde_json::to_value(&item.ask).unwrap_or(serde_json::Value::Null);
-    let op = ask
-        .get("op")
-        .and_then(|o| o.as_str())
-        .unwrap_or("ask")
-        .replace('_', " ");
-    let rest = match &ask {
-        serde_json::Value::Object(o) => {
-            let mut o = o.clone();
-            o.remove("op");
-            words(&serde_json::Value::Object(o))
-        }
-        _ => String::new(),
-    };
-    if rest.is_empty() {
-        op
-    } else {
-        format!("{op}: {rest}")
-    }
+/// The plain-English line for each item of `query` (T4.1's `describe`), without the
+/// item's name in front: the screen shows the name as the label.
+fn lines(ledger: &Ledger, query: &Query, as_of: Date) -> Vec<String> {
+    query::describe(ledger, query, as_of)
+        .into_iter()
+        .zip(&query.items)
+        .map(|(line, item)| {
+            line.strip_prefix(&format!("{}: ", item.name))
+                .map(str::to_owned)
+                .unwrap_or(line)
+        })
+        .collect()
 }
 
 /// An item's name as words: `total_spent` is "Total spent".
@@ -360,14 +336,22 @@ fn checked_question(question: &str) -> Result<&str> {
 }
 
 /// Answers `question` on `ledger` as of `as_of`, with `interpreter` and `writer`.
+/// `opened` is the ledger's generation when it was read, and `open` says whether it
+/// still is: after a lock nothing more is computed or written.
 pub fn answer(
     ledger: &Ledger,
     question: &str,
-    as_of: fm_core::model::Date,
+    as_of: Date,
+    (opened, open): (u64, &dyn Fn() -> bool),
     interpreter: &dyn Interpreter,
     writer: Option<&dyn Writer>,
 ) -> Result<AskView> {
-    let interpretation = interpreter.interpret(question).map_err(|e| match e {
+    let interpretation = interpreter.interpret(question, ledger, as_of, opened);
+    if !open() {
+        return Err(locked());
+    }
+    let interpretation = interpretation.map_err(|e| match e {
+        InterpretError::NotReady => ui_error("NotReady", NOT_READY),
         InterpretError::NotUnderstood => ui_error(
             "NotUnderstood",
             "that question couldn't be read as a question about your money; try rewording it",
@@ -408,25 +392,17 @@ pub fn answer(
     let read: Vec<ReadItem> = query
         .items
         .iter()
-        .map(|item| {
-            let at = interpretation
-                .query
-                .items
-                .iter()
-                .position(|i| i.name == item.name);
-            ReadItem {
-                name: item.name.clone(),
-                label: label(&item.name),
-                line: at
-                    .and_then(|i| interpretation.described.get(i).cloned())
-                    .unwrap_or_else(|| describe_item(item)),
-                added: if badges { badge(&item.name) } else { None },
-                added_rule: if badges {
-                    interpretation.added(&item.name).map(|a| a.rule.clone())
-                } else {
-                    None
-                },
-            }
+        .zip(lines(ledger, &query, as_of))
+        .map(|(item, line)| ReadItem {
+            name: item.name.clone(),
+            label: label(&item.name),
+            line,
+            added: if badges { badge(&item.name) } else { None },
+            added_rule: if badges {
+                interpretation.added(&item.name).map(|a| a.rule.clone())
+            } else {
+                None
+            },
         })
         .collect();
     let mut view = AskView {
@@ -449,9 +425,18 @@ pub fn answer(
         .map(|a| answer_view(a, if badges { badge(&a.name) } else { None }))
         .collect();
     let facts = facts(&answers);
+    // Each attempt only while the ledger is open: a lock ends the explanation (and the
+    // check below then turns the answer away).
+    let mut attempt = 0;
     let explanation = explain::explain(question, &facts, &[], ATTEMPTS, |prompt| {
-        writer.and_then(|w| w.write(prompt))
+        attempt += 1;
+        writer
+            .filter(|_| open())
+            .and_then(|w| w.write(prompt, attempt, opened))
     });
+    if !open() {
+        return Err(locked());
+    }
     let numbers = explain::check(&explanation.text, &facts, &[]).found;
     view.explanation = Some(ExplanationView {
         text: explanation.text,
@@ -473,11 +458,28 @@ impl AppUnlock {
             return Err(ui_error("NotReady", NOT_READY));
         };
         let writer = engine.writer.lock().unwrap_or_else(|p| p.into_inner());
-        self.with_ledger(|open| {
-            let ledger = open.ledger().load_ledger()?;
-            answer(&ledger, question, as_of, interpreter, writer.as_deref())
-        })
-        .ok_or_else(locked)?
+        // Read under the session lock, answered after it (see the module docs).
+        let (ledger, generation) = self
+            .with_ledger(|open| {
+                open.ledger()
+                    .load_ledger()
+                    .map(|ledger| (ledger, self.generation()))
+            })
+            .ok_or_else(locked)??;
+        let open = || self.generation() == generation;
+        let view = answer(
+            &ledger,
+            question,
+            as_of,
+            (generation, &open),
+            interpreter,
+            writer.as_deref(),
+        );
+        drop(ledger);
+        if !open() {
+            return Err(locked());
+        }
+        view
     }
 }
 
@@ -501,7 +503,7 @@ pub mod commands {
 }
 
 #[cfg(test)]
-mod tests {
+pub(crate) mod tests {
     use std::collections::HashMap;
     use std::path::PathBuf;
 
@@ -525,7 +527,7 @@ mod tests {
 
     /// TD.1's freelancer, labelled as its truth says (the ledger TD.3 is computed on):
     /// one applied user decision per bucket and merchant.
-    fn labelled_freelancer() -> Ledger {
+    pub(crate) fn labelled_freelancer() -> Ledger {
         let dir = testdata().join("synthetic/data/freelancer");
         let mut ledger: Ledger =
             serde_json::from_slice(&std::fs::read(dir.join("ledger.json")).unwrap()).unwrap();
@@ -578,10 +580,10 @@ mod tests {
 
     /// The stand-in: TD.3's questions and their expected queries, as a fixed table, in
     /// question-id order, so every test walks it the same way on every build.
-    struct Table(Vec<(String, Query)>);
+    pub(crate) struct Table(pub(crate) Vec<(String, Query)>);
 
     impl Table {
-        fn td3() -> Table {
+        pub(crate) fn td3() -> Table {
             let set = read(testdata().join("questions/data/questions.json"));
             let mut rows: Vec<(String, String, Query)> = set["questions"]
                 .as_array()
@@ -602,7 +604,13 @@ mod tests {
     }
 
     impl Interpreter for Table {
-        fn interpret(&self, question: &str) -> std::result::Result<Interpretation, InterpretError> {
+        fn interpret(
+            &self,
+            question: &str,
+            _: &Ledger,
+            _: Date,
+            _: u64,
+        ) -> std::result::Result<Interpretation, InterpretError> {
             let query = self
                 .0
                 .iter()
@@ -610,7 +618,6 @@ mod tests {
                 .map(|(_, query)| query.clone())
                 .ok_or(InterpretError::NotUnderstood)?;
             Ok(Interpretation {
-                described: query.items.iter().map(describe_item).collect(),
                 query,
                 added: Vec::new(),
             })
@@ -624,10 +631,15 @@ mod tests {
     }
 
     impl Interpreter for Completing {
-        fn interpret(&self, question: &str) -> std::result::Result<Interpretation, InterpretError> {
-            let mut i = self.table.interpret(question)?;
+        fn interpret(
+            &self,
+            question: &str,
+            ledger: &Ledger,
+            as_of: Date,
+            opened: u64,
+        ) -> std::result::Result<Interpretation, InterpretError> {
+            let mut i = self.table.interpret(question, ledger, as_of, opened)?;
             i.query.items.push(self.extra.clone());
-            i.described.push(describe_item(&self.extra));
             i.added.push(Added {
                 name: self.extra.name.clone(),
                 rule: "test-rule".into(),
@@ -637,11 +649,11 @@ mod tests {
         }
     }
 
-    fn today() -> String {
+    pub(crate) fn today() -> String {
         crate::ledger_view::utc_date(Timestamp::now()).to_string()
     }
 
-    fn app_with_freelancer() -> (
+    pub(crate) fn app_with_freelancer() -> (
         tempfile::TempDir,
         tauri::App<tauri::test::MockRuntime>,
         Webview,
@@ -658,7 +670,7 @@ mod tests {
         (dir, app, w, ledger)
     }
 
-    fn ask(w: &Webview, question: &str) -> std::result::Result<Json, Json> {
+    pub(crate) fn ask(w: &Webview, question: &str) -> std::result::Result<Json, Json> {
         invoke_with(w, "ask", json!({ "question": question, "today": today() }))
     }
 
@@ -831,18 +843,93 @@ mod tests {
         );
     }
 
+    /// Locks the ledger while it "thinks", as the auto-lock would during a slow model.
+    struct LocksMidway(tauri::AppHandle<tauri::test::MockRuntime>);
+
+    impl Interpreter for LocksMidway {
+        fn interpret(
+            &self,
+            question: &str,
+            ledger: &Ledger,
+            as_of: Date,
+            opened: u64,
+        ) -> std::result::Result<Interpretation, InterpretError> {
+            // The ledger isn't held while the interpreter runs, so locking doesn't wait.
+            self.0.state::<AppUnlock>().lock();
+            Table::td3().interpret(question, ledger, as_of, opened)
+        }
+    }
+
+    /// The model runs outside the session lock; an answer finished after the ledger
+    /// locked is dropped, not shown.
     #[test]
-    fn the_interim_description_names_the_operation_and_its_settings() {
-        let item = query::Item {
-            name: "visits".into(),
-            ask: query::Ask::Derive {
-                formula: query::DeriveOp::PercentChange,
-                of: vec!["this_year".into(), "last_year".into()],
-            },
-        };
+    fn an_answer_finished_after_the_ledger_locked_is_dropped() {
+        let (_dir, app, w, _) = app_with_freelancer();
+        let question = Table::td3().0[0].0.clone();
+        app.state::<AskEngine>()
+            .set_interpreter(Box::new(LocksMidway(app.handle().clone())));
+        assert_eq!(ask(&w, &question).unwrap_err()["code"], "Locked");
+    }
+
+    /// Locks the ledger while writing, and writes a text that fails the number check,
+    /// so `explain` would ask again if nothing stopped it.
+    struct LocksWhileWriting {
+        app: tauri::AppHandle<tauri::test::MockRuntime>,
+        calls: std::sync::atomic::AtomicUsize,
+    }
+
+    impl Writer for LocksWhileWriting {
+        fn write(&self, _: &str, attempt: usize, _: u64) -> Option<String> {
+            self.calls.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+            assert_eq!(attempt, 1);
+            self.app.state::<AppUnlock>().lock();
+            Some("It was 123456789.".into())
+        }
+    }
+
+    /// Review finding 2: after a lock nothing more is written, and the answer is dropped.
+    #[test]
+    fn a_lock_while_explaining_stops_the_explanation() {
+        let (_dir, app, w, _) = app_with_freelancer();
+        let question = Table::td3().0[0].0.clone();
+        let engine = app.state::<AskEngine>();
+        engine.set_interpreter(Box::new(Table::td3()));
+        let writer = std::sync::Arc::new(LocksWhileWriting {
+            app: app.handle().clone(),
+            calls: Default::default(),
+        });
+        struct Shared(std::sync::Arc<LocksWhileWriting>);
+        impl Writer for Shared {
+            fn write(&self, prompt: &str, attempt: usize, opened: u64) -> Option<String> {
+                self.0.write(prompt, attempt, opened)
+            }
+        }
+        engine.set_writer(Box::new(Shared(std::sync::Arc::clone(&writer))));
+        assert_eq!(ask(&w, &question).unwrap_err()["code"], "Locked");
         assert_eq!(
-            describe_item(&item),
-            "derive: formula percent change; of this year, last year"
+            writer.calls.load(std::sync::atomic::Ordering::SeqCst),
+            1,
+            "no second attempt after the lock"
         );
+    }
+
+    #[test]
+    fn each_line_is_the_query_described_without_the_items_name() {
+        let ledger = labelled_freelancer();
+        let query: Query = serde_json::from_value(json!({ "items": [
+            { "name": "visits", "ask": { "op": "count", "measure": "purchases",
+              "scope": { "period": { "year": 2025 } } } },
+            { "name": "change", "ask": { "op": "derive", "formula": "percent_change",
+              "of": ["visits", "visits"] } }
+        ]}))
+        .unwrap();
+        let as_of = Date::from_ymd(2026, 10, 1).unwrap();
+        let described = query::describe(&ledger, &query, as_of);
+        let lines = lines(&ledger, &query, as_of);
+        assert_eq!(lines.len(), 2);
+        for ((line, full), item) in lines.iter().zip(&described).zip(&query.items) {
+            assert_eq!(full, &format!("{}: {line}", item.name));
+            assert!(!line.is_empty());
+        }
     }
 }

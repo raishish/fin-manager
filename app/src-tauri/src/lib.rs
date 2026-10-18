@@ -1,6 +1,7 @@
 //! Desktop app shell: Tauri 2 host for the Svelte UI, calling into fm-core.
 
 mod ask;
+mod ask_model;
 mod backup;
 mod categories;
 mod connectors;
@@ -279,10 +280,28 @@ pub fn run() {
             ));
             app.manage(reporter);
             let models_dir = app.path().app_data_dir()?.join("models");
-            app.manage(model::ModelDownload::for_app(&models_dir, Arc::clone(&net)));
+            let host = model::ModelHost::for_app();
+            let download =
+                model::ModelDownload::for_app(&models_dir, Arc::clone(&net), Arc::clone(&host));
+            app.manage(Arc::clone(&download));
             app.manage(Net(net));
             app.manage(connectors::Busy::default());
-            app.manage(ask::AskEngine::default());
+            let handle = app.handle().clone();
+            let ask_model = ask_model::AskModel::start(
+                Arc::clone(&host),
+                Arc::new(move || handle.state::<unlock::AppUnlock>().generation()),
+                None,
+            );
+            let engine = ask::AskEngine::default();
+            engine.set_interpreter(Box::new(ask_model::ModelInterpreter(Arc::clone(
+                &ask_model,
+            ))));
+            engine.set_writer(Box::new(ask_model::ModelWriter(Arc::clone(&ask_model))));
+            app.manage(engine);
+            app.manage(ask_model);
+            app.manage(Arc::clone(&host));
+            model::watch_ready(app.handle().clone(), host);
+            download.resume_if_started();
             unlock::start_autolock_timer(app.handle().clone());
             Ok(())
         })
@@ -296,6 +315,10 @@ pub fn run() {
                 app.state::<unlock::AppUnlock>().shut_down();
                 // The partial model file is kept; the next run resumes it.
                 app.state::<Arc<model::ModelDownload>>().stop();
+                // Every user of the model drops it before the host does, and the host
+                // before the process exits (Metal aborts at exit with a model loaded).
+                app.state::<Arc<ask_model::AskModel>>().shut_down();
+                app.state::<Arc<model::ModelHost>>().shut_down();
             }
         });
 }

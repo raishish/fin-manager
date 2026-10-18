@@ -126,6 +126,23 @@ jobs:
       # One test at a time: each one runs llama.cpp on every core, and side by side
       # they'd fight over the runner's 3–4 cores.
       - run: cargo test -p fm-llm --locked -- --test-threads 1
+      # The app's Ask path on the same model (T4.5): host → worker → cached session →
+      # question → query, through IPC. macOS only: it needs the built UI
+      # (tauri::generate_context!), and on Linux Tauri's system libraries too, which the
+      # Rust job already covers.
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        if: runner.os == 'macOS'
+        with:
+          node-version-file: app/.node-version
+      - name: Build the UI (for the app's tests)
+        if: runner.os == 'macOS'
+        working-directory: app
+        run: |
+          npm ci
+          npm run build
+      - name: The app's Ask path on the test model
+        if: runner.os == 'macOS'
+        run: cargo test -p fm-app --locked ask_model -- --test-threads 1
       - name: llama.cpp is built without CPU weight repacking (SPEC decision 48)
         run: |
           caches=$(find target -path '*/build/llama-cpp-sys-2-*/out/build/CMakeCache.txt')

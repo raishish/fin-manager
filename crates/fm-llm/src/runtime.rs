@@ -3,7 +3,7 @@
 use std::fmt;
 use std::num::NonZeroU32;
 use std::path::Path;
-use std::sync::{Mutex, OnceLock, PoisonError};
+use std::sync::{Arc, Mutex, OnceLock, PoisonError};
 
 use llama_cpp_2::context::LlamaContext;
 use llama_cpp_2::context::params::LlamaContextParams;
@@ -44,6 +44,8 @@ pub enum LlmError {
     /// and the model is recurrent or hybrid, so its cache can't be cut back to where
     /// the whole prompt's tokens part from the prefix's.
     SessionBoundary,
+    /// The caller's [`Cancel`] said stop (the app locked or is quitting).
+    Cancelled,
 }
 
 impl fmt::Display for LlmError {
@@ -67,6 +69,7 @@ impl fmt::Display for LlmError {
             Self::SessionBoundary => {
                 f.write_str("the suffix changes how the session's prefix tokenises")
             }
+            Self::Cancelled => f.write_str("stopped by the caller"),
         }
     }
 }
@@ -141,6 +144,38 @@ impl Default for GenerateOptions {
     }
 }
 
+/// Asks a load, a session's prefix or a generation to stop: checked while a model
+/// loads, between chunks of a prefix, and before every generated token, so a stop
+/// takes effect within one step. For an app whose ledger can lock, or that is quitting,
+/// while the model runs.
+#[derive(Clone)]
+pub struct Cancel(Arc<dyn Fn() -> bool + Send + Sync>);
+
+impl Cancel {
+    /// Stops when `stop` returns `true`. It is called often, so it should be cheap.
+    pub fn new(stop: impl Fn() -> bool + Send + Sync + 'static) -> Self {
+        Self(Arc::new(stop))
+    }
+
+    pub fn is_cancelled(&self) -> bool {
+        (self.0)()
+    }
+
+    fn check(&self) -> Result<(), LlmError> {
+        if self.is_cancelled() {
+            Err(LlmError::Cancelled)
+        } else {
+            Ok(())
+        }
+    }
+}
+
+impl fmt::Debug for Cancel {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str("Cancel")
+    }
+}
+
 /// Text generated under a grammar, with how sure the model was of it.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Generation {
@@ -195,6 +230,28 @@ impl Model {
         spec: &ModelSpec,
         options: &LoadOptions,
     ) -> Result<Self, LlmError> {
+        Self::load_inner(path, spec, options, None)
+    }
+
+    /// [`Model::load_with`] that stops when `cancel` says so: it is checked before the
+    /// load and as it progresses (llama.cpp's progress callback), and a stopped load
+    /// gives [`LlmError::Cancelled`]. The file is mapped, as in `load_with`.
+    pub fn load_cancellable(
+        path: &Path,
+        spec: &ModelSpec,
+        options: &LoadOptions,
+        cancel: &Cancel,
+    ) -> Result<Self, LlmError> {
+        cancel.check()?;
+        Self::load_inner(path, spec, options, Some(cancel))
+    }
+
+    fn load_inner(
+        path: &Path,
+        spec: &ModelSpec,
+        options: &LoadOptions,
+        cancel: Option<&Cancel>,
+    ) -> Result<Self, LlmError> {
         verify_file(path, spec)?;
         let backend = backend()?;
         let mut params = LlamaModelParams::default();
@@ -202,7 +259,15 @@ impl Model {
         if !options.gpu {
             params = params.with_n_gpu_layers(0);
         }
-        let inner = LlamaModel::load_from_file(backend, path, &params).map_err(runtime_error)?;
+        if let Some(cancel) = cancel {
+            let cancel = cancel.clone();
+            params = params.with_progress_callback(move |_| !cancel.is_cancelled());
+        }
+        let inner =
+            LlamaModel::load_from_file(backend, path, &params).map_err(|e| match cancel {
+                Some(cancel) if cancel.is_cancelled() => LlmError::Cancelled,
+                _ => runtime_error(e),
+            })?;
         let vocab = inner.vocab();
         let pieces = (0..inner.n_vocab())
             .map(|id| vocab.token_to_piece(LlamaToken(id), false, None))
@@ -263,6 +328,7 @@ impl Model {
             &choices.grammar(),
             Stop::Trie(&trie),
             options,
+            None,
         )?;
         let key = choices
             .parse(&generation.text)
@@ -290,7 +356,35 @@ impl Model {
         is_complete: &dyn Fn(&str) -> bool,
         options: &GenerateOptions,
     ) -> Result<Generation, LlmError> {
-        self.run(prompt, prefix, grammar, Stop::When(is_complete), options)
+        self.run(
+            prompt,
+            prefix,
+            grammar,
+            Stop::When(is_complete),
+            options,
+            None,
+        )
+    }
+
+    /// [`generate`](Self::generate) that stops when `cancel` says so: checked between
+    /// chunks of the prompt and before every token ([`LlmError::Cancelled`]).
+    pub fn generate_cancellable(
+        &self,
+        prompt: &str,
+        prefix: &str,
+        grammar: &str,
+        is_complete: &dyn Fn(&str) -> bool,
+        options: &GenerateOptions,
+        cancel: &Cancel,
+    ) -> Result<Generation, LlmError> {
+        self.run(
+            prompt,
+            prefix,
+            grammar,
+            Stop::When(is_complete),
+            options,
+            Some(cancel),
+        )
     }
 
     /// [`generate`](Self::generate) with the grammar applied to the whole vocabulary at
@@ -310,6 +404,7 @@ impl Model {
             grammar,
             Stop::WhenExact(is_complete),
             options,
+            None,
         )
     }
 
@@ -364,13 +459,14 @@ impl Model {
         grammar: &str,
         stop: Stop<'_>,
         options: &GenerateOptions,
+        cancel: Option<&Cancel>,
     ) -> Result<Generation, LlmError> {
         let vocab = self.inner.vocab();
         let prompt_tokens = vocab.tokenize(format!("{prompt}{prefix}").as_bytes(), true, true);
         let n_ctx = self.context_size(prompt_tokens.len() + options.max_tokens as usize)?;
         let mut ctx = self.new_context(n_ctx, options.threads)?;
         let mut batch = LlamaBatch::new(n_ctx.get() as usize, 1);
-        decode(&mut ctx, &mut batch, &prompt_tokens, 0)?;
+        decode_checked(&mut ctx, &mut batch, &prompt_tokens, 0, cancel)?;
         self.constrained(
             &mut ctx,
             &mut batch,
@@ -378,6 +474,7 @@ impl Model {
             grammar,
             stop,
             options,
+            cancel,
         )
     }
 
@@ -445,7 +542,11 @@ impl Model {
     }
 
     /// Generates under `grammar` from a context whose last decoded token (at the end of
-    /// `batch`) is at position `start - 1`.
+    /// `batch`) is at position `start - 1`, checking `cancel` before every token.
+    #[allow(
+        clippy::too_many_arguments,
+        reason = "the one generation loop behind every public entry point"
+    )]
     fn constrained(
         &self,
         ctx: &mut LlamaContext<'_>,
@@ -454,6 +555,7 @@ impl Model {
         grammar: &str,
         stop: Stop<'_>,
         options: &GenerateOptions,
+        cancel: Option<&Cancel>,
     ) -> Result<Generation, LlmError> {
         let vocab = self.inner.vocab();
         let mut grammar =
@@ -470,6 +572,9 @@ impl Model {
 
         // `position` is where the token generated in this step goes.
         for (generated, position) in (1..=options.max_tokens).zip(start..) {
+            if let Some(cancel) = cancel {
+                cancel.check()?;
+            }
             let (token, p) = if matches!(stop, Stop::When(_)) {
                 self.sampled_first(ctx, batch.n_tokens() - 1, &mut grammar, pending, &mut rng)?
             } else {
@@ -609,6 +714,28 @@ impl Model {
     /// suffix. Between calls everything after the prefix is cleared, so one call never
     /// sees another's text.
     pub fn session(&self, prefix: &str, options: &SessionOptions) -> Result<Session<'_>, LlmError> {
+        self.session_inner(prefix, options, None)
+    }
+
+    /// [`session`](Self::session) that stops when `cancel` says so: between chunks of
+    /// the prefix while it is evaluated, and in every later call before each token
+    /// ([`LlmError::Cancelled`]). The prefix is evaluated in chunks of llama.cpp's own
+    /// micro-batch, so the numbers are the ones [`session`](Self::session) gives.
+    pub fn session_cancellable(
+        &self,
+        prefix: &str,
+        options: &SessionOptions,
+        cancel: Cancel,
+    ) -> Result<Session<'_>, LlmError> {
+        self.session_inner(prefix, options, Some(cancel))
+    }
+
+    fn session_inner(
+        &self,
+        prefix: &str,
+        options: &SessionOptions,
+        cancel: Option<Cancel>,
+    ) -> Result<Session<'_>, LlmError> {
         let prefix_tokens = self.inner.vocab().tokenize(prefix.as_bytes(), true, true);
         let n_ctx = self.context_size(
             prefix_tokens.len()
@@ -617,7 +744,7 @@ impl Model {
         )?;
         let mut ctx = self.new_context(n_ctx, options.threads)?;
         let mut batch = LlamaBatch::new(n_ctx.get() as usize, 1);
-        decode(&mut ctx, &mut batch, &prefix_tokens, 0)?;
+        decode_checked(&mut ctx, &mut batch, &prefix_tokens, 0, cancel.as_ref())?;
         // Recurrent and hybrid models can't drop part of a sequence: they restore a
         // snapshot of the state right after the prefix instead.
         let snapshot = if self.inner.is_recurrent() || self.inner.is_hybrid() {
@@ -637,6 +764,7 @@ impl Model {
             prefix_tokens,
             options: options.clone(),
             snapshot,
+            cancel,
         })
     }
 }
@@ -700,6 +828,7 @@ pub struct Session<'m> {
     cached: usize,
     options: SessionOptions,
     snapshot: Option<SeqState>,
+    cancel: Option<Cancel>,
 }
 
 impl fmt::Debug for Session<'_> {
@@ -833,6 +962,9 @@ impl Session<'_> {
                 limit: self.ctx.n_ctx(),
             });
         }
+        if let Some(cancel) = &self.cancel {
+            cancel.check()?;
+        }
         self.reset()?;
         decode(&mut self.ctx, &mut self.batch, tokens, self.cached)?;
         let start = whole.len();
@@ -843,6 +975,7 @@ impl Session<'_> {
             grammar,
             stop,
             options,
+            self.cancel.as_ref(),
         );
         self.reset()?;
         result
@@ -889,6 +1022,27 @@ fn decode(
             .map_err(runtime_error)?;
     }
     ctx.decode(batch).map_err(runtime_error)
+}
+
+/// [`decode`], in chunks of the context's micro-batch with `cancel` checked before each,
+/// when there is one. llama.cpp splits a batch into micro-batches from its start, so
+/// chunks aligned to them are evaluated exactly as the whole batch would be.
+fn decode_checked(
+    ctx: &mut LlamaContext<'_>,
+    batch: &mut LlamaBatch<'_>,
+    tokens: &[LlamaToken],
+    start: usize,
+    cancel: Option<&Cancel>,
+) -> Result<(), LlmError> {
+    let Some(cancel) = cancel else {
+        return decode(ctx, batch, tokens, start);
+    };
+    let chunk = usize::try_from(ctx.n_ubatch()).map_or(512, |n| n.max(1));
+    for (i, part) in tokens.chunks(chunk).enumerate() {
+        cancel.check()?;
+        decode(ctx, batch, part, start + i * chunk)?;
+    }
+    Ok(())
 }
 
 /// When generation is complete.
@@ -1125,7 +1279,141 @@ impl SplitMix64 {
 
 #[cfg(test)]
 mod tests {
+    use std::sync::atomic::{AtomicUsize, Ordering};
+
     use super::*;
+    use crate::CI_TEST_MODEL;
+
+    /// The CI test model at `FM_LLM_TEST_MODEL` (CPU only with `FM_LLM_TEST_CPU`), loaded
+    /// with a cancel or without. `None` (the test skips) without it.
+    fn ci_model(cancellable: bool) -> Option<Model> {
+        let Some(path) = std::env::var_os("FM_LLM_TEST_MODEL") else {
+            eprintln!("skipping: set FM_LLM_TEST_MODEL to the CI test model's path");
+            return None;
+        };
+        let options = LoadOptions {
+            gpu: std::env::var_os("FM_LLM_TEST_CPU").is_none(),
+        };
+        let path = std::path::PathBuf::from(path);
+        Some(if cancellable {
+            Model::load_cancellable(&path, &CI_TEST_MODEL, &options, &Cancel::new(|| false))
+                .unwrap()
+        } else {
+            Model::load_with(&path, &CI_TEST_MODEL, &options).unwrap()
+        })
+    }
+
+    /// A prefix longer than one micro-batch (512 tokens), so the cancellable session's
+    /// chunks are exercised.
+    fn long_prefix(model: &Model) -> String {
+        let rules: String = (1..=120)
+            .map(|i| format!("Rule {i}: a purchase at shop number {i} is groceries.\n"))
+            .collect();
+        model
+            .chat_prompt(&rules, "\u{1}")
+            .unwrap()
+            .split_once('\u{1}')
+            .unwrap()
+            .0
+            .to_owned()
+    }
+
+    const JSON_WORD: &str = r#"root ::= "\"" [a-z]+ "\"""#;
+
+    fn quoted(text: &str) -> bool {
+        text.len() > 1 && text.ends_with('"')
+    }
+
+    fn options() -> GenerateOptions {
+        GenerateOptions {
+            max_tokens: 24,
+            ..GenerateOptions::default()
+        }
+    }
+
+    /// Chunked and checked, the prefix gives exactly what the one-batch prefix gives; a
+    /// model loaded with a cancel answers exactly as one loaded without.
+    #[test]
+    fn cancellable_sessions_and_loads_answer_the_same() {
+        let (Some(plain_model), Some(cancellable)) = (ci_model(false), ci_model(true)) else {
+            return;
+        };
+        let prefix = long_prefix(&plain_model);
+        let session_options = SessionOptions {
+            max_suffix_tokens: 64,
+            max_answer_tokens: 24,
+            threads: None,
+        };
+        let mut plain = plain_model.session(&prefix, &session_options).unwrap();
+        assert!(plain.prefix_tokens() > 1_024, "{}", plain.prefix_tokens());
+        let mut checked = cancellable
+            .session_cancellable(&prefix, &session_options, Cancel::new(|| false))
+            .unwrap();
+        for suffix in ["Shop number 7. Category:", "Shop number 99. One word:"] {
+            let a = plain.generate(suffix, "", JSON_WORD, &quoted, &options());
+            let b = checked.generate(suffix, "", JSON_WORD, &quoted, &options());
+            match (a, b) {
+                (Ok(a), Ok(b)) => assert_eq!(a, b),
+                (Err(LlmError::TooManyTokens { .. }), Err(LlmError::TooManyTokens { .. })) => {}
+                (a, b) => panic!("different outcomes: {a:?} / {b:?}"),
+            }
+        }
+    }
+
+    /// A stop is seen before the next token, and between chunks of a prefix.
+    #[test]
+    fn a_cancel_stops_within_one_step() {
+        let Some(model) = ci_model(false) else { return };
+        let prefix = long_prefix(&model);
+        // Every word token is allowed and nothing completes: only the cancel ends it.
+        let never = |_: &str| false;
+        let calls = Arc::new(AtomicUsize::new(0));
+        let after = |n: usize, calls: &Arc<AtomicUsize>| {
+            let calls = Arc::clone(calls);
+            Cancel::new(move || calls.fetch_add(1, Ordering::SeqCst) >= n)
+        };
+        let long = GenerateOptions {
+            max_tokens: 200,
+            ..GenerateOptions::default()
+        };
+        let r = model.generate_cancellable(
+            &prefix,
+            "\"",
+            r#"root ::= [a-z ]+"#,
+            &never,
+            &long,
+            &after(5, &calls),
+        );
+        assert!(matches!(r, Err(LlmError::Cancelled)), "{r:?}");
+        // One check per prefix chunk, then one per token: stopped right at the sixth.
+        assert_eq!(calls.load(Ordering::SeqCst), 6);
+
+        let stopped = Cancel::new(|| true);
+        let session_options = SessionOptions::default();
+        assert!(matches!(
+            model.session_cancellable(&prefix, &session_options, stopped.clone()),
+            Err(LlmError::Cancelled)
+        ));
+        // A session made, then stopped: its next call stops before evaluating anything.
+        let flag = Arc::new(std::sync::atomic::AtomicBool::new(false));
+        let cancel = {
+            let flag = Arc::clone(&flag);
+            Cancel::new(move || flag.load(Ordering::SeqCst))
+        };
+        let mut session = model
+            .session_cancellable(&prefix, &session_options, cancel)
+            .unwrap();
+        flag.store(true, Ordering::SeqCst);
+        assert!(matches!(
+            session.generate("Shop number 7.", "", JSON_WORD, &quoted, &options()),
+            Err(LlmError::Cancelled)
+        ));
+        let path = std::path::PathBuf::from(std::env::var_os("FM_LLM_TEST_MODEL").unwrap());
+        assert!(matches!(
+            Model::load_cancellable(&path, &CI_TEST_MODEL, &LoadOptions { gpu: false }, &stopped),
+            Err(LlmError::Cancelled)
+        ));
+    }
 
     #[test]
     fn the_fast_paths_greedy_pick_breaks_ties_like_pick_greedy() {
