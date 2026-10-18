@@ -1049,6 +1049,12 @@ dependencies = [
 [[package]]
 name = "fm-cli"
 version = "0.0.0"
+dependencies = [
+ "fm-core",
+ "fm-llm",
+ "fm-netguard",
+ "serde_json",
+]
 
 [[package]]
 name = "fm-core"
@@ -1107,6 +1113,7 @@ dependencies = [
  "fm-core",
  "fm-netguard",
  "llama-cpp-2",
+ "llama-cpp-sys-2",
  "proptest",
  "serde_json",
  "sha2 0.11.1",

@@ -5,6 +5,7 @@ use std::num::NonZeroU32;
 use std::path::Path;
 use std::sync::{Mutex, OnceLock, PoisonError};
 
+use llama_cpp_2::context::LlamaContext;
 use llama_cpp_2::context::params::LlamaContextParams;
 use llama_cpp_2::llama_backend::LlamaBackend;
 use llama_cpp_2::llama_batch::LlamaBatch;
@@ -12,6 +13,10 @@ use llama_cpp_2::model::params::LlamaModelParams;
 use llama_cpp_2::model::{LlamaChatMessage, LlamaModel};
 use llama_cpp_2::sampling::LlamaSampler;
 use llama_cpp_2::token::LlamaToken;
+use llama_cpp_2::token::data::LlamaTokenData;
+use llama_cpp_2::token::data_array::LlamaTokenDataArray;
+use llama_cpp_2::{LlamaStateSeqFlags, SeqState};
+use llama_cpp_sys_2::LLAMA_FLASH_ATTN_TYPE_DISABLED;
 
 use crate::download::{DownloadError, ModelSpec, verify_file};
 use crate::grammar::{CHOICE_PREFIX, Choices};
@@ -35,6 +40,10 @@ pub enum LlmError {
     NoAllowedToken,
     /// The model's tokenizer can't spell this key's answer exactly.
     Tokenization { key: String },
+    /// A session's suffix changes how its prefix tokenises (a token spans the split),
+    /// and the model is recurrent or hybrid, so its cache can't be cut back to where
+    /// the whole prompt's tokens part from the prefix's.
+    SessionBoundary,
 }
 
 impl fmt::Display for LlmError {
@@ -54,6 +63,9 @@ impl fmt::Display for LlmError {
             Self::NoAllowedToken => f.write_str("the grammar allows no next token"),
             Self::Tokenization { key } => {
                 write!(f, "the model can't spell category key {key:?} exactly")
+            }
+            Self::SessionBoundary => {
+                f.write_str("the suffix changes how the session's prefix tokenises")
             }
         }
     }
@@ -157,6 +169,8 @@ pub struct Model {
     pieces: Vec<Vec<u8>>,
     /// llama.cpp contexts must not be created concurrently from one model.
     new_context: Mutex<()>,
+    /// No layer is on a GPU (asked for, or there is none).
+    cpu_only: bool,
 }
 
 impl fmt::Debug for Model {
@@ -172,10 +186,23 @@ impl Model {
     /// Checks the file at `path` against `spec` (size and SHA-256), then
     /// loads it. All layers go to the GPU when there is one.
     pub fn load(path: &Path, spec: &ModelSpec) -> Result<Self, LlmError> {
+        Self::load_with(path, spec, &LoadOptions::default())
+    }
+
+    /// [`Model::load`] with options, e.g. CPU only.
+    pub fn load_with(
+        path: &Path,
+        spec: &ModelSpec,
+        options: &LoadOptions,
+    ) -> Result<Self, LlmError> {
         verify_file(path, spec)?;
         let backend = backend()?;
-        let inner = LlamaModel::load_from_file(backend, path, &LlamaModelParams::default())
-            .map_err(runtime_error)?;
+        let mut params = LlamaModelParams::default();
+        let cpu_only = !options.gpu || !backend.supports_gpu_offload();
+        if !options.gpu {
+            params = params.with_n_gpu_layers(0);
+        }
+        let inner = LlamaModel::load_from_file(backend, path, &params).map_err(runtime_error)?;
         let vocab = inner.vocab();
         let pieces = (0..inner.n_vocab())
             .map(|id| vocab.token_to_piece(LlamaToken(id), false, None))
@@ -186,6 +213,7 @@ impl Model {
             sha256: spec.sha256,
             pieces,
             new_context: Mutex::new(()),
+            cpu_only,
         })
     }
 
@@ -228,10 +256,7 @@ impl Model {
         choices: &Choices,
         options: &GenerateOptions,
     ) -> Result<Choice, LlmError> {
-        let mut trie = TokenTrie::default();
-        for key in choices.keys() {
-            trie.insert(&self.answer_tokens(key, &Choices::answer(key))?);
-        }
+        let trie = self.choice_trie(choices)?;
         let generation = self.run(
             prompt,
             CHOICE_PREFIX,
@@ -317,46 +342,97 @@ impl Model {
         stop: Stop<'_>,
         options: &GenerateOptions,
     ) -> Result<Generation, LlmError> {
-        let backend = backend()?;
         let vocab = self.inner.vocab();
         let prompt_tokens = vocab.tokenize(format!("{prompt}{prefix}").as_bytes(), true, true);
+        let n_ctx = self.context_size(prompt_tokens.len() + options.max_tokens as usize)?;
+        let mut ctx = self.new_context(n_ctx, options.threads)?;
+        let mut batch = LlamaBatch::new(n_ctx.get() as usize, 1);
+        decode(&mut ctx, &mut batch, &prompt_tokens, 0)?;
+        self.constrained(
+            &mut ctx,
+            &mut batch,
+            prompt_tokens.len(),
+            grammar,
+            stop,
+            options,
+        )
+    }
 
+    /// A context size for `needed` tokens, within what the model was trained on.
+    fn context_size(&self, needed: usize) -> Result<NonZeroU32, LlmError> {
         let limit = self.inner.n_ctx_train();
-        let needed = prompt_tokens.len() + options.max_tokens as usize;
-        let n_ctx = u32::try_from(needed)
+        u32::try_from(needed)
             .ok()
             .filter(|&n| n <= limit)
             .and_then(NonZeroU32::new)
             .ok_or(LlmError::PromptTooLong {
-                tokens: prompt_tokens.len(),
+                tokens: needed,
                 limit,
-            })?;
+            })
+    }
+
+    fn new_context(
+        &self,
+        n_ctx: NonZeroU32,
+        threads: Option<u32>,
+    ) -> Result<LlamaContext<'_>, LlmError> {
+        let backend = backend()?;
         let mut params = LlamaContextParams::default()
             .with_n_ctx(Some(n_ctx))
-            .with_n_batch(n_ctx.get());
-        if let Some(threads) = options.threads {
-            let threads = i32::try_from(threads).map_err(runtime_error)?;
-            params = params.with_n_threads(threads).with_n_threads_batch(threads);
+            .with_n_batch(n_ctx.get())
+            .with_no_perf(false);
+        if self.cpu_only {
+            // ggml's CPU flash attention gives results that depend on how the prompt is
+            // batched (a session's prefix and suffix vs the whole prompt at once: over
+            // 5 points of confidence on the CI model). Without it they are identical.
+            // And no operations go to a GPU either: with the weights in ordinary memory,
+            // llama.cpp would send large batches to one when there is one (a Mac asked
+            // for CPU only), so batching would again change the numbers.
+            params = params
+                .with_flash_attention_policy(LLAMA_FLASH_ATTN_TYPE_DISABLED)
+                .with_op_offload(false);
         }
-        let mut ctx = {
-            let _guard = self
-                .new_context
-                .lock()
-                .unwrap_or_else(PoisonError::into_inner);
-            self.inner
-                .new_context(backend, params)
-                .map_err(runtime_error)?
+        // llama.cpp's default is 4 threads, and its threads wait for each other by
+        // spinning: on a machine with fewer cores (a small virtual machine) they take
+        // turns, and every step slows to a crawl. So never more threads than cores.
+        let cores = std::thread::available_parallelism().map_or(1, |n| n.get());
+        let threads = match threads {
+            Some(threads) => i32::try_from(threads).map_err(runtime_error)?,
+            None => params
+                .n_threads()
+                .min(i32::try_from(cores).unwrap_or(i32::MAX)),
         };
+        params = params.with_n_threads(threads).with_n_threads_batch(threads);
+        let _guard = self
+            .new_context
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner);
+        self.inner
+            .new_context(backend, params)
+            .map_err(runtime_error)
+    }
 
-        let mut batch = LlamaBatch::new(n_ctx.get() as usize, 1);
-        let last = prompt_tokens.len().saturating_sub(1);
-        for (i, &token) in prompt_tokens.iter().enumerate() {
-            batch
-                .add(token, pos(i)?, &[0], i == last)
-                .map_err(runtime_error)?;
+    /// The trie of every key's canonical answer tokens.
+    fn choice_trie(&self, choices: &Choices) -> Result<TokenTrie, LlmError> {
+        let mut trie = TokenTrie::default();
+        for key in choices.keys() {
+            trie.insert(&self.answer_tokens(key, &Choices::answer(key))?);
         }
-        ctx.decode(&mut batch).map_err(runtime_error)?;
+        Ok(trie)
+    }
 
+    /// Generates under `grammar` from a context whose last decoded token (at the end of
+    /// `batch`) is at position `start - 1`.
+    fn constrained(
+        &self,
+        ctx: &mut LlamaContext<'_>,
+        batch: &mut LlamaBatch<'_>,
+        start: usize,
+        grammar: &str,
+        stop: Stop<'_>,
+        options: &GenerateOptions,
+    ) -> Result<Generation, LlmError> {
+        let vocab = self.inner.vocab();
         let mut grammar =
             LlamaSampler::grammar(&self.inner, grammar, "root").map_err(runtime_error)?;
         let mut rng = match options.sampling {
@@ -370,8 +446,23 @@ impl Model {
         let mut node = TokenTrie::ROOT;
 
         // `position` is where the token generated in this step goes.
-        for (generated, position) in (1..=options.max_tokens).zip(prompt_tokens.len()..) {
-            let mut candidates = ctx.token_data_array_ith(batch.n_tokens() - 1);
+        for (generated, position) in (1..=options.max_tokens).zip(start..) {
+            // With a trie only its few next tokens can be chosen, so only they are
+            // scored and shown to the grammar: llama.cpp's grammar check over a whole
+            // vocabulary (150k tokens for some models) is the slowest part of a step.
+            let mut candidates = match &stop {
+                Stop::Trie(trie) => {
+                    let logits = ctx.get_logits_ith(batch.n_tokens() - 1);
+                    LlamaTokenDataArray::from_iter(
+                        trie.children(node).filter_map(|t| {
+                            let logit = *logits.get(usize::try_from(t.0).ok()?)?;
+                            Some(LlamaTokenData::new(t, logit, 0.0))
+                        }),
+                        false,
+                    )
+                }
+                Stop::When(_) => ctx.token_data_array_ith(batch.n_tokens() - 1),
+            };
             grammar.apply(&mut candidates);
             let allowed: Vec<(LlamaToken, f32)> = candidates
                 .data
@@ -421,12 +512,280 @@ impl Model {
             batch
                 .add(token, pos(position)?, &[0], true)
                 .map_err(runtime_error)?;
-            ctx.decode(&mut batch).map_err(runtime_error)?;
+            ctx.decode(batch).map_err(runtime_error)?;
         }
         Err(LlmError::TooManyTokens {
             max_tokens: options.max_tokens,
         })
     }
+
+    /// A session for many prompts that share `prefix` (a system prompt, a category list,
+    /// examples): the prefix is evaluated once, and each call only evaluates its own
+    /// suffix. Between calls everything after the prefix is cleared, so one call never
+    /// sees another's text.
+    pub fn session(&self, prefix: &str, options: &SessionOptions) -> Result<Session<'_>, LlmError> {
+        let prefix_tokens = self.inner.vocab().tokenize(prefix.as_bytes(), true, true);
+        let n_ctx = self.context_size(
+            prefix_tokens.len()
+                + options.max_suffix_tokens as usize
+                + options.max_answer_tokens as usize,
+        )?;
+        let mut ctx = self.new_context(n_ctx, options.threads)?;
+        let mut batch = LlamaBatch::new(n_ctx.get() as usize, 1);
+        decode(&mut ctx, &mut batch, &prefix_tokens, 0)?;
+        // Recurrent and hybrid models can't drop part of a sequence: they restore a
+        // snapshot of the state right after the prefix instead.
+        let snapshot = if self.inner.is_recurrent() || self.inner.is_hybrid() {
+            Some(
+                ctx.state_seq_get(0, LlamaStateSeqFlags::empty())
+                    .map_err(runtime_error)?,
+            )
+        } else {
+            None
+        };
+        Ok(Session {
+            model: self,
+            ctx,
+            batch,
+            prefix: prefix.to_string(),
+            cached: prefix_tokens.len(),
+            prefix_tokens,
+            options: options.clone(),
+            snapshot,
+        })
+    }
+}
+
+/// How a model is loaded.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct LoadOptions {
+    /// Offload every layer to the GPU when there is one (Metal on Apple Silicon).
+    /// `false` keeps everything on the CPU, as on a machine without a GPU.
+    pub gpu: bool,
+}
+
+impl Default for LoadOptions {
+    fn default() -> Self {
+        Self { gpu: true }
+    }
+}
+
+/// llama.cpp's counters since the last reset.
+#[derive(Debug, Clone, Copy, Default, PartialEq)]
+pub struct Timings {
+    /// Tokens evaluated in batches (prompts, suffixes) and the time it took.
+    pub prompt_tokens: u64,
+    pub prompt_ms: f64,
+    /// Tokens evaluated one at a time (generated answers) and the time it took.
+    pub generated_tokens: u64,
+    pub generated_ms: f64,
+}
+
+/// Limits for a [`Session`].
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SessionOptions {
+    /// The longest suffix a call may add after the prefix, in tokens.
+    pub max_suffix_tokens: u32,
+    /// The longest answer a call may generate, in tokens.
+    pub max_answer_tokens: u32,
+    /// CPU threads; `None` keeps llama.cpp's default.
+    pub threads: Option<u32>,
+}
+
+impl Default for SessionOptions {
+    fn default() -> Self {
+        Self {
+            max_suffix_tokens: 512,
+            max_answer_tokens: 64,
+            threads: None,
+        }
+    }
+}
+
+/// Prompts sharing one evaluated prefix (see [`Model::session`]). Not shared between
+/// threads: each call needs `&mut`.
+pub struct Session<'m> {
+    model: &'m Model,
+    ctx: LlamaContext<'m>,
+    batch: LlamaBatch<'static>,
+    prefix: String,
+    prefix_tokens: Vec<LlamaToken>,
+    /// How many of `prefix_tokens` are in the cache: fewer when a suffix merged with
+    /// the end of the prefix (see `Session::run`).
+    cached: usize,
+    options: SessionOptions,
+    snapshot: Option<SeqState>,
+}
+
+impl fmt::Debug for Session<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("Session")
+            .field("model", &self.model.id)
+            .field("prefix_tokens", &self.prefix_tokens.len())
+            .finish_non_exhaustive()
+    }
+}
+
+impl Session<'_> {
+    /// Tokens in the shared prefix.
+    pub fn prefix_tokens(&self) -> usize {
+        self.prefix_tokens.len()
+    }
+
+    /// llama.cpp's counters since the session started or [`Session::reset_timings`].
+    pub fn timings(&mut self) -> Timings {
+        let t = self.ctx.timings();
+        Timings {
+            prompt_tokens: u64::try_from(t.n_p_eval()).unwrap_or(0),
+            prompt_ms: t.t_p_eval_ms(),
+            generated_tokens: u64::try_from(t.n_eval()).unwrap_or(0),
+            generated_ms: t.t_eval_ms(),
+        }
+    }
+
+    pub fn reset_timings(&mut self) {
+        self.ctx.reset_timings();
+    }
+
+    /// [`Model::choose`] for the prompt `prefix + suffix`, without evaluating the
+    /// prefix again.
+    pub fn choose(
+        &mut self,
+        suffix: &str,
+        choices: &Choices,
+        options: &GenerateOptions,
+    ) -> Result<Choice, LlmError> {
+        let trie = self.model.choice_trie(choices)?;
+        let generation = self.run(
+            suffix,
+            CHOICE_PREFIX,
+            &choices.grammar(),
+            Stop::Trie(&trie),
+            options,
+        )?;
+        let key = choices
+            .parse(&generation.text)
+            .ok_or(LlmError::NoAllowedToken)?;
+        Ok(Choice {
+            key: key.to_string(),
+            confidence_bp: generation.confidence_bp,
+        })
+    }
+
+    /// [`Model::generate`] for the prompt `prefix + suffix`, without evaluating the
+    /// prefix again.
+    pub fn generate(
+        &mut self,
+        suffix: &str,
+        answer_prefix: &str,
+        grammar: &str,
+        is_complete: &dyn Fn(&str) -> bool,
+        options: &GenerateOptions,
+    ) -> Result<Generation, LlmError> {
+        self.run(
+            suffix,
+            answer_prefix,
+            grammar,
+            Stop::When(is_complete),
+            options,
+        )
+    }
+
+    fn run(
+        &mut self,
+        suffix: &str,
+        answer_prefix: &str,
+        grammar: &str,
+        stop: Stop<'_>,
+        options: &GenerateOptions,
+    ) -> Result<Generation, LlmError> {
+        // The whole prompt is tokenised, as `Model::choose` would, so the model sees the
+        // same tokens: tokenising the suffix alone can differ at the split (a token
+        // spanning it, or a tokenizer's space before a word). Only the cached tokens
+        // the whole prompt starts with are kept; the rest is evaluated again.
+        let whole = self.model.inner.vocab().tokenize(
+            format!("{}{suffix}{answer_prefix}", self.prefix).as_bytes(),
+            true,
+            true,
+        );
+        let same = whole
+            .iter()
+            .zip(&self.prefix_tokens[..self.cached])
+            .take_while(|(a, b)| a == b)
+            .count();
+        if same < self.cached {
+            if self.snapshot.is_some() {
+                return Err(LlmError::SessionBoundary);
+            }
+            self.cached = same;
+        }
+        let tokens = &whole[self.cached..];
+        if tokens.is_empty()
+            || tokens.len()
+                > self.options.max_suffix_tokens as usize + self.prefix_tokens.len() - self.cached
+            || options.max_tokens > self.options.max_answer_tokens
+        {
+            return Err(LlmError::PromptTooLong {
+                tokens: whole.len() + options.max_tokens as usize,
+                limit: self.ctx.n_ctx(),
+            });
+        }
+        self.reset()?;
+        decode(&mut self.ctx, &mut self.batch, tokens, self.cached)?;
+        let start = whole.len();
+        let result = self.model.constrained(
+            &mut self.ctx,
+            &mut self.batch,
+            start,
+            grammar,
+            stop,
+            options,
+        );
+        self.reset()?;
+        result
+    }
+
+    /// Back to just the (cached) prefix.
+    fn reset(&mut self) -> Result<(), LlmError> {
+        match &self.snapshot {
+            Some(state) => {
+                self.ctx
+                    .clear_kv_cache_seq(Some(0), None, None)
+                    .map_err(runtime_error)?;
+                self.ctx.state_seq_set(state, 0).map_err(runtime_error)?;
+            }
+            None => {
+                let from = u32::try_from(self.cached).map_err(runtime_error)?;
+                let removed = self
+                    .ctx
+                    .clear_kv_cache_seq(Some(0), Some(from), None)
+                    .map_err(runtime_error)?;
+                if !removed {
+                    return Err(LlmError::Runtime(
+                        "could not clear the session's cache".into(),
+                    ));
+                }
+            }
+        }
+        Ok(())
+    }
+}
+
+/// Decodes `tokens` at positions `start..`, asking for logits of the last one.
+fn decode(
+    ctx: &mut LlamaContext<'_>,
+    batch: &mut LlamaBatch<'_>,
+    tokens: &[LlamaToken],
+    start: usize,
+) -> Result<(), LlmError> {
+    batch.clear();
+    let last = tokens.len().saturating_sub(1);
+    for (i, &token) in tokens.iter().enumerate() {
+        batch
+            .add(token, pos(start + i)?, &[0], i == last)
+            .map_err(runtime_error)?;
+    }
+    ctx.decode(batch).map_err(runtime_error)
 }
 
 /// When generation is complete.
@@ -483,6 +842,10 @@ impl TokenTrie {
             .iter()
             .find(|&&(t, _)| t == token)
             .map(|&(_, next)| next)
+    }
+
+    fn children(&self, node: usize) -> impl Iterator<Item = LlamaToken> + '_ {
+        self.nodes[node].children.iter().map(|&(t, _)| t)
     }
 
     fn is_end(&self, node: usize) -> bool {

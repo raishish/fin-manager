@@ -1,0 +1,5 @@
+# Model files are large and never committed (T2.4).
+models/
+# Per-transaction outputs and run logs stay local; only aggregates (results.md,
+# summary.json, report.md) are committed.
+runs/

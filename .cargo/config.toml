@@ -1,0 +1,7 @@
+[env]
+# SPEC decision 48: llama.cpp is built without CPU weight repacking. Repacking copies
+# the model's weights into anonymous memory on CPU-only machines: Qwen3.5-4B's peak
+# grew from 3.6 GB to 6.5 GB (eval/report.md), too much for 8 GB. With Metal the
+# weights are on the GPU and nothing changes. A value set in the shell still wins,
+# e.g. GGML_CPU_REPACK=ON to compare builds (eval/README.md).
+GGML_CPU_REPACK = "OFF"

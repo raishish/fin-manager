@@ -421,6 +421,7 @@ version = "0.0.0"
 dependencies = [
  "fm-netguard",
  "llama-cpp-2",
+ "llama-cpp-sys-2",
  "serde_json",
  "sha2",
 ]
