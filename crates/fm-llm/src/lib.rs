@@ -30,6 +30,10 @@
 //!   aborts at exit if a model is still loaded, so never keep one in a
 //!   `static`.
 //!
+//! - **Explanations** ([`explain`]): a model's explanation of an answer is kept only if
+//!   every number in it is one of the computed values the caller passed in (SPEC
+//!   constraint 6); otherwise a template is used.
+//!
 //! The answer is greedy by default, so the same model, prompt and list always
 //! give the same key and confidence.
 //!
@@ -38,6 +42,7 @@
 //! categorisation code maps them to its decision types.
 
 mod download;
+pub mod explain;
 mod grammar;
 mod runtime;
 
