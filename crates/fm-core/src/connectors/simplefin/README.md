@@ -47,8 +47,19 @@ machine or the local network.
   before anything is saved or allowed.
 - Not caught: a public name that resolves to a private address (DNS rebinding). The
   confirmation step is the defence there.
-- Plain `http` to `127.0.0.1` or `localhost` is accepted only in this crate's tests, for
-  the fake bridge.
+- The tests' fake bridge is plain `http` to `127.0.0.1` or `[::1]` with a port, and
+  nothing else (not `localhost`, no private range). It is accepted only:
+  - in this crate's own tests;
+  - with the `fake-bridge` feature, which fm-app turns on for its tests only, as a
+    dev-dependency.
+
+  Guards keep it out of anything shipped:
+  - an optimised build with the feature doesn't compile (`compile_error!` in
+    `lib.rs`), so `cargo test --release -p fm-app` doesn't either; CI runs those
+    tests in debug;
+  - `fm_core::FAKE_BRIDGE` says whether it's on;
+  - the release workflow fails if `fake-bridge` appears in fm-app's normal and build
+    dependency graph.
 
 ## Credentials
 
@@ -74,6 +85,30 @@ the claim, only the bridge's origin is allowed:
   the claim's origin and takes it away again afterwards, unless it was already allowed
   or is also the bridge's. Nothing else in the app allows a SimpleFIN origin today; a
   feature that does would need counting.
+
+## After a sync (T5.13)
+
+A sync runs the same follow-up steps as a file import, from the app's `after_import`
+(`app/src-tauri/src/importing.rs`):
+- pairing transfers (`transfers::detect`);
+- the rules (`categorize::run`);
+- the model fallback, once T2.5 lands;
+- one backup.
+
+They run once per sync, over the rows it added or settled. Each window's import skips
+its own backup (`SyncRun::set_backup(false)`); one backup for the whole sync is enough.
+
+- **The unfinished mark.**
+  - The app sets it (`simplefin-sync`) before the first window commits, so a lock or
+    a crash leaves the steps to finish (`finish_import`, or the next sync or import).
+  - There is one mark for files and syncs. If another import's mark was there, the
+    sync replaces it and runs the rules over everything, so neither is lost. A file
+    import that finds a sync's mark does the same.
+  - Each run clears only its own mark.
+- **Stopping.** Each window's import can be cancelled (`SyncRun::store_cancellable`). A
+  lock rolls that window back (`SimpleFinError::Interrupted`), keeps the windows before
+  it, and leaves the mark. The step runner also checks the session generation, so
+  nothing runs on a session other than the one the sync started on.
 
 ## Disconnecting
 

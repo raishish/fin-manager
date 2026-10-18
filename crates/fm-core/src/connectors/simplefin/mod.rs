@@ -114,6 +114,8 @@ pub enum SimpleFinError {
     },
     /// The bridge's answer couldn't be read.
     Malformed,
+    /// A window's import was stopped (the app is locking); that window stored nothing.
+    Interrupted,
     Network(fm_netguard::Error),
     Storage(StorageError),
     Import(ImportError),
@@ -151,6 +153,7 @@ impl fmt::Display for SimpleFinError {
                 "SimpleFIN allows 24 updates a day and they're used up; try again later",
             ),
             Self::Malformed => f.write_str("SimpleFIN's answer couldn't be read"),
+            Self::Interrupted => f.write_str("the update stopped because the app locked"),
             Self::Network(e) => write!(f, "{e}"),
             Self::Storage(e) => write!(f, "{e}"),
             Self::Import(e) => write!(f, "{e}"),
@@ -218,6 +221,21 @@ pub struct SyncReport {
 }
 
 impl SyncReport {
+    /// The transactions the sync added or settled: what transfer pairing and the rules
+    /// look at afterwards (T5.13).
+    pub fn changed(&self) -> Vec<crate::model::TransactionId> {
+        self.imports
+            .iter()
+            .flat_map(|i| &i.statements)
+            .flat_map(|s| &s.records)
+            .filter_map(|(_, o)| match o {
+                pipeline::RecordOutcome::Inserted(t)
+                | pipeline::RecordOutcome::PostedPending(t) => Some(*t),
+                _ => None,
+            })
+            .collect()
+    }
+
     pub fn inserted(&self) -> usize {
         self.sum(pipeline::StatementReport::inserted)
     }
@@ -475,6 +493,9 @@ pub struct SyncRun {
     bytes: u64,
     /// [`MAX_SYNC_BYTES`]; smaller in tests.
     budget: u64,
+    /// Take the backup after each window's import (the default). The app takes one
+    /// backup after the whole sync instead, with transfers and the rules (T5.13).
+    backup: bool,
     report: SyncReport,
 }
 
@@ -511,6 +532,7 @@ impl SyncRun {
             next: 0,
             bytes: 0,
             budget: MAX_SYNC_BYTES,
+            backup: true,
             report: SyncReport {
                 imports: Vec::new(),
                 messages: Vec::new(),
@@ -560,6 +582,25 @@ impl SyncRun {
         window: Window,
         body: Vec<u8>,
     ) -> Result<(), SimpleFinError> {
+        self.store_cancellable(ledger, window, body, &pipeline::never)
+    }
+
+    /// Whether each window's import takes the post-import backup itself (the default).
+    /// `false`: the caller takes one after the sync (T5.13).
+    pub fn set_backup(&mut self, take: bool) {
+        self.backup = take;
+    }
+
+    /// [`Self::store`] that stops when `cancel` returns true: the window's import rolls
+    /// back, nothing of it is stored, the sync doesn't move forward past it, and the
+    /// result is [`SimpleFinError::Interrupted`]. Its request stays counted.
+    pub fn store_cancellable(
+        &mut self,
+        ledger: &mut Unlocked,
+        window: Window,
+        body: Vec<u8>,
+        cancel: &dyn Fn() -> bool,
+    ) -> Result<(), SimpleFinError> {
         self.check_connection(ledger)?;
         self.bytes = self
             .bytes
@@ -580,13 +621,14 @@ impl SyncRun {
             account_names: parsed.account_names,
             target: Target::Auto,
             now: self.now,
-            backup: true,
-            cancel: &pipeline::never,
+            backup: self.backup,
+            cancel,
         };
         match pipeline::import_statements(ledger, &request) {
             Ok(imported) => self.report.imports.push(imported),
             // The same answer as before: nothing new in it.
             Err(ImportError::AlreadyImported { .. }) => {}
+            Err(ImportError::Interrupted) => return Err(SimpleFinError::Interrupted),
             Err(e) => return Err(SimpleFinError::Import(e)),
         }
         // Never moves back (a slower, older sync finishing late).

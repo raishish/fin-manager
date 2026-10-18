@@ -389,7 +389,7 @@ impl AppUnlock {
     /// never runs on another (the app locked and unlocked in between). Stops at the first
     /// step that fails or finds the app locking, and says which; the import stays
     /// unfinished.
-    fn after_import(
+    pub(crate) fn after_import(
         &self,
         scope: Option<Vec<TransactionId>>,
         now: std::time::SystemTime,
@@ -452,6 +452,9 @@ impl AppUnlock {
             after.suggestions = r.suggestions;
             after.rule_did_not_fit = r.rule_did_not_fit;
         }
+        // T2.5's model fallback goes here, as its own step (e.g. "suggesting categories"),
+        // for what the rules left in Needs review: both file imports and SimpleFIN syncs
+        // run through this one place. Nothing yet.
         let mut backup = None;
         let cancel = || self.interrupted();
         if !step("the backup", &mut after, &mut |u| {
@@ -562,17 +565,17 @@ enum Started {
 
 /// What steps 2–4 did.
 #[derive(Debug, Default)]
-struct AfterImport {
-    transfers_paired: usize,
-    transfers_suggested: usize,
-    rule_buckets: usize,
-    rule_merchants: usize,
-    cleaned_merchants: usize,
-    suggestions: usize,
-    rule_did_not_fit: usize,
-    backup: Option<BackupResult>,
+pub(crate) struct AfterImport {
+    pub(crate) transfers_paired: usize,
+    pub(crate) transfers_suggested: usize,
+    pub(crate) rule_buckets: usize,
+    pub(crate) rule_merchants: usize,
+    pub(crate) cleaned_merchants: usize,
+    pub(crate) suggestions: usize,
+    pub(crate) rule_did_not_fit: usize,
+    pub(crate) backup: Option<BackupResult>,
     /// The step that didn't finish.
-    incomplete: Option<&'static str>,
+    pub(crate) incomplete: Option<&'static str>,
 }
 
 impl AfterImport {

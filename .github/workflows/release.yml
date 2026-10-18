@@ -56,6 +56,16 @@ jobs:
             exit 1
           fi
           echo "version=$app" >> "$GITHUB_OUTPUT"
+      # fm-core's `fake-bridge` feature lets the SimpleFIN connector talk to the tests'
+      # fake bridge on this machine (T5.13). fm-app turns it on for its tests only;
+      # it must never be in what ships.
+      - run: rustup show active-toolchain
+      - name: No test-only feature in the shipped app
+        run: |
+          if cargo tree -p fm-app --locked -e normal,build,features | grep -q 'fake-bridge'; then
+            echo "::error::fm-core's fake-bridge feature is in fm-app's shipped dependencies"
+            exit 1
+          fi
       - name: The tag matches the version
         if: github.event_name == 'push'
         env:

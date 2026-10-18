@@ -10,11 +10,21 @@ use std::sync::{Arc, Mutex, PoisonError};
 use std::time::SystemTime;
 
 use fm_core::connectors::simplefin::{self, MAX_REQUESTS_PER_DAY, SimpleFinError, SyncReport};
+use fm_core::pipeline;
 use fm_core::storage::Unlocked;
 use fm_netguard::{NetGuard, Origin};
 use serde::Serialize;
 
+use crate::importing::AfterImport;
 use crate::unlock::AppUnlock;
+
+/// The unfinished-import mark a sync leaves until transfers, the rules and the backup
+/// have run after it (see `importing.rs`).
+const SYNC_MARK: &str = "simplefin-sync";
+
+fn storage(e: fm_core::storage::StorageError) -> ConnectorErrorView {
+    error("Storage", &e.to_string())
+}
 
 /// Keeps the bridge's origin on the allowlist exactly while the ledger is open and
 /// connected. Called by the unlock observer after every change.
@@ -109,17 +119,30 @@ pub struct SyncView {
     synced_to: Option<i64>,
     requests_left: usize,
     next_allowed: Option<i64>,
-    /// The backup after the import failed (the import itself is kept).
+    /// The backup after the update failed (what was fetched is kept).
     backup_error: Option<String>,
+    /// Transfers between my accounts paired, and what the rules filed (T5.13).
+    transfers_paired: usize,
+    transfers_suggested: usize,
+    rule_buckets: usize,
+    cleaned_merchants: usize,
+    /// What was fetched is kept, but this step after it didn't finish ("pairing
+    /// transfers", "applying your rules", "the backup"); `finish_import` runs it.
+    incomplete: Option<&'static str>,
 }
 
-impl From<SyncReport> for SyncView {
-    fn from(r: SyncReport) -> Self {
-        let backup_error = r.imports.iter().find_map(|i| match &i.backup {
-            Some(Err(e)) => Some(e.to_string()),
+impl SyncView {
+    fn new(r: SyncReport, after: AfterImport) -> Self {
+        let backup_error = match &after.backup {
+            Some(b) if !b.ok => b.message.clone(),
             _ => None,
-        });
+        };
         Self {
+            transfers_paired: after.transfers_paired,
+            transfers_suggested: after.transfers_suggested,
+            rule_buckets: after.rule_buckets,
+            cleaned_merchants: after.cleaned_merchants,
+            incomplete: after.incomplete,
             inserted: r.inserted(),
             duplicates: r.duplicates(),
             posted_from_pending: r.posted_from_pending(),
@@ -162,6 +185,7 @@ impl From<SimpleFinError> for ConnectorErrorView {
                 "QuotaReached"
             }
             SimpleFinError::Malformed => "Malformed",
+            SimpleFinError::Interrupted => "Interrupted",
             SimpleFinError::Network(_) => "Network",
             _ => "Connector",
         };
@@ -258,21 +282,73 @@ impl AppUnlock {
     pub fn simplefin_sync(&self, net: &NetGuard, busy: &Busy) -> Result<SyncView> {
         let _busy = busy.start()?;
         let now = SystemTime::now();
-        let mut run = self
-            .with_ledger(|open| simplefin::SyncRun::start(open.ledger(), now))
+        let (mut run, earlier, generation) = self
+            .with_ledger(|open| -> Result<_> {
+                let run = simplefin::SyncRun::start(open.ledger(), now)?;
+                let earlier = pipeline::unfinished(open.ledger()).map_err(storage)?;
+                Ok((run, earlier, self.generation()))
+            })
             .ok_or_else(locked)??;
-        while let Some(window) = self
-            .with_ledger(|open| run.next(open.ledger(), SystemTime::now()))
-            .ok_or_else(locked)??
-        {
-            let body = simplefin::fetch(net, &run, window)?;
-            self.write_ledger(|open| run.store(open.ledger_mut(), window, body))
-                .ok_or_else(locked)??;
-        }
+        // One backup after the whole sync, with transfers and the rules (below).
+        run.set_backup(false);
+        let cancel = || self.interrupt.load(Ordering::SeqCst);
+        let mut marked = false;
+        let stopped = loop {
+            let window = match self.with_ledger(|open| run.next(open.ledger(), SystemTime::now())) {
+                None => break Some(locked()),
+                Some(Err(e)) => break Some(e.into()),
+                Some(Ok(None)) => break None,
+                Some(Ok(Some(window))) => window,
+            };
+            let body = match simplefin::fetch(net, &run, window) {
+                Ok(body) => body,
+                Err(e) => break Some(e.into()),
+            };
+            let stored = self.write_ledger(|open| -> Result<()> {
+                if self.generation() != generation {
+                    return Err(locked());
+                }
+                // Marked before the first window commits, as a file import is: a lock
+                // or crash later leaves its transfers and rules to finish.
+                let first = !marked;
+                if first {
+                    pipeline::set_unfinished(open.ledger(), Some(SYNC_MARK)).map_err(storage)?;
+                    marked = true;
+                }
+                let result = run.store_cancellable(open.ledger_mut(), window, body, &cancel);
+                if result.is_err() && first {
+                    // Nothing of this sync was stored: the earlier mark, if any, again.
+                    pipeline::set_unfinished(open.ledger(), earlier.as_deref()).map_err(storage)?;
+                    marked = false;
+                }
+                result.map_err(Into::into)
+            });
+            match stored {
+                None => break Some(locked()),
+                Some(Err(e)) => break Some(e),
+                Some(Ok(())) => {}
+            }
+        };
         let report = self
             .with_ledger(|open| run.finish(open.ledger()))
             .ok_or_else(locked)??;
-        Ok(report.into())
+        // Transfers, the rules and the backup, once, for what this sync stored. Over
+        // everything when another import was left unfinished: there is one mark, and
+        // this sync's replaced it.
+        let after = if marked {
+            let scope = if earlier.is_some() {
+                None
+            } else {
+                Some(report.changed())
+            };
+            self.after_import(scope, now, SYNC_MARK, generation)
+        } else {
+            AfterImport::default()
+        };
+        match stopped {
+            Some(e) => Err(e),
+            None => Ok(SyncView::new(report, after)),
+        }
     }
 
     /// Waits for no sync: refused while one runs (a sync also stores nothing after a
@@ -369,6 +445,416 @@ mod tests {
         assert_eq!(busy.start().err().unwrap().code, "Busy");
         drop(first);
         assert!(busy.start().is_ok());
+    }
+
+    // ---- a real sync against a fake bridge on this machine (fm-core's `fake-bridge`) ----
+
+    use std::io::{BufRead, BufReader, Read, Write};
+    use std::net::TcpListener;
+    use std::sync::mpsc;
+    use std::thread;
+    use std::time::Duration;
+
+    use fm_core::model::{Assignment, TransactionId};
+    use tauri::Manager;
+
+    const DAY: i64 = 86_400;
+
+    /// A SimpleFIN bridge on 127.0.0.1: the claim, then `/accounts` answered from a
+    /// queue (the last answer repeats). An answer can wait for a go-ahead, so a test
+    /// can lock the app between two windows of a sync.
+    struct Bridge {
+        port: u16,
+    }
+
+    struct Answer {
+        body: String,
+        wait: Option<mpsc::Receiver<()>>,
+    }
+
+    impl Bridge {
+        fn start(answers: Vec<Answer>) -> Bridge {
+            let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+            let port = listener.local_addr().unwrap().port();
+            let answers = Mutex::new(answers);
+            thread::spawn(move || {
+                for stream in listener.incoming() {
+                    let Ok(mut stream) = stream else { continue };
+                    let mut reader = BufReader::new(stream.try_clone().unwrap());
+                    let mut line = String::new();
+                    reader.read_line(&mut line).unwrap();
+                    let mut length = 0;
+                    loop {
+                        let mut header = String::new();
+                        reader.read_line(&mut header).unwrap();
+                        let header = header.trim_end();
+                        if header.is_empty() {
+                            break;
+                        }
+                        if let Some((name, value)) = header.split_once(':')
+                            && name.eq_ignore_ascii_case("content-length")
+                        {
+                            length = value.trim().parse().unwrap();
+                        }
+                    }
+                    let mut body = vec![0; length];
+                    reader.read_exact(&mut body).unwrap();
+                    let reply = if line.contains("/claim/") {
+                        format!("http://AB12:secret@127.0.0.1:{port}/simplefin")
+                    } else {
+                        let mut queue = answers.lock().unwrap();
+                        let answer = if queue.len() > 1 {
+                            queue.remove(0)
+                        } else {
+                            Answer {
+                                body: queue[0].body.clone(),
+                                wait: queue[0].wait.take(),
+                            }
+                        };
+                        drop(queue);
+                        if let Some(go) = answer.wait {
+                            let _ = go.recv_timeout(Duration::from_secs(20));
+                        }
+                        answer.body
+                    };
+                    let _ = stream.write_all(
+                        format!(
+                            "HTTP/1.1 200 OK\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{reply}",
+                            reply.len()
+                        )
+                        .as_bytes(),
+                    );
+                }
+            });
+            Bridge { port }
+        }
+
+        fn token(&self) -> String {
+            base64(format!("http://127.0.0.1:{}/simplefin/claim/SECRET", self.port).as_bytes())
+        }
+
+        fn host(&self) -> String {
+            format!("127.0.0.1:{}", self.port)
+        }
+    }
+
+    /// Standard base64, for a setup token (the app has no base64 dependency of its own).
+    fn base64(bytes: &[u8]) -> String {
+        const ABC: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+        let mut out = String::new();
+        for chunk in bytes.chunks(3) {
+            let b = [
+                chunk[0],
+                *chunk.get(1).unwrap_or(&0),
+                *chunk.get(2).unwrap_or(&0),
+            ];
+            let n = (u32::from(b[0]) << 16) | (u32::from(b[1]) << 8) | u32::from(b[2]);
+            for i in 0..4 {
+                if i <= chunk.len() {
+                    out.push(ABC[((n >> (18 - 6 * i)) & 63) as usize] as char);
+                } else {
+                    out.push('=');
+                }
+            }
+        }
+        out
+    }
+
+    fn now() -> i64 {
+        i64::try_from(
+            SystemTime::now()
+                .duration_since(SystemTime::UNIX_EPOCH)
+                .unwrap()
+                .as_secs(),
+        )
+        .unwrap()
+    }
+
+    /// Two own accounts at one bank: a transfer between them, and two purchases.
+    fn accounts(tag: &str, days_ago: i64) -> String {
+        let at = now() - days_ago * DAY;
+        format!(
+            r#"{{"connections": [{{"conn_id": "C", "name": "Example Bank"}}],
+              "accounts": [
+                {{"id": "ACT-CHK", "name": "Checking", "conn_id": "C", "currency": "USD",
+                  "balance": "1000.00", "balance-date": {at}, "transactions": [
+                   {{"id": "{tag}-1", "posted": {at}, "amount": "-500.00", "description": "ONLINE TRANSFER TO SAVINGS {tag}"}},
+                   {{"id": "{tag}-2", "posted": {at}, "amount": "-12.40", "description": "SQ *BLUE BOTTLE COFFEE OAKLAND CA"}},
+                   {{"id": "{tag}-3", "posted": {at}, "amount": "-63.10", "description": "TRADER JOE S #123 SAN FRANCISCO CA"}}]}},
+                {{"id": "ACT-SAV", "name": "Savings", "conn_id": "C", "currency": "USD",
+                  "balance": "5000.00", "balance-date": {at}, "transactions": [
+                   {{"id": "{tag}-4", "posted": {at}, "amount": "500.00", "description": "ONLINE TRANSFER FROM CHECKING {tag}"}}]}}]}}"#
+        )
+    }
+
+    fn answer(body: String) -> Answer {
+        Answer { body, wait: None }
+    }
+
+    struct App {
+        _dir: tempfile::TempDir,
+        app: tauri::App<tauri::test::MockRuntime>,
+    }
+
+    impl App {
+        fn new() -> App {
+            let dir = tempfile::tempdir().unwrap();
+            let (app, w) = crate::tests::mock_app(&std::fs::canonicalize(dir.path()).unwrap());
+            crate::tests::create_confirmed(&w);
+            App { _dir: dir, app }
+        }
+
+        fn unlock(&self) -> tauri::State<'_, AppUnlock> {
+            self.app.state::<AppUnlock>()
+        }
+
+        fn net(&self) -> &NetGuard {
+            &self.app.state::<crate::Net>().inner().0
+        }
+
+        fn busy(&self) -> tauri::State<'_, Busy> {
+            self.app.state::<Busy>()
+        }
+
+        fn connect(&self, bridge: &Bridge) {
+            self.unlock()
+                .simplefin_connect(self.net(), &self.busy(), &bridge.token(), &bridge.host())
+                .unwrap();
+        }
+
+        fn sync(&self) -> Result<SyncView> {
+            self.unlock().simplefin_sync(self.net(), &self.busy())
+        }
+
+        fn ledger(&self) -> fm_core::model::Ledger {
+            self.unlock()
+                .with_ledger(|o| o.ledger().load_ledger().unwrap())
+                .unwrap()
+        }
+
+        fn mark(&self) -> Option<String> {
+            self.unlock()
+                .with_ledger(|o| pipeline::unfinished(o.ledger()).unwrap())
+                .unwrap()
+        }
+
+        fn reopen(&self) {
+            self.unlock()
+                .unlock_with_password(zeroize::Zeroizing::new(
+                    "velvet anchor mosaic tundra".to_string(),
+                ))
+                .unwrap();
+        }
+    }
+
+    /// Transactions that have a merchant decision: the rules (the merchant clean-up)
+    /// have run over them.
+    fn with_merchant(l: &fm_core::model::Ledger) -> std::collections::BTreeSet<TransactionId> {
+        l.decisions
+            .iter()
+            .filter(|d| matches!(d.assignment, Assignment::Merchant(_)))
+            .map(|d| d.transaction_id)
+            .collect()
+    }
+
+    /// T5.13 done-when: a synced window's transfer pair is detected and the rules run
+    /// over its rows, then one backup; no mark is left.
+    #[test]
+    fn a_sync_pairs_transfers_and_runs_the_rules() {
+        const { assert!(fm_core::FAKE_BRIDGE, "the tests' fake bridge is on") };
+        let app = App::new();
+        let bridge = Bridge::start(vec![answer(accounts("A", 10))]);
+        app.connect(&bridge);
+        let view = app.sync().unwrap();
+        assert_eq!(view.incomplete, None);
+        assert_eq!(view.inserted, 4);
+        assert_eq!(view.transfers_paired, 1, "{view:?}");
+        assert!(view.cleaned_merchants >= 2, "{view:?}");
+        assert_eq!(app.mark(), None);
+        let l = app.ledger();
+        assert_eq!(
+            with_merchant(&l).len(),
+            4,
+            "every synced row went through the rules"
+        );
+    }
+
+    /// T5.13 done-when: a lock between two windows leaves the first window kept and the
+    /// sync's mark set; finishing it runs transfers and the rules over what was kept.
+    #[test]
+    fn a_lock_mid_sync_leaves_it_to_finish() {
+        let app = App::new();
+        let (go, wait) = mpsc::channel();
+        let bridge = Bridge::start(vec![
+            answer(accounts("W1", 60)),
+            Answer {
+                body: accounts("W2", 10),
+                wait: Some(wait),
+            },
+        ]);
+        app.connect(&bridge);
+        let (unlock, net, busy) = (app.unlock(), app.net(), app.busy());
+        let result = thread::scope(|s| {
+            let sync = s.spawn(|| unlock.simplefin_sync(net, &busy));
+            // The second window is being fetched: the first is stored. Lock now.
+            thread::sleep(Duration::from_millis(500));
+            unlock.lock();
+            go.send(()).unwrap();
+            sync.join().unwrap()
+        });
+        assert_eq!(result.unwrap_err().code, "Locked");
+        app.reopen();
+        assert_eq!(app.mark().as_deref(), Some(SYNC_MARK), "left to finish");
+        let l = app.ledger();
+        assert_eq!(l.transactions.len(), 4, "the first window is kept");
+        assert!(with_merchant(&l).is_empty(), "its rules haven't run yet");
+
+        let finished = app.unlock().finish_import(None).unwrap();
+        assert_eq!(finished.incomplete, None);
+        assert_eq!(app.mark(), None);
+        let l = app.ledger();
+        assert_eq!(
+            with_merchant(&l).len(),
+            4,
+            "the rules ran over the kept window"
+        );
+    }
+
+    /// The single mark, order (a): a file import is left unfinished, then a sync runs.
+    /// The sync's pass covers both, and no mark is left.
+    #[test]
+    fn a_sync_after_an_unfinished_file_import_covers_both() {
+        let app = App::new();
+        let file = std::fs::read(
+            std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+                .join("../../testdata/bank-exports/data/chase/checking_2025.csv"),
+        )
+        .unwrap();
+        // The file imported, but the app locked before transfers and the rules.
+        let file_rows: Vec<TransactionId> = app
+            .unlock()
+            .write_ledger(|o| {
+                let u = o.ledger_mut();
+                pipeline::set_unfinished(u, Some("pending")).unwrap();
+                let profiles = fm_import_csv::ProfileSet::with_builtin();
+                let report = pipeline::import_file(
+                    u,
+                    &pipeline::ImportRequest {
+                        bytes: &file,
+                        file_name: None,
+                        target: pipeline::Target::NewAccount {
+                            name: "Card".into(),
+                            kind: fm_core::model::AccountKind::Checking,
+                            currency: fm_core::model::Currency::USD,
+                        },
+                        csv_currency: fm_core::model::Currency::USD,
+                        csv_profiles: &profiles,
+                        now: SystemTime::now(),
+                        backup: false,
+                        cancel: &pipeline::never,
+                    },
+                )
+                .unwrap();
+                pipeline::set_unfinished(u, Some(&report.import_id.0.to_string())).unwrap();
+                report.statements[0]
+                    .records
+                    .iter()
+                    .map(|(_, o)| o.transaction())
+                    .collect()
+            })
+            .unwrap();
+        assert!(with_merchant(&app.ledger()).is_empty());
+
+        let bridge = Bridge::start(vec![answer(accounts("A", 10))]);
+        app.connect(&bridge);
+        let view = app.sync().unwrap();
+        assert_eq!(view.incomplete, None);
+        assert_eq!(app.mark(), None, "no mark left");
+        let named = with_merchant(&app.ledger());
+        let named_file_rows = file_rows.iter().filter(|t| named.contains(t)).count();
+        assert!(
+            named_file_rows > file_rows.len() / 2,
+            "the file's rows got the rules too: {named_file_rows} of {}",
+            file_rows.len()
+        );
+        assert_eq!(view.transfers_paired, 1);
+    }
+
+    /// The single mark, order (b): a sync is left unfinished, then a file import runs.
+    /// The import's pass covers the sync's rows too.
+    #[test]
+    fn a_file_import_after_an_unfinished_sync_covers_both() {
+        let app = App::new();
+        let (go, wait) = mpsc::channel();
+        let bridge = Bridge::start(vec![
+            answer(accounts("W1", 60)),
+            Answer {
+                body: accounts("W2", 10),
+                wait: Some(wait),
+            },
+        ]);
+        app.connect(&bridge);
+        let (unlock, net, busy) = (app.unlock(), app.net(), app.busy());
+        thread::scope(|s| {
+            let sync = s.spawn(|| unlock.simplefin_sync(net, &busy));
+            thread::sleep(Duration::from_millis(500));
+            unlock.lock();
+            go.send(()).unwrap();
+            let _ = sync.join().unwrap();
+        });
+        app.reopen();
+        assert_eq!(app.mark().as_deref(), Some(SYNC_MARK));
+        let synced: Vec<TransactionId> = app.ledger().transactions.iter().map(|t| t.id).collect();
+
+        let file = std::fs::read(
+            std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+                .join("../../testdata/bank-exports/data/chase/checking_2025.csv"),
+        )
+        .unwrap();
+        let report = app
+            .unlock()
+            .import_file(
+                &file,
+                crate::importing::ImportArgs {
+                    file_name: None,
+                    target: crate::importing::TargetArg::NewAccount {
+                        name: "Card".into(),
+                        account_kind: fm_core::model::AccountKind::Checking,
+                        currency: "USD".into(),
+                    },
+                    csv_currency: None,
+                },
+            )
+            .unwrap();
+        assert_eq!(report.incomplete, None);
+        assert_eq!(app.mark(), None, "no mark left");
+        let l = app.ledger();
+        let named = with_merchant(&l);
+        assert!(
+            synced.iter().filter(|t| named.contains(t)).count() == 4,
+            "the sync's rows got the rules"
+        );
+        assert_eq!(
+            l.transactions
+                .iter()
+                .filter(|t| synced.contains(&t.id))
+                .count(),
+            4
+        );
+        let paired = l
+            .decisions
+            .iter()
+            .filter(|d| {
+                synced.contains(&d.transaction_id)
+                    && matches!(
+                        d.assignment,
+                        Assignment::Bucket(fm_core::model::Bucket::Transfer {
+                            counterpart: Some(_)
+                        })
+                    )
+            })
+            .count();
+        assert_eq!(paired, 2, "the sync's transfer pair was detected");
     }
 
     #[test]

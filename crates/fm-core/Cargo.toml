@@ -10,6 +10,13 @@ publish.workspace = true
 [lints]
 workspace = true
 
+[features]
+# Tests only: lets the SimpleFIN connector talk to a fake bridge on this machine
+# (plain http to 127.0.0.1 or [::1] with a port), so fm-app's tests can run a real
+# sync. fm-app enables it as a dev-dependency only; a release build with it doesn't
+# compile (see lib.rs), and the release workflow checks the shipped graph (T5.13).
+fake-bridge = []
+
 [dependencies]
 argon2 = { version = "=0.6.0", default-features = false, features = ["alloc", "zeroize"] }
 # SimpleFIN setup tokens and the Basic authorization header (T5.4). 0.23.1, the version

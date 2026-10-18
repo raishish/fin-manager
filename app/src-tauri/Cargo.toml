@@ -28,6 +28,9 @@ tauri-plugin-dialog = "=2.8.3"
 zeroize = { version = "=1.9.1", default-features = false, features = ["alloc"] }
 
 [dev-dependencies]
+# The SimpleFIN tests run a real sync against a fake bridge on this machine (T5.13).
+# Test builds only: fm-core refuses to compile it into an optimised build.
+fm-core = { path = "../../crates/fm-core", features = ["fake-bridge"] }
 sha2 = { version = "=0.11.1", default-features = false }
 tempfile = "=3.27.0"
 # Mock runtime for IPC tests; adds no dependencies.
