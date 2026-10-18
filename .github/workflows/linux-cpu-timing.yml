@@ -1,0 +1,134 @@
+name: Linux CPU timing
+
+# T5.14 (SPEC decision 48): the chosen model, Qwen3.5-4B, on a Linux machine with no
+# GPU, with and without llama.cpp's CPU weight repacking. The app ships without it
+# (.cargo/config.toml); this measures what that costs and saves on a real Linux CPU.
+# The commands are eval/README.md's "Linux CPU check": 40 transactions (10 per
+# household), CPU only.
+#
+# Run by hand ("Run workflow"). The numbers go to the job summary only: nothing is
+# uploaded, the token is read-only, and there are no secrets. Copy them into
+# eval/report.md.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: linux-cpu-timing
+  cancel-in-progress: false
+
+jobs:
+  timing:
+    name: Qwen3.5-4B on the CPU, with and without repacking
+    runs-on: ubuntu-24.04
+    timeout-minutes: 150
+    env:
+      MODEL: qwen3.5-4b
+      # Pinned in crates/fm-cli/src/candidates.rs (decision 48); `models fetch` checks
+      # the size and SHA-256 again.
+      MODEL_FILE: Qwen3.5-4B-Q4_K_M.gguf
+      MODEL_SHA256: 00fe7986ff5f6b463e62455821146049db6f9313603938a70800d1fb69ef11a4
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # rustup reads rust-toolchain.toml and installs the pinned toolchain.
+      - run: rustup show active-toolchain
+      - name: GNU time, for peak memory
+        # Known gap (SPEC decision 35): apt packages can't be pinned by hash.
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y time
+          /usr/bin/time --version
+          nproc
+          free -g
+      # No build cache: each setting is built from scratch in its own target directory,
+      # so neither can inherit the other's llama.cpp build.
+      - name: Build without repacking (as shipped)
+        env:
+          GGML_CPU_REPACK: "OFF"
+          CARGO_TARGET_DIR: target/repack-OFF
+        run: cargo build -p fm-cli --release --locked
+      - name: Build with repacking (llama.cpp's default)
+        env:
+          GGML_CPU_REPACK: "ON"
+          CARGO_TARGET_DIR: target/repack-ON
+        run: cargo build -p fm-cli --release --locked
+      # Each build's llama.cpp CMake cache must say what it was asked for, so the
+      # comparison is real. Scoped to each target directory: ci.yml's check (every
+      # build OFF) would flag the ON build, which is on purpose here.
+      - name: Each build is what it says
+        run: |
+          for repack in OFF ON; do
+            caches=$(find "target/repack-$repack" -path '*/build/llama-cpp-sys-2-*/out/build/CMakeCache.txt')
+            if [ -z "$caches" ]; then
+              echo "::error::no llama.cpp build under target/repack-$repack"
+              exit 1
+            fi
+            for c in $caches; do
+              grep -H '^GGML_CPU_REPACK:' "$c"
+              grep -q "^GGML_CPU_REPACK:BOOL=$repack\$" "$c" || {
+                echo "::error::target/repack-$repack wasn't built with GGML_CPU_REPACK=$repack"
+                exit 1
+              }
+            done
+          done
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: eval/models/${{ env.MODEL_FILE }}
+          key: gguf-${{ env.MODEL_SHA256 }}
+      - name: Fetch the model (verified by size and SHA-256)
+        run: |
+          target/repack-OFF/release/fm-cli models fetch "$MODEL"
+          echo "$MODEL_SHA256  eval/models/$MODEL_FILE" | sha256sum --check --strict
+      - name: Time 40 transactions, each build
+        run: |
+          for repack in OFF ON; do
+            out="$MODEL-linux-cpu-repack-$repack"
+            mkdir -p "eval/runs/$out"
+            uptime > "eval/runs/$out/load.txt"
+            /usr/bin/time -v "target/repack-$repack/release/fm-cli" eval categorize "$MODEL" \
+              --cpu --limit 10 --variants categories+income --out "$out" \
+              2> "eval/runs/$out/categorize.log"
+            uptime >> "eval/runs/$out/load.txt"
+            grep "Maximum resident set size" "eval/runs/$out/categorize.log"
+          done
+      - name: Summary
+        run: |
+          {
+            echo "## Qwen3.5-4B on a Linux CPU (T5.14)"
+            echo
+            echo "$(nproc) cores, $(free -g | awk '/^Mem:/ {print $2}') GB RAM, $(uname -r). 40 transactions (10 per household), CPU only."
+            echo
+            echo "| Build | cpu_repack | Transactions | Median per transaction | Mean | Peak RSS | Load before → after |"
+            echo "|---|---|---|---|---|---|---|"
+          } >> "$GITHUB_STEP_SUMMARY"
+          over=0
+          for repack in OFF ON; do
+            dir="eval/runs/$MODEL-linux-cpu-repack-$repack"
+            kb=$(awk -F': ' '/Maximum resident set size/ {print $2}' "$dir/categorize.log")
+            gb=$(awk -v kb="$kb" 'BEGIN {printf "%.2f GB", kb / 1024 / 1024}')
+            stats=$(jq -s '
+              map(select(.ms != null and .error == null) | .ms) | sort
+              | {n: length,
+                 median: (if length % 2 == 1 then .[length / 2 | floor]
+                          else (.[length / 2 - 1] + .[length / 2]) / 2 end),
+                 mean: (add / length)}' "$dir/categories+income.jsonl")
+            n=$(echo "$stats" | jq '.n')
+            median=$(echo "$stats" | jq '.median / 1000 * 100 | round / 100')
+            mean=$(echo "$stats" | jq '.mean / 1000 * 100 | round / 100')
+            meta=$(jq -r '.cpu_repack // "unknown"' "$dir/meta.json")
+            load=$(awk -F'load average: ' '{print $2}' "$dir/load.txt" | tr '\n' ';' | sed 's/;$//; s/;/ → /')
+            echo "| GGML_CPU_REPACK=$repack | $meta | $n | ${median} s | ${mean} s | $gb | $load |" >> "$GITHUB_STEP_SUMMARY"
+            # Decision 48's budget: the shipped build must fit an 8 GB machine.
+            if [ "$repack" = OFF ] && [ "$kb" -gt $((4 * 1024 * 1024)) ]; then
+              over=1
+            fi
+          done
+          if [ "$over" = 1 ]; then
+            echo "::error::without repacking the peak is over 4 GB (decision 48's budget)"
+            exit 1
+          fi
