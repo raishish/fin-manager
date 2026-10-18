@@ -276,9 +276,12 @@ impl Model {
     /// Generates text after `prompt` + `prefix` that `grammar` (GBNF, root
     /// rule `root`) allows, stopping as soon as `is_complete` accepts it.
     ///
-    /// Only the grammar masks tokens here, so the same text spelled with
-    /// different tokens counts as different paths and the confidence can be
-    /// below the text's total probability (see the crate docs).
+    /// Each token is sampled from the model first and only that token is checked
+    /// against the grammar; the grammar goes over the whole vocabulary only when the
+    /// token is rejected (as llama.cpp's own sampler does). The text is the same as
+    /// [`generate_exact`](Self::generate_exact)'s. The confidence is the model's own
+    /// probability of the text, over its whole vocabulary: at most the exact figure,
+    /// which renormalises over what the grammar allows (see the crate docs).
     pub fn generate(
         &self,
         prompt: &str,
@@ -288,6 +291,26 @@ impl Model {
         options: &GenerateOptions,
     ) -> Result<Generation, LlmError> {
         self.run(prompt, prefix, grammar, Stop::When(is_complete), options)
+    }
+
+    /// [`generate`](Self::generate) with the grammar applied to the whole vocabulary at
+    /// every step: much slower for a large grammar, with the confidence renormalised
+    /// over the tokens the grammar allows. Greedy text is the same as `generate`'s.
+    pub fn generate_exact(
+        &self,
+        prompt: &str,
+        prefix: &str,
+        grammar: &str,
+        is_complete: &dyn Fn(&str) -> bool,
+        options: &GenerateOptions,
+    ) -> Result<Generation, LlmError> {
+        self.run(
+            prompt,
+            prefix,
+            grammar,
+            Stop::WhenExact(is_complete),
+            options,
+        )
     }
 
     /// The canonical tokens of `answer` as it follows [`CHOICE_PREFIX`]. The
@@ -447,41 +470,48 @@ impl Model {
 
         // `position` is where the token generated in this step goes.
         for (generated, position) in (1..=options.max_tokens).zip(start..) {
-            // With a trie only its few next tokens can be chosen, so only they are
-            // scored and shown to the grammar: llama.cpp's grammar check over a whole
-            // vocabulary (150k tokens for some models) is the slowest part of a step.
-            let mut candidates = match &stop {
-                Stop::Trie(trie) => {
-                    let logits = ctx.get_logits_ith(batch.n_tokens() - 1);
-                    LlamaTokenDataArray::from_iter(
-                        trie.children(node).filter_map(|t| {
-                            let logit = *logits.get(usize::try_from(t.0).ok()?)?;
-                            Some(LlamaTokenData::new(t, logit, 0.0))
-                        }),
-                        false,
-                    )
+            let (token, p) = if matches!(stop, Stop::When(_)) {
+                self.sampled_first(ctx, batch.n_tokens() - 1, &mut grammar, pending, &mut rng)?
+            } else {
+                // With a trie only its few next tokens can be chosen, so only they are
+                // scored and shown to the grammar: llama.cpp's grammar check over a
+                // whole vocabulary (150k tokens for some models) is the slowest part of
+                // a step.
+                let mut candidates = match &stop {
+                    Stop::Trie(trie) => {
+                        let logits = ctx.get_logits_ith(batch.n_tokens() - 1);
+                        LlamaTokenDataArray::from_iter(
+                            trie.children(node).filter_map(|t| {
+                                let logit = *logits.get(usize::try_from(t.0).ok()?)?;
+                                Some(LlamaTokenData::new(t, logit, 0.0))
+                            }),
+                            false,
+                        )
+                    }
+                    Stop::When(_) | Stop::WhenExact(_) => {
+                        ctx.token_data_array_ith(batch.n_tokens() - 1)
+                    }
+                };
+                grammar.apply(&mut candidates);
+                let allowed: Vec<(LlamaToken, f32)> = candidates
+                    .data
+                    .iter()
+                    .filter(|d| d.logit().is_finite())
+                    // llama.cpp's grammar accepts overlong UTF-8 (e.g. F0 84 B8 AD
+                    // for 中), so the bytes are checked here as well.
+                    .filter(|d| continues_utf8(pending, self.piece(d.id())))
+                    .filter(|d| match &stop {
+                        Stop::Trie(trie) => trie.child(node, d.id()).is_some(),
+                        Stop::When(_) | Stop::WhenExact(_) => true,
+                    })
+                    .map(|d| (d.id(), d.logit()))
+                    .collect();
+                match &mut rng {
+                    None => pick_greedy(&allowed),
+                    Some((rng, temperature)) => pick_random(&allowed, *temperature, rng),
                 }
-                Stop::When(_) => ctx.token_data_array_ith(batch.n_tokens() - 1),
+                .ok_or(LlmError::NoAllowedToken)?
             };
-            grammar.apply(&mut candidates);
-            let allowed: Vec<(LlamaToken, f32)> = candidates
-                .data
-                .iter()
-                .filter(|d| d.logit().is_finite())
-                // llama.cpp's grammar accepts overlong UTF-8 (e.g. F0 84 B8 AD
-                // for 中), so the bytes are checked here as well.
-                .filter(|d| continues_utf8(pending, self.piece(d.id())))
-                .filter(|d| match &stop {
-                    Stop::Trie(trie) => trie.child(node, d.id()).is_some(),
-                    Stop::When(_) => true,
-                })
-                .map(|d| (d.id(), d.logit()))
-                .collect();
-            let (token, p) = match &mut rng {
-                None => pick_greedy(&allowed),
-                Some((rng, temperature)) => pick_random(&allowed, *temperature, rng),
-            }
-            .ok_or(LlmError::NoAllowedToken)?;
             if vocab.is_eog(token) {
                 // The grammar only allows end-of-generation once it is
                 // complete, so the stop condition disagrees with the grammar.
@@ -497,7 +527,9 @@ impl Model {
                     node = trie.child(node, token).ok_or(LlmError::NoAllowedToken)?;
                     trie.is_end(node)
                 }
-                Stop::When(is_complete) => std::str::from_utf8(&bytes).is_ok_and(is_complete),
+                Stop::When(is_complete) | Stop::WhenExact(is_complete) => {
+                    std::str::from_utf8(&bytes).is_ok_and(is_complete)
+                }
             };
             if done {
                 let text = String::from_utf8(bytes).map_err(runtime_error)?;
@@ -517,6 +549,59 @@ impl Model {
         Err(LlmError::TooManyTokens {
             max_tokens: options.max_tokens,
         })
+    }
+
+    /// T2.7: the next token the way llama.cpp's own sampler picks it. A token is
+    /// sampled from the model's whole distribution (the most likely one, greedily) and
+    /// only it is checked against the grammar. Only if the grammar (or the UTF-8 check)
+    /// rejects it does the grammar go over the whole vocabulary, and the pick is made
+    /// among what it allows.
+    ///
+    /// - **Greedy**: the most likely token overall, when allowed, is also the most likely
+    ///   allowed one (ties go to the lowest id either way), so the text is the same as
+    ///   checking every token first.
+    /// - **Random**: drawing from everything and, on a rejection, again from what is
+    ///   allowed gives each allowed token exactly its share of the allowed mass.
+    /// - **The probability returned** is the token's under the model's whole
+    ///   distribution at temperature 1: computing it over the allowed tokens would need
+    ///   the check over the whole vocabulary this avoids.
+    fn sampled_first(
+        &self,
+        ctx: &LlamaContext<'_>,
+        at: i32,
+        grammar: &mut LlamaSampler,
+        pending: &[u8],
+        rng: &mut Option<(SplitMix64, f32)>,
+    ) -> Result<(LlamaToken, f64), LlmError> {
+        let logits = ctx.get_logits_ith(at);
+        let first = match rng {
+            None => greedy_over(logits),
+            Some((rng, temperature)) => draw_over(logits, *temperature, rng),
+        }
+        .ok_or(LlmError::NoAllowedToken)?;
+        let token = LlamaToken(i32::try_from(first).map_err(runtime_error)?);
+        let mut alone =
+            LlamaTokenDataArray::from_iter([LlamaTokenData::new(token, logits[first], 0.0)], false);
+        grammar.apply(&mut alone);
+        if alone.data[0].logit().is_finite() && continues_utf8(pending, self.piece(token)) {
+            return Ok((token, probability_over(logits, first)));
+        }
+        let mut candidates = ctx.token_data_array_ith(at);
+        grammar.apply(&mut candidates);
+        let allowed: Vec<(LlamaToken, f32)> = candidates
+            .data
+            .iter()
+            .filter(|d| d.logit().is_finite())
+            .filter(|d| continues_utf8(pending, self.piece(d.id())))
+            .map(|d| (d.id(), d.logit()))
+            .collect();
+        let (token, _) = match rng {
+            None => pick_greedy(&allowed),
+            Some((rng, temperature)) => pick_random(&allowed, *temperature, rng),
+        }
+        .ok_or(LlmError::NoAllowedToken)?;
+        let index = usize::try_from(token.0).map_err(runtime_error)?;
+        Ok((token, probability_over(logits, index)))
     }
 
     /// A session for many prompts that share `prefix` (a system prompt, a category list,
@@ -691,6 +776,24 @@ impl Session<'_> {
         )
     }
 
+    /// [`Model::generate_exact`] for the prompt `prefix + suffix`.
+    pub fn generate_exact(
+        &mut self,
+        suffix: &str,
+        answer_prefix: &str,
+        grammar: &str,
+        is_complete: &dyn Fn(&str) -> bool,
+        options: &GenerateOptions,
+    ) -> Result<Generation, LlmError> {
+        self.run(
+            suffix,
+            answer_prefix,
+            grammar,
+            Stop::WhenExact(is_complete),
+            options,
+        )
+    }
+
     fn run(
         &mut self,
         suffix: &str,
@@ -790,8 +893,12 @@ fn decode(
 
 /// When generation is complete.
 enum Stop<'a> {
-    /// When the text so far satisfies the caller.
+    /// When the text so far satisfies the caller. The next token is sampled first and
+    /// only it is checked against the grammar (see [`Model::sampled_first`]).
     When(&'a dyn Fn(&str) -> bool),
+    /// As `When`, but the grammar is applied to the whole vocabulary at every step: the
+    /// path before T2.7, for [`Model::generate_exact`].
+    WhenExact(&'a dyn Fn(&str) -> bool),
     /// When the tokens so far are one of the trie's sequences; only tokens
     /// that continue one are allowed.
     Trie(&'a TokenTrie),
@@ -930,6 +1037,67 @@ fn pick_random(
     Some((allowed[i].0, model[i]))
 }
 
+/// The index of the most likely token in `logits`, ties to the lowest index (as
+/// [`pick_greedy`] breaks them). Non-finite logits are skipped.
+fn greedy_over(logits: &[f32]) -> Option<usize> {
+    let mut best: Option<(usize, f32)> = None;
+    for (i, &logit) in logits.iter().enumerate() {
+        if logit.is_finite() && best.is_none_or(|(_, b)| logit > b) {
+            best = Some((i, logit));
+        }
+    }
+    best.map(|(i, _)| i)
+}
+
+/// A random index drawn from the softmax of `logits` at `temperature`.
+fn draw_over(logits: &[f32], temperature: f32, rng: &mut SplitMix64) -> Option<usize> {
+    let t = f64::from(temperature.max(1e-3));
+    let max = logits
+        .iter()
+        .filter(|l| l.is_finite())
+        .map(|&l| f64::from(l))
+        .fold(f64::NEG_INFINITY, f64::max);
+    if !max.is_finite() {
+        return None;
+    }
+    let weight = |l: f32| {
+        if l.is_finite() {
+            ((f64::from(l) - max) / t).exp()
+        } else {
+            0.0
+        }
+    };
+    let total: f64 = logits.iter().map(|&l| weight(l)).sum();
+    let mut target = rng.next_f64() * total;
+    let mut last = None;
+    for (i, &l) in logits.iter().enumerate() {
+        let w = weight(l);
+        if w > 0.0 {
+            last = Some(i);
+            target -= w;
+            if target < 0.0 {
+                return Some(i);
+            }
+        }
+    }
+    last
+}
+
+/// The probability of `logits[index]` under the softmax of `logits` (temperature 1).
+fn probability_over(logits: &[f32], index: usize) -> f64 {
+    let max = logits
+        .iter()
+        .filter(|l| l.is_finite())
+        .map(|&l| f64::from(l))
+        .fold(f64::NEG_INFINITY, f64::max);
+    let sum: f64 = logits
+        .iter()
+        .filter(|l| l.is_finite())
+        .map(|&l| (f64::from(l) - max).exp())
+        .sum();
+    (f64::from(logits[index]) - max).exp() / sum
+}
+
 fn to_basis_points(probability: f64) -> u16 {
     let bp = (probability * f64::from(MAX_BASIS_POINTS)).round();
     // Clamped to 0..=10_000 first, so the cast is exact.
@@ -958,6 +1126,43 @@ impl SplitMix64 {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn the_fast_paths_greedy_pick_breaks_ties_like_pick_greedy() {
+        let logits = [0.5, 2.0, f32::NAN, 2.0, -1.0, f32::NEG_INFINITY];
+        assert_eq!(greedy_over(&logits), Some(1));
+        let (token, _) = pick_greedy(&tokens(&logits[..2])).unwrap();
+        assert_eq!(token, LlamaToken(1));
+        assert_eq!(greedy_over(&[f32::NAN, f32::NEG_INFINITY]), None);
+        assert_eq!(greedy_over(&[]), None);
+    }
+
+    #[test]
+    fn probability_over_the_whole_vocabulary_is_a_softmax() {
+        let logits = [1.0_f32, 2.0, 3.0, f32::NEG_INFINITY];
+        let total: f64 = (0..3).map(|i| probability_over(&logits, i)).sum();
+        assert!((total - 1.0).abs() < 1e-12);
+        let p = probability_over(&logits, 2);
+        assert!((p - 1.0 / (1.0 + (-1.0f64).exp() + (-2.0f64).exp())).abs() < 1e-12);
+        // At most the probability renormalised over fewer tokens.
+        let within = softmax(&tokens(&logits[1..3]), 1.0)[1];
+        assert!(p <= within);
+    }
+
+    #[test]
+    fn drawing_from_the_whole_vocabulary_follows_the_softmax() {
+        let logits = [0.0_f32, (3.0f32).ln(), f32::NAN, f32::NEG_INFINITY];
+        let mut rng = SplitMix64(42);
+        let mut counts = [0usize; 4];
+        for _ in 0..20_000 {
+            counts[draw_over(&logits, 1.0, &mut rng).unwrap()] += 1;
+        }
+        // 1 : 3, and never a non-finite logit.
+        assert_eq!(counts[2] + counts[3], 0);
+        let share = counts[1] as f64 / 20_000.0;
+        assert!((share - 0.75).abs() < 0.02, "{share}");
+        assert_eq!(draw_over(&[f32::NAN], 1.0, &mut rng), None);
+    }
 
     fn tokens(logits: &[f32]) -> Vec<(LlamaToken, f32)> {
         logits

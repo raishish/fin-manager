@@ -397,3 +397,82 @@ fn a_session_refuses_a_suffix_or_answer_over_its_limits() {
     );
     assert!(ok.is_ok(), "{ok:?}");
 }
+
+/// T2.7: sampling first and checking only that token gives the same greedy text as
+/// checking every token, on the categorisation grammar and on T4.2's query grammar; the
+/// fast confidence is the model's probability over its whole vocabulary, so it is at
+/// most the exact one.
+#[test]
+fn the_grammar_fast_path_writes_what_the_full_check_writes() {
+    let Some(model) = model() else { return };
+    let options = GenerateOptions {
+        max_tokens: 96,
+        ..GenerateOptions::default()
+    };
+    let mut compared = 0;
+
+    // The categorisation grammar, over the default category list.
+    let choices = Choices::new(default_keys()).unwrap();
+    for description in [
+        "TRADER JOE'S #552",
+        "SHELL OIL 57444",
+        "NETFLIX.COM",
+        "PAYROLL ACME",
+    ] {
+        let prompt = categorise_prompt(&model, &choices, description);
+        let done = |text: &str| choices.parse(text).is_some();
+        let fast = model.generate(&prompt, CHOICE_PREFIX, &choices.grammar(), &done, &options);
+        let exact =
+            model.generate_exact(&prompt, CHOICE_PREFIX, &choices.grammar(), &done, &options);
+        match (fast, exact) {
+            (Ok(f), Ok(e)) => {
+                assert_eq!((&f.text, f.tokens), (&e.text, e.tokens), "{description}");
+                assert!(f.confidence_bp <= e.confidence_bp, "{description}");
+            }
+            (Err(f), Err(e)) => assert_eq!(f.to_string(), e.to_string()),
+            (f, e) => panic!("{description}: {f:?} / {e:?}"),
+        }
+        compared += 1;
+    }
+
+    // T4.2's query grammar (large: every op, measure and period) on a small ledger.
+    let vocabulary = fm_llm::nl_query::Vocabulary {
+        categories: vec![fm_llm::nl_query::Category {
+            key: "food.groceries".into(),
+            name: "Groceries".into(),
+            group: "food".into(),
+        }],
+        groups: vec![fm_llm::nl_query::Group {
+            key: "food".into(),
+            name: "Food".into(),
+        }],
+        accounts: vec![],
+        currencies: vec![],
+        merchants: vec![],
+    };
+    let grammar = fm_llm::nl_query::grammar(fm_core::query::SCHEMA, &vocabulary)
+        .unwrap()
+        .render();
+    let done = |text: &str| serde_json::from_str::<serde_json::Value>(text).is_ok();
+    for question in ["Groceries in 2025?", "How much did I spend last month?"] {
+        let prompt = model
+            .chat_prompt("Write the query as JSON.", question)
+            .unwrap();
+        let options = GenerateOptions {
+            max_tokens: 64,
+            ..GenerateOptions::default()
+        };
+        let fast = model.generate(&prompt, "", &grammar, &done, &options);
+        let exact = model.generate_exact(&prompt, "", &grammar, &done, &options);
+        match (fast, exact) {
+            (Ok(f), Ok(e)) => {
+                assert_eq!((&f.text, f.tokens), (&e.text, e.tokens), "{question}");
+                assert!(f.confidence_bp <= e.confidence_bp, "{question}");
+            }
+            (Err(f), Err(e)) => assert_eq!(f.to_string(), e.to_string(), "{question}"),
+            (f, e) => panic!("{question}: {f:?} / {e:?}"),
+        }
+        compared += 1;
+    }
+    assert_eq!(compared, 6);
+}

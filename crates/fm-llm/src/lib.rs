@@ -23,8 +23,13 @@
 //!   they sum to 1, and a key that is the only option scores 10 000. Without
 //!   the second mask, other spellings of the same text in tokens take some
 //!   probability (about 6% for a forced `uncategorised` on the test model).
-//!   [`Model::generate`] masks with the grammar alone, so its figure can be
-//!   below the text's total probability in that way.
+//!   [`Model::generate_exact`] masks with the grammar alone, so its figure can be
+//!   below the text's total probability in that way. [`Model::generate`] (T2.7)
+//!   samples each token first and checks only it against the grammar, applying
+//!   the grammar to the whole vocabulary only when the token is rejected: the
+//!   same text, much faster for a large grammar, and its confidence is the
+//!   model's own probability of the text over its whole vocabulary, which is at
+//!   most `generate_exact`'s.
 //! - **Hardware**: Metal on Apple Silicon (all layers offloaded), CPU elsewhere.
 //!   Drop every [`Model`] before the process exits: ggml's Metal backend
 //!   aborts at exit if a model is still loaded, so never keep one in a
